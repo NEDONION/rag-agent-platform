@@ -1156,32 +1156,37 @@ public class RagQaDatasetAppService {
         }
     }
 
-    /** 构建流式Agent */
+    /**
+     * 构建流式Agent
+     * 初始化 QA RAG机器人的系统提示词
+     * */
     private Agent buildStreamingAgent(StreamingChatModel streamingClient) {
         MessageWindowChatMemory memory = MessageWindowChatMemory.builder().maxMessages(10)
                 .chatMemoryStore(new InMemoryChatMemoryStore()).build();
         memory.add(new SystemMessage("""
-        你是一位专业的文档问答助手，你的任务是基于提供的文档回答用户问题。
-        需要遵循以下 Markdown 格式要求：
-        1. 使用标准Markdown语法
-        2. 列表项使用 ' - '，且破折号后有一个空格
-        3. 引用页码使用方括号，例如：[页码: 1]
-        4. 在每个主要段落之间添加一个空行
-        5. 加粗使用 **文本** 格式
-        6. 保持一致的缩进，列表项不要过度缩进
-        7. 确保列表项之间没有多余的空行
-        8. 需要时添加合适的二级标题（## ...）
+        You are a professional document Q&A assistant. Answer questions strictly based on the provided documents.
         
-        语言策略：
-        - 默认镜像用户语言回答（含标题、列表、小节名）。
-        - 若用户明确指定语言（如“请用英文/Answer in English”或消息以 [LANG=<code>] 开头），则严格使用该语言，直至用户更改。
-        - 不混合语言；原文引用保留原文，必要时用用户语言做简短译注。
-        - 代码/变量名/专有名词保持原样。
+        Markdown formatting requirements:
+        1. Use standard Markdown syntax.
+        2. Use list items with " - " (a dash followed by a single space), not "*".
+        3. Cite page numbers in square brackets, e.g., [Page: 1].
+        4. Insert a blank line between major paragraphs.
+        5. Use bold as **text**.
+        6. Keep indentation consistent; do not over-indent list items.
+        7. Do not insert extra blank lines between list items.
+        8. Add appropriate level-2 headings when needed (## ...).
         
-        回答结构：
-        1. 简短的介绍语
-        2. 主要内容（使用列表形式）
-        3. “信息来源”部分，总结使用的页面及其贡献
+        Language policy:
+        - By default, reply in the same language as the user’s message (including headings, lists, and section titles).
+        - If the user explicitly specifies a language (e.g., “Answer in English”, “请用中文回答”) or the message starts with a tag like [LANG=<code>] (e.g., [LANG=en], [LANG=zh]), respond strictly in that language until the user changes it.
+        - If the user specifies Chinese or writes in Chinese, respond in Chinese. Do not mix languages unless the user asks for it.
+        - Preserve quotations from the source documents in their original language; when helpful, add a brief parenthetical gloss in the user’s language.
+        - Keep code, variable names, and proper nouns as-is.
+        
+        Answer structure:
+        1. A brief introductory sentence.
+        2. The main content as a list.
+        3. An “Information Sources” section summarizing the pages used and their contributions.
         """));
 
         return AiServices.builder(Agent.class).streamingChatModel(streamingClient).chatMemory(memory).build();
@@ -1318,7 +1323,7 @@ public class RagQaDatasetAppService {
                     userId, request.getQuestion(), dataSourceInfo.getInstallType());
 
             // 第一阶段：检索文档
-            sendSseData(emitter, AgentChatResponse.build("开始检索相关文档...", MessageType.RAG_RETRIEVAL_START));
+            sendSseData(emitter, AgentChatResponse.build("Start retrieving for relevant documents...", MessageType.RAG_RETRIEVAL_START));
             Thread.sleep(500);
 
             // 获取用户的嵌入模型配置
@@ -1372,7 +1377,7 @@ public class RagQaDatasetAppService {
             }
 
             // 发送检索完成信号
-            String retrievalMessage = String.format("检索完成，找到 %d 个相关文档", retrievedDocs.size());
+            String retrievalMessage = String.format("Retrieval completed, found %d documents", retrievedDocs.size());
             AgentChatResponse retrievalEndResponse = AgentChatResponse.build(retrievalMessage,
                     MessageType.RAG_RETRIEVAL_END);
             try {
@@ -1385,7 +1390,7 @@ public class RagQaDatasetAppService {
             Thread.sleep(500);
 
             // 第二阶段：生成回答
-            sendSseData(emitter, AgentChatResponse.build("开始生成回答...", MessageType.RAG_ANSWER_START));
+            sendSseData(emitter, AgentChatResponse.build("Start generating answers...", MessageType.RAG_ANSWER_START));
             Thread.sleep(500);
 
             // 构建LLM上下文
@@ -1396,11 +1401,11 @@ public class RagQaDatasetAppService {
             generateStreamAnswerAndWait(prompt, userId, emitter);
 
             // 在LLM流式处理完成后发送完成信号
-            sendSseData(emitter, AgentChatResponse.buildEndMessage("回答生成完成", MessageType.RAG_ANSWER_END));
+            sendSseData(emitter, AgentChatResponse.buildEndMessage("Answer generation completed", MessageType.RAG_ANSWER_END));
 
         } catch (Exception e) {
             log.error("Error in processRagStreamChatByUserRag", e);
-            sendSseData(emitter, createErrorResponse("处理过程中发生错误: " + e.getMessage()));
+            sendSseData(emitter, createErrorResponse("An error occurred during processing: " + e.getMessage()));
         }
     }
 
