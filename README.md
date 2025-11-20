@@ -25,6 +25,12 @@ RAG Agent Platform is a multi-tenant agent SaaS platform. Built on LLMs, RAG, an
   - 硅基流动是面向开发者的 AI 模型与算力平台，聚合开源/商用大模型并提供统一 API 的文本、向量、重排与多模态推理服务。
 
 ## Local Setup
+
+### Testing Login Account
+
+- Admin: `admin@agentx.ai / admin123`
+- Test: `test@agentx.ai / test123`
+
 ### RabbitMQ
 
 - Management UI: http://localhost:15672
