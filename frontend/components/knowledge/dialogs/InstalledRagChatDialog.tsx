@@ -36,7 +36,9 @@ export function InstalledRagChatDialog({
     sendMessage,
     clearMessages,
     stopGeneration
-  } = useUserRagChatSession({})
+  } = useUserRagChatSession({
+    userRagId: userRag?.id // 传入 userRagId 以支持持久化
+  })
 
   // 处理文件点击
   const handleFileClick = (file: RetrievedFileInfo) => {

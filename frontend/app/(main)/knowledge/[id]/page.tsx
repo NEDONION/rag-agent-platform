@@ -440,20 +440,29 @@ export default function DatasetDetailPage() {
     try {
       setIsRagSearching(true)
       setShowRagResults(true)
-      
-      const response = await ragSearchWithToast({
+
+      const searchRequest = {
         datasetIds: [datasetId],
         question: ragSearchQuery.trim(),
-        maxResults: 15
-      })
-      
+        maxResults: 100  // 后端最大限制是100
+      }
+
+      console.log('[RAG Search] Request:', searchRequest)
+      console.log('[RAG Search] DatasetId:', datasetId)
+      console.log('[RAG Search] Question:', ragSearchQuery.trim())
+
+      const response = await ragSearchWithToast(searchRequest)
+
+      console.log('[RAG Search] Response:', response)
+
       if (response.code === 200) {
         setSearchDocuments(response.data)
       } else {
+        console.error('[RAG Search] Error response:', response)
         setSearchDocuments([])
       }
     } catch (error) {
-      console.error("RAG搜索失败:", error)
+      console.error("[RAG Search] Exception:", error)
       setSearchDocuments([])
     } finally {
       setIsRagSearching(false)

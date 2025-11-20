@@ -34,6 +34,7 @@ export function RagChatDialog({ open, onOpenChange, dataset }: RagChatDialogProp
     clearMessages,
     stopGeneration
   } = useRagChatSession({
+    datasetId: dataset.id, // 传入 datasetId 以支持持久化
     onError: (error) => {
       toast({
         title: "对话出错",

@@ -1,6 +1,7 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
 import { RagChatSession } from '@/lib/rag-chat-service';
 import type { RagStreamChatRequest, RagThinkingData } from '@/types/rag-dataset';
+import { loadChatHistory, saveChatHistory, clearChatHistory } from './useChatHistory';
 
 // 消息类型定义
 export interface Message {
@@ -17,12 +18,24 @@ export interface Message {
 }
 
 interface UseRagChatSessionOptions {
+  datasetId?: string; // 用于持久化的数据集ID
   onError?: (error: string) => void;
   onDone?: () => void;
 }
 
 export function useRagChatSession(options: UseRagChatSessionOptions = {}) {
   const [messages, setMessages] = useState<Message[]>([]);
+
+  // 初始化时从 localStorage 加载历史记录
+  useEffect(() => {
+    if (options.datasetId) {
+      const history = loadChatHistory(options.datasetId);
+      if (history.length > 0) {
+        console.log('[useRagChatSession] Loaded chat history:', history.length, 'messages');
+        setMessages(history);
+      }
+    }
+  }, [options.datasetId]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentThinking, setCurrentThinking] = useState<RagThinkingData | null>(null);
   const [currentThinkingContent, setCurrentThinkingContent] = useState<string>('');
@@ -30,6 +43,16 @@ export function useRagChatSession(options: UseRagChatSessionOptions = {}) {
   const chatSessionRef = useRef<RagChatSession | null>(null);
   const thinkingContentRef = useRef<string>('');
   const processedTimestamps = useRef<Set<number>>(new Set());
+
+  // 自动保存消息到 localStorage
+  useEffect(() => {
+    if (options.datasetId && messages.length > 0) {
+      const timeoutId = setTimeout(() => {
+        saveChatHistory(options.datasetId!, messages);
+      }, 500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [options.datasetId, messages]);
 
   // 清空对话
   const clearMessages = useCallback(() => {
@@ -42,7 +65,12 @@ export function useRagChatSession(options: UseRagChatSessionOptions = {}) {
     thinkingContentRef.current = '';
     processedTimestamps.current.clear();
     setIsLoading(false);
-  }, []);
+
+    // 清除持久化的历史记录
+    if (options.datasetId) {
+      clearChatHistory(options.datasetId);
+    }
+  }, [options.datasetId]);
 
   // 停止生成
   const stopGeneration = useCallback(() => {

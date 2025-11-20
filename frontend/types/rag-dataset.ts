@@ -156,9 +156,14 @@ export interface FileProcessProgressDTO {
 
 // RAG搜索请求（对应 RagSearchRequest）
 export interface RagSearchRequest {
-  datasetIds: string[]; // 数据集ID列表
-  question: string; // 搜索问题
-  maxResults?: number; // 最大返回结果数量，默认15
+  datasetIds: string[]; // 数据集ID列表（最多20个）
+  question: string; // 搜索问题（1-1000字符）
+  maxResults?: number; // 最大返回结果数量，默认15，范围1-100
+  minScore?: number; // 最小相似度阈值，默认0.7，范围0-1
+  enableRerank?: boolean; // 是否启用重排序，默认true
+  candidateMultiplier?: number; // 搜索候选结果倍数，默认2，范围1-5
+  timeoutSeconds?: number; // 搜索超时时间（秒），默认30，范围1-300
+  enableQueryExpansion?: boolean; // 是否启用查询扩展，默认false
 }
 
 // 文档单元响应（对应 DocumentUnitDTO）

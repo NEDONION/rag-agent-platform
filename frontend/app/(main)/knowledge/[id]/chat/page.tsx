@@ -37,7 +37,9 @@ export default function FullscreenRagChatPage() {
     sendMessage,
     clearMessages,
     stopGeneration
-  } = useRagChatSession({})
+  } = useRagChatSession({
+    datasetId // 传入 datasetId 以支持持久化
+  })
 
   // 加载数据集信息
   useEffect(() => {
