@@ -168,13 +168,8 @@ export function useRagChatSession(options: UseRagChatSessionOptions = {}) {
             });
           },
           onContent: (content, timestamp) => {
-            if (timestamp && processedTimestamps.current.has(timestamp)) {
-              return;
-            }
-            if (timestamp) {
-              processedTimestamps.current.add(timestamp);
-            }
-            
+            // 移除时间戳去重逻辑，避免内容丢失
+
             setMessages(prev => {
               if (prev.length > 0) {
                 const lastMessage = prev[prev.length - 1];

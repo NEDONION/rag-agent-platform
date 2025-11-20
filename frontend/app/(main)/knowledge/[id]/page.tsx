@@ -586,14 +586,24 @@ export default function DatasetDetailPage() {
                     <MessageSquare className="h-4 w-4" />
                     Smart Q&A
                   </label>
-                  <Button 
-                    onClick={() => setShowRagChat(true)}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    Start a conversation
-                  </Button>
+                  <div className="space-y-2">
+                    <Button
+                      onClick={() => router.push(`/knowledge/${datasetId}/chat`)}
+                      variant="default"
+                      className="w-full"
+                    >
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      Fullscreen Mode
+                    </Button>
+                    <Button
+                      onClick={() => setShowRagChat(true)}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      Dialog Mode
+                    </Button>
+                  </div>
                 </div>
 
                 {/* RAG搜索 */}

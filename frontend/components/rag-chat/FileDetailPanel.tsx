@@ -72,10 +72,13 @@ export function FileDetailPanel({ selectedFile, onDataLoad }: FileDetailPanelPro
 
   // 加载文件信息和文档单元
   useEffect(() => {
+    console.log('[FileDetailPanel] selectedFile changed:', selectedFile);
     if (selectedFile) {
+      console.log('[FileDetailPanel] Loading file info and documents for:', selectedFile);
       loadFileInfo();
       loadDocumentUnits(1, debouncedQuery);
     } else {
+      console.log('[FileDetailPanel] No selected file, clearing state');
       setFileInfo(null);
       setDocumentUnits([]);
       setError(null);

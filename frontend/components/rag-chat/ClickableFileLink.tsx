@@ -13,13 +13,14 @@ interface ClickableFileLinkProps {
   className?: string;
 }
 
-export function ClickableFileLink({ 
-  file, 
-  onClick, 
-  isSelected = false, 
-  className 
+export function ClickableFileLink({
+  file,
+  onClick,
+  isSelected = false,
+  className
 }: ClickableFileLinkProps) {
   const handleClick = () => {
+    console.log('[ClickableFileLink] File clicked:', file);
     onClick?.(file);
   };
 

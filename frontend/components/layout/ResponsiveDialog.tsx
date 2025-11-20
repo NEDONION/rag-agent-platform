@@ -24,12 +24,12 @@ export function ResponsiveDialog({
 }: ResponsiveDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent 
+      <DialogContent
         className={cn(
           "p-0 flex flex-col",
-          layout === 'single' 
-            ? "max-w-4xl h-[80vh]" 
-            : "max-w-7xl h-[85vh]",
+          layout === 'single'
+            ? "max-w-5xl h-[80vh]"
+            : "max-w-6xl h-[85vh]",
           className
         )}
       >

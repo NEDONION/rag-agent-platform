@@ -21,15 +21,20 @@ export function useChatLayout() {
 
   // 选择文件并切换到分栏布局
   const selectFile = useCallback((file: RetrievedFileInfo) => {
-    setUIState(prev => ({
-      ...prev,
-      selectedFile: file,
-      showFileDetail: true,
-      layout: 'split',
-      fileDetailData: null, // 清空之前的数据
-      fileDetailLoading: false,
-      fileDetailError: null
-    }));
+    console.log('[useChatLayout] selectFile called with:', file);
+    setUIState(prev => {
+      const newState = {
+        ...prev,
+        selectedFile: file,
+        showFileDetail: true,
+        layout: 'split' as ChatLayout,
+        fileDetailData: null, // 清空之前的数据
+        fileDetailLoading: false,
+        fileDetailError: null
+      };
+      console.log('[useChatLayout] New UI state:', newState);
+      return newState;
+    });
   }, []);
 
   // 关闭文件详情
