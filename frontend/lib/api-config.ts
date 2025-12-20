@@ -1,35 +1,21 @@
-// API / WS 地址配置：优先使用环境变量（Nginx 场景设置为 /api），否则退回当前 Host
-const ENV_API_URL = process.env.NEXT_PUBLIC_API_URL
-const ENV_WS_URL = process.env.NEXT_PUBLIC_WS_URL
-
+// API地址配置 - 智能IP获取，自动适配所有环境
 function getDefaultApiUrl(): string {
-  if (ENV_API_URL) return ENV_API_URL
-
+  // 客户端环境：直接获取当前访问的IP/域名
   if (typeof window !== 'undefined') {
-    const { protocol, host } = window.location
-    return `${protocol}//${host}/api`
+    const { protocol, hostname } = window.location;
+
+    // 自动使用当前访问的地址 + 8088端口
+    // 支持: localhost, 127.0.0.1, 192.168.x.x, 服务器IP, 域名等
+    const apiProtocol = protocol === 'https:' ? 'https:' : 'http:';
+    return `${apiProtocol}//${hostname}:8088/api`;
   }
 
-  // SSR 默认走反向代理路径
-  return '/api'
-}
-
-function getDefaultWsUrl(): string {
-  if (ENV_WS_URL) return ENV_WS_URL
-
-  if (typeof window !== 'undefined') {
-    const { protocol, host } = window.location
-    const wsProtocol = protocol === 'https:' ? 'wss:' : 'ws:'
-    return `${wsProtocol}//${host}/api`
-  }
-
-  // SSR 回退值，实际客户端会用上面的分支
-  return 'ws://localhost/api'
+  // 服务端渲染时的回退值
+  return '/api';
 }
 
 export const API_CONFIG = {
   BASE_URL: getDefaultApiUrl(),
-  WS_URL: getDefaultWsUrl(),
   CURRENT_USER_ID: "1", // 当前用户ID
 }
 
@@ -42,7 +28,7 @@ export const API_ENDPOINTS = {
   DELETE_SESSION: (id: string) => `/agents/sessions/${id}`,
   CHAT: "/agents/sessions/chat",
   SEND_MESSAGE: (sessionId: string) => `/agents/sessions/${sessionId}/message`,
-  
+
   // 任务相关
   SESSION_TASKS: (sessionId: string) => `/tasks/session/${sessionId}/latest`,
   SESSION_TASK_DETAIL: (taskId: string) => `/tasks/${taskId}`,
@@ -60,13 +46,13 @@ export const API_ENDPOINTS = {
   PUBLISH_AGENT_VERSION: (id: string) => `/agents/${id}/publish`,
   PUBLISHED_AGENTS: "/agents/published",
   GENERATE_SYSTEM_PROMPT: "/agents/generate-system-prompt",
-  
+
   // Agent工作区相关
   AGENT_WORKSPACE: "/agents/workspaces",
   ADD_AGENT_TO_WORKSPACE: (agentId: string) => `/agents/workspaces/${agentId}`,
   AGENT_MODEL_CONFIG: (agentId: string) => `/agents/workspaces/${agentId}/model-config`,
   SET_AGENT_MODEL_CONFIG: (agentId: string) => `/agents/workspaces/${agentId}/model/config`,
-  
+
   // LLM相关
   PROVIDERS: "/llms/providers",
   PROVIDER_DETAIL: (id: string) => `/llms/providers/${id}`,
@@ -75,7 +61,7 @@ export const API_ENDPOINTS = {
   DELETE_PROVIDER: (id: string) => `/llms/providers/${id}`,
   PROVIDER_PROTOCOLS: "/llms/providers/protocols",
   TOGGLE_PROVIDER_STATUS: (id: string) => `/llms/providers/${id}/status`,
-  
+
   // 模型相关
   MODELS: "/llms/models", // 获取模型列表
   DEFAULT_MODEL: "/llms/models/default", // 获取默认模型
@@ -85,7 +71,7 @@ export const API_ENDPOINTS = {
   DELETE_MODEL: (id: string) => `/llms/models/${id}`,
   TOGGLE_MODEL_STATUS: (id: string) => `/llms/models/${id}/status`,
   MODEL_TYPES: "/llms/models/types",
-  
+
   // 工具市场相关
   MARKET_TOOLS: "/tools/market",
   MARKET_TOOL_DETAIL: (id: string) => `/tools/market/${id}`,
@@ -105,18 +91,18 @@ export const API_ENDPOINTS = {
   GET_TOOL_LATEST_VERSION: (toolId: string) => `/tools/${toolId}/latest`, // 获取工具最新版本
   UPDATE_TOOL_VERSION_STATUS: (toolId: string, version: string) => `/tools/user/${toolId}/${version}/status`, // 修改工具版本发布状态
   PUBLISH_TOOL_TO_MARKET: "/tools/market", // 上架工具到市场
-  
+
   // 管理员相关
   ADMIN_USERS: "/admin/users", // 管理员获取用户列表
   ADMIN_AGENTS: "/admin/agents", // 管理员获取Agent列表
   ADMIN_AGENT_STATISTICS: "/admin/agents/statistics", // 管理员获取Agent统计
   ADMIN_ORDERS: "/admin/orders", // 管理员获取订单列表
   ADMIN_ORDER_DETAIL: (id: string) => `/admin/orders/${id}`, // 管理员获取订单详情
-  
+
   // 订单相关
   ORDERS: "/orders", // 用户获取订单列表
   ORDER_DETAIL: (id: string) => `/orders/${id}`, // 用户获取订单详情
-  
+
   // API Key 相关
   API_KEYS: "/api-keys", // 获取用户API密钥列表
   CREATE_API_KEY: "/api-keys", // 创建API密钥
@@ -125,7 +111,7 @@ export const API_ENDPOINTS = {
   DELETE_API_KEY: (id: string) => `/api-keys/${id}`, // 删除API密钥
   RESET_API_KEY: (id: string) => `/api-keys/${id}/reset`, // 重置API密钥
   AGENT_API_KEYS: (agentId: string) => `/api-keys/agent/${agentId}`, // 获取Agent的API密钥列表
-  
+
   // RAG 数据集相关
   RAG_DATASETS: "/rag/datasets", // 分页查询数据集
   RAG_ALL_DATASETS: "/rag/datasets/all", // 获取所有数据集
@@ -140,17 +126,17 @@ export const API_ENDPOINTS = {
   RAG_DATASET_FILES_PROGRESS: (datasetId: string) => `/rag/datasets/${datasetId}/files/progress`, // 获取数据集文件处理进度列表
   RAG_SEARCH: "/rag/search", // RAG搜索文档
   RAG_SEARCH_BY_USER_RAG: (userRagId: string) => `/rag/search/user-rag/${userRagId}`, // 基于已安装知识库的RAG搜索
-  
+
   // RAG 文件操作相关
   RAG_FILE_INFO: (fileId: string) => `/rag/files/${fileId}/info`, // 获取文件详细信息
   RAG_DOCUMENT_UNITS: "/rag/files/document-units/list", // 分页查询文件的语料
   RAG_UPDATE_DOCUMENT_UNIT: "/rag/files/document-units", // 更新语料内容
   RAG_DELETE_DOCUMENT_UNIT: (documentUnitId: string) => `/rag/files/document-units/${documentUnitId}`, // 删除语料
-  
+
   // RAG 流式聊天相关
   RAG_STREAM_CHAT: "/rag/search/stream-chat", // RAG流式问答
   RAG_STREAM_CHAT_BY_USER_RAG: (userRagId: string) => `/rag/search/user-rag/${userRagId}/stream-chat`, // 基于已安装知识库的RAG流式问答
-  
+
   // RAG 文件详情相关
   RAG_FILE_DETAIL: "/rag/files/detail", // 获取文件详情
   RAG_FILE_CONTENT: "/rag/files/content", // 获取文件内容
@@ -162,15 +148,15 @@ export function buildApiUrl(endpoint: string, queryParams?: Record<string, any>)
 
   if (queryParams && Object.keys(queryParams).length > 0) {
     const query = Object.entries(queryParams)
-      .filter(([_, value]) => value !== undefined && value !== null)
-      .map(([key, value]) => {
-        if (typeof value === "boolean") {
-          return value ? key : null
-        }
-        return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
-      })
-      .filter(Boolean)
-      .join("&")
+    .filter(([_, value]) => value !== undefined && value !== null)
+    .map(([key, value]) => {
+      if (typeof value === "boolean") {
+        return value ? key : null
+      }
+      return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+    })
+    .filter(Boolean)
+    .join("&")
 
     if (query) {
       url += `?${query}`

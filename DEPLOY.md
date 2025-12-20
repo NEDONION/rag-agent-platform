@@ -31,6 +31,7 @@ mv rag-agent-platform-main rag-agent-platform
 rm -f main.zip
 
 # 3. 配置环境变量
+cd rag-agent-platform/
 vim .env  # 填写必填项
 
 # 4. 登录 ACR

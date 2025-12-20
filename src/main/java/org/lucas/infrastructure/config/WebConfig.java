@@ -18,8 +18,11 @@ public class WebConfig implements WebMvcConfigurer {
     @Bean
     public FilterRegistrationBean<CorsFilter> corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        // 允许所有来源
-        config.addAllowedOriginPattern("*");
+        // 本地开发允许的前端来源（避免 allowCredentials 与 "*" 冲突）
+        config.addAllowedOriginPattern("http://localhost:3000");
+        config.addAllowedOriginPattern("http://127.0.0.1:3000");
+        config.addAllowedOriginPattern("http://localhost");
+        config.addAllowedOriginPattern("http://127.0.0.1");
         // 允许携带认证信息
         config.setAllowCredentials(true);
         // 允许所有请求方法
