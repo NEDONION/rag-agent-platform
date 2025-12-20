@@ -99,8 +99,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       # 用户容器数据卷目录
       - container_volumes:/var/agentx/containers
-    ports:
-      - "${SERVER_PORT:-8088}:8088"
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -137,8 +135,6 @@ services:
 
       NODE_ENV: production
       TZ: Asia/Shanghai
-    ports:
-      - "${FRONTEND_PORT:-3000}:3000"
     depends_on:
       backend:
         condition: service_healthy

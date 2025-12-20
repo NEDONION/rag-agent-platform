@@ -34,6 +34,9 @@ docker login --username=jiachengned crpi-c6nc3ef4yktaqunc.cn-beijing.personal.cr
 
 # 5. 启动
 sudo docker compose up -d
+
+# 6. 启动后验证 - 云端服务器
+curl -i http://localhost:8088/api/actuator/health
 ```
 
 ## 更新

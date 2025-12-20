@@ -1,21 +1,35 @@
-// API地址配置 - 智能IP获取，自动适配所有环境
+// API / WS 地址配置：优先使用环境变量（Nginx 场景设置为 /api），否则退回当前 Host
+const ENV_API_URL = process.env.NEXT_PUBLIC_API_URL
+const ENV_WS_URL = process.env.NEXT_PUBLIC_WS_URL
+
 function getDefaultApiUrl(): string {
-  // 客户端环境：直接获取当前访问的IP/域名
+  if (ENV_API_URL) return ENV_API_URL
+
   if (typeof window !== 'undefined') {
-    const { protocol, hostname } = window.location;
-    
-    // 自动使用当前访问的地址 + 8088端口
-    // 支持: localhost, 127.0.0.1, 192.168.x.x, 服务器IP, 域名等
-    const apiProtocol = protocol === 'https:' ? 'https:' : 'http:';
-    return `${apiProtocol}//${hostname}:8088/api`;
+    const { protocol, host } = window.location
+    return `${protocol}//${host}/api`
   }
-  
-  // 服务端渲染时的回退值
-  return '/api';
+
+  // SSR 默认走反向代理路径
+  return '/api'
+}
+
+function getDefaultWsUrl(): string {
+  if (ENV_WS_URL) return ENV_WS_URL
+
+  if (typeof window !== 'undefined') {
+    const { protocol, host } = window.location
+    const wsProtocol = protocol === 'https:' ? 'wss:' : 'ws:'
+    return `${wsProtocol}//${host}/api`
+  }
+
+  // SSR 回退值，实际客户端会用上面的分支
+  return 'ws://localhost/api'
 }
 
 export const API_CONFIG = {
   BASE_URL: getDefaultApiUrl(),
+  WS_URL: getDefaultWsUrl(),
   CURRENT_USER_ID: "1", // 当前用户ID
 }
 
@@ -165,4 +179,3 @@ export function buildApiUrl(endpoint: string, queryParams?: Record<string, any>)
 
   return url
 }
-
