@@ -4,7 +4,6 @@ npm-debug.log
 yarn-error.log
 package-lock.json
 yarn.lock
-pnpm-lock.yaml
 
 # 编译后的文件和构建工具
 dist/
