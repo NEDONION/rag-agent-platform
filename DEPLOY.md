@@ -22,6 +22,7 @@ cd rag-agent-platform
 
 # 2-替代
 cd ~
+rm -rf rag-agent-platform
 curl -L --retry 5 --retry-delay 2 --connect-timeout 10 \
   -o main.zip https://codeload.github.com/NEDONION/rag-agent-platform/zip/refs/heads/main
 
@@ -30,7 +31,6 @@ mv rag-agent-platform-main rag-agent-platform
 rm -f main.zip
 
 # 3. 配置环境变量
-cp .env.example .env
 vim .env  # 填写必填项
 
 # 4. 登录 ACR

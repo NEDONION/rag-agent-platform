@@ -99,6 +99,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       # 用户容器数据卷目录
       - container_volumes:/var/agentx/containers
+    ports:
+      - "${SERVER_PORT:-8088}:8088"
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -137,6 +139,8 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    ports:
+      - "3000:3000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 30s
