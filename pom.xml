@@ -421,7 +421,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>3.2.3</version>
                 <configuration>
-                    <mainClass>org.xhy.AgentXApplication</mainClass>
+                    <mainClass>org.lucas.RAGAgentPlatformApplication</mainClass>
                     <layout>JAR</layout>
                 </configuration>
                 <executions>

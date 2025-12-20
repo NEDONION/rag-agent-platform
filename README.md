@@ -1,4 +1,4 @@
-# RAG Agent Platform - MVP
+# RAG Agent Platform
 
 RAG Agent Platform is a multi-tenant agent SaaS platform. Built on LLMs, RAG, and MCP, it lets you build knowledge bases and retrieval-augmented pipelines, quickly create and orchestrate agents/LLM bots, and plug in, switch, and configure model providers with one click.
 
@@ -18,11 +18,25 @@ RAG Agent Platform is a multi-tenant agent SaaS platform. Built on LLMs, RAG, an
 - **Object Storage Service**
   - Amazon S3
   - ✅ Qiniu Cloud Object Storage (KODO)
-  - Tencent Cloud Object Storage (COS) 
-- **Model Provider** 
+  - Tencent Cloud Object Storage (COS)
+- **Model Provider**
   - ✅ Silicon Flow 硅基流动 (https://www.siliconflow.com/)
   - SiliconFlow is an AI platform that gives developers a single API to run many models for text, embeddings, reranking, and multimodal tasks.
   - 硅基流动是面向开发者的 AI 模型与算力平台，聚合开源/商用大模型并提供统一 API 的文本、向量、重排与多模态推理服务。
+
+## Deployment 部署
+
+查看 **[部署指南](./DEPLOY.md)**
+
+```bash
+# 本地
+./build-and-push.sh
+
+# 服务器
+docker compose up -d
+```
+
+默认账号: `admin@agentx.ai / admin123`
 
 ## Local Setup
 
@@ -46,7 +60,7 @@ brew services list | grep rabbitmq
 
 # install via homebrew
 brew install rabbitmq
-brew services start rabbitmq      
+brew services start rabbitmq
 
 # stops the locally running RabbitMQ node
 brew services stop rabbitmq
@@ -75,7 +89,7 @@ brew services start postgresql@14
 # 4. Query the current user after startup - 尝试用你的 macOS 用户名登录
 psql -h 127.0.0.1 -p 5432 -U "$(whoami)" -d postgres -c "\du"
 
-# 5. create super user role 
+# 5. create super user role
 # username: postgres, password: postgres
 psql -d postgres -c "CREATE ROLE postgres WITH LOGIN SUPERUSER PASSWORD 'postgres';"
 ```

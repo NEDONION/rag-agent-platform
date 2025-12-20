@@ -1,0 +1,209 @@
+version: '3.8'
+
+# ================================
+# RAG Agent Platform - 完整部署方案
+# ================================
+
+services:
+  # ================================
+  # RabbitMQ
+  # ================================
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: agentx-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+      RABBITMQ_DEFAULT_VHOST: /
+      TZ: Asia/Shanghai
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - agentx-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # ================================
+  # 后端 Spring Boot 应用
+  # ================================
+  backend:
+    image: crpi-c6nc3ef4yktaqunc.cn-beijing.personal.cr.aliyuncs.com/lucas_acr/acr:backend-latest
+    container_name: agentx-backend
+    restart: unless-stopped
+    environment:
+      # 服务器配置
+      SERVER_PORT: ${SERVER_PORT:-8088}
+
+      # 数据库配置（使用外部阿里云 RDS）
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-agentx}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+      # 向量数据库配置（使用外部阿里云 RDS）
+      VECTOR_DB_HOST: ${DB_HOST}
+      VECTOR_DB_PORT: ${DB_PORT:-5432}
+      VECTOR_DB_NAME: ${DB_NAME:-agentx}
+      VECTOR_DB_USER: ${DB_USER}
+      VECTOR_DB_PASSWORD: ${DB_PASSWORD}
+
+      # RabbitMQ 配置
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-guest}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
+
+      # S3 对象存储配置
+      S3_SECRET_ID: ${S3_SECRET_ID}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_REGION: ${S3_REGION:-cn-south-1}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      S3_DOMAIN: ${S3_DOMAIN}
+
+      # AI 模型配置
+      SILICONFLOW_API_KEY: ${SILICONFLOW_API_KEY}
+      SILICONFLOW_API_URL_RERANK: ${SILICONFLOW_API_URL_RERANK:-https://api.siliconflow.com/v1/rerank}
+      SILICONFLOW_MODEL_RERANK_MODEL: ${SILICONFLOW_MODEL_RERANK_MODEL:-Qwen/Qwen3-Reranker-4B}
+
+      # 邮件配置
+      MAIL_SMTP_HOST: ${MAIL_SMTP_HOST:-smtp.qq.com}
+      MAIL_SMTP_PORT: ${MAIL_SMTP_PORT:-587}
+      MAIL_SMTP_USERNAME: ${MAIL_SMTP_USERNAME}
+      MAIL_SMTP_PASSWORD: ${MAIL_SMTP_PASSWORD}
+
+      # JVM 配置
+      JAVA_OPTS: ${JAVA_OPTS:--Xms2g -Xmx4g -XX:+UseG1GC}
+
+      TZ: Asia/Shanghai
+    volumes:
+      - backend_logs:/app/logs
+      # ⚠️ 关键：挂载 Docker Socket（容器管理功能需要）
+      - /var/run/docker.sock:/var/run/docker.sock
+      # 用户容器数据卷目录
+      - container_volumes:/var/agentx/containers
+    ports:
+      - "${SERVER_PORT:-8088}:8088"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088/api/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    networks:
+      - agentx-network
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 6G
+        reservations:
+          cpus: '2'
+          memory: 3G
+
+  # ================================
+  # 前端 Next.js 应用
+  # ================================
+  frontend:
+    image: crpi-c6nc3ef4yktaqunc.cn-beijing.personal.cr.aliyuncs.com/lucas_acr/acr:frontend-latest
+    container_name: agentx-frontend
+    restart: unless-stopped
+    environment:
+      # 后端 API 地址
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8088/api}
+      NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:8088/api}
+
+      NODE_ENV: production
+      TZ: Asia/Shanghai
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - agentx-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  # ================================
+  # Nginx 反向代理 (可选)
+  # ================================
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: agentx-nginx
+    restart: unless-stopped
+    volumes:
+      - ./deploy/nginx.conf/default.conf:/etc/nginx/conf.d/default.conf:ro
+      # SSL 证书目录（如果需要 HTTPS）
+      - ./deploy/ssl:/etc/nginx/ssl:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+      - frontend
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - agentx-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+# ================================
+# 数据卷
+# ================================
+volumes:
+  rabbitmq_data:
+    driver: local
+  backend_logs:
+    driver: local
+  container_volumes:
+    driver: local
+
+# ================================
+# 网络
+# ================================
+networks:
+  agentx-network:
+    driver: bridge

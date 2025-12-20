@@ -1,0 +1,60 @@
+# ================================
+# Docker 构建忽略文件
+# ================================
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# 环境变量
+.env
+.env.local
+.env.*.local
+
+# 日志
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 依赖目录（会在 Docker 内重新安装）
+node_modules/
+target/
+
+# 构建产物
+.next/
+build/
+dist/
+out/
+
+# 测试
+coverage/
+.nyc_output/
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 文档
+*.md
+!DOCKER_DEPLOY.md
+docs/
+
+# 部署相关（已通过 COPY 单独处理）
+docker-compose*.yml
+Dockerfile*
+start.sh
