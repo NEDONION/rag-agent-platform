@@ -43,7 +43,7 @@ services:
   # 后端 Spring Boot 应用
   # ================================
   backend:
-    image: crpi-c6nc3ef4yktaqunc.cn-beijing.personal.cr.aliyuncs.com/lucas_acr/acr:backend-latest
+    image: crpi-c6nc3ef4yktaqunc.cn-beijing.personal.cr.aliyuncs.com/lucas_acr/rag-agent-platform:backend-latest
     container_name: agentx-backend
     restart: unless-stopped
     environment:
@@ -125,7 +125,7 @@ services:
   # 前端 Next.js 应用
   # ================================
   frontend:
-    image: crpi-c6nc3ef4yktaqunc.cn-beijing.personal.cr.aliyuncs.com/lucas_acr/acr:frontend-latest
+    image: crpi-c6nc3ef4yktaqunc.cn-beijing.personal.cr.aliyuncs.com/lucas_acr/rag-agent-platform:frontend-latest
     container_name: agentx-frontend
     restart: unless-stopped
     environment:
