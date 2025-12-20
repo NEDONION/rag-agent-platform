@@ -33,7 +33,7 @@ vim .env  # 填写必填项
 docker login --username=jiachengned crpi-c6nc3ef4yktaqunc.cn-beijing.personal.cr.aliyuncs.com
 
 # 5. 启动
-docker compose up -d
+sudo docker compose up -d
 ```
 
 ## 更新

@@ -33,11 +33,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
-          memory: 2G
+          cpus: '0.3'
+          memory: 512M
         reservations:
-          cpus: '0.5'
-          memory: 1G
+          cpus: '0.1'
+          memory: 256M
 
   # ================================
   # 后端 Spring Boot 应用
@@ -115,11 +115,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '4'
-          memory: 6G
+          cpus: '0.8'
+          memory: 1G
         reservations:
-          cpus: '2'
-          memory: 3G
+          cpus: '0.3'
+          memory: 512M
 
   # ================================
   # 前端 Next.js 应用
@@ -129,9 +129,11 @@ services:
     container_name: agentx-frontend
     restart: unless-stopped
     environment:
-      # 后端 API 地址
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8088/api}
-      NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:8088/api}
+      # 后端 API 地址（必须在 .env 文件中配置为公网可访问地址）
+      # 如果使用 Nginx: /api 或 http://your-domain/api
+      # 如果直接暴露: http://your-server-ip:8088/api
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL}
 
       NODE_ENV: production
       TZ: Asia/Shanghai
@@ -151,11 +153,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2'
-          memory: 2G
+          cpus: '0.4'
+          memory: 512M
         reservations:
-          cpus: '1'
-          memory: 1G
+          cpus: '0.15'
+          memory: 256M
 
   # ================================
   # Nginx 反向代理 (可选)
@@ -184,10 +186,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
-          memory: 512M
+          cpus: '0.2'
+          memory: 256M
         reservations:
-          cpus: '0.25'
+          cpus: '0.1'
           memory: 128M
 
 # ================================
