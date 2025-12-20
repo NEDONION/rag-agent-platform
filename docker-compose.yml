@@ -164,6 +164,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./deploy/nginx.conf/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./deploy/nginx.conf/common.conf:/etc/nginx/conf.d/common.conf:ro
       # SSL 证书目录（如果需要 HTTPS）
       - ./deploy/ssl:/etc/nginx/ssl:ro
     ports:
