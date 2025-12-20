@@ -21,9 +21,13 @@ git clone https://github.com/NEDONION/rag-agent-platform
 cd rag-agent-platform
 
 # 2-替代
-wget https://ghproxy.com/https://github.com/NEDONION/rag-agent-platform/archive/refs/heads/main.zip
-  unzip main.zip && mv rag-agent-platform-main rag-agent-platform
-  cd rag-agent-platform
+cd ~
+curl -L --retry 5 --retry-delay 2 --connect-timeout 10 \
+  -o main.zip https://codeload.github.com/NEDONION/rag-agent-platform/zip/refs/heads/main
+
+unzip -q main.zip
+mv rag-agent-platform-main rag-agent-platform
+rm -f main.zip
 
 # 3. 配置环境变量
 cp .env.example .env
@@ -35,7 +39,10 @@ docker login --username=jiachengned crpi-c6nc3ef4yktaqunc.cn-beijing.personal.cr
 # 5. 启动
 sudo docker compose up -d
 
-# 6. 启动后验证 - 云端服务器
+# 6. 查看 backend 容器启动日志
+sudo docker logs -f agentx-backend
+
+# 7. 启动后验证 - 云端服务器
 curl -i http://localhost:8088/api/actuator/health
 ```
 
