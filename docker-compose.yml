@@ -118,11 +118,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
-          memory: 1G
+          cpus: '1.2'
+          memory: 1536M
         reservations:
           cpus: '0.8'
-          memory: 512M
+          memory: 768M
 
   # ================================
   # 前端 Next.js 应用
@@ -155,11 +155,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.4'
-          memory: 512M
+          cpus: '0.6'
+          memory: 768M
         reservations:
-          cpus: '0.15'
-          memory: 256M
+          cpus: '0.3'
+          memory: 384M
 
 # ================================
 # 数据卷
