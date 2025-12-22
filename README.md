@@ -32,7 +32,7 @@
 
 ## 项目简介
 
-**RAG Agent Platform** 是一个企业级多租户智能体 SaaS 平台，整合了大语言模型（LLM）、检索增强生成（RAG）和模型上下文协议（MCP）技术。本项目设计思路参照 [Dify](https://github.com/langgenius/dify) 平台，采用 DDD 分层架构和事件驱动模式，提供更灵活的技术选型和扩展能力。
+**RAG Agent Platform** 是一个企业级多租户智能体 SaaS 平台，整合了大语言模型（LLM）、检索增强生成（RAG）和模型上下文协议（MCP）技术。本项目的产品视角设计思路参照 [Dify](https://github.com/langgenius/dify) 平台，采用 DDD 分层架构和事件驱动模式，提供更灵活的技术选型和扩展能力。
 
 平台为用户提供：
 
@@ -43,7 +43,6 @@
 - **精确计费** - Token 级别成本统计，完整执行链路追踪
 - **多租户隔离** - 数据库级别隔离，JWT 认证，保障数据安全
 
----
 
 ## 核心特性
 
@@ -71,7 +70,6 @@
 - **限流** - Guava RateLimiter 保护 API
 - **逻辑删除** - 软删除保留历史数据
 
----
 
 ## 系统架构
 
@@ -319,8 +317,6 @@ graph TB
     AI1 --> AI4
 ```
 
----
-
 ## 技术栈
 
 ### 后端
@@ -410,16 +406,6 @@ graph TB
 - 图形验证码（防机器人）
 - 密码重置
 - 用户设置（模型配置、Fallback 策略）
-
-### 6. 计费与账户
-
-- 账户余额管理
-- Token 级别计费（输入 Token + 输出 Token）
-- 使用记录（每次 Agent 执行）
-- 交易记录（充值、扣减、退款）
-- 订单管理（充值订单、支付回调）
-
----
 
 ## 快速开始
 
@@ -521,12 +507,15 @@ npm run dev
 - 管理员: `admin@agentx.ai / admin123`
 - 测试账号: `test@agentx.ai / test123`
 
----
 
 ## Docker Compose 部署
 
-### 一键部署
+### 上传至阿里云容器镜像服务 ACR
 
+![](https://raw.githubusercontent.com/NEDONION/my-pics-space/main/20251222051116.png)
+
+
+### 服务器端部署 Docker 容器
 ```bash
 # 1. 克隆项目
 git clone https://github.com/NEDONION/rag-agent-platform
@@ -662,19 +651,175 @@ rag-agent-platform/
 - 降级召回提升召回率
 
 ### 3. Agent 编排
-- LangChain4j 标准化框架
-- MCP 工具容器化管理
-- 执行链路完整追踪
-- 多模态支持
+## 技术亮点（详细版）
 
-### 4. 性能优化
-- 19 个并发 RabbitMQ 消费者
-- PGVector IVFFlat 索引
-- HikariCP 连接池（最大 20 连接）
-- 模型实例缓存
+### 1. DDD 分层架构与领域驱动设计
 
-### 5. 安全设计
-- JWT 无状态认证
-- 多租户数据隔离
-- API Key AES 加密
-- Guava 限流
+采用严格的 DDD 四层架构，实现高内聚低耦合：
+
+**接口层 (Interfaces Layer)**
+- REST Controller 负责 HTTP 请求处理和参数验证
+- WebSocket Handler 处理实时流式输出
+- DTO 与 Entity 的双向转换（使用 MapStruct 自动生成）
+
+**应用层 (Application Layer)**
+- AppService 作为事务边界，协调多个领域服务
+- 编排复杂业务流程（如 Agent 发布需调用版本服务、审核服务、通知服务）
+- 异常统一处理和日志记录
+
+**领域层 (Domain Layer)**
+- DomainService 封装核心业务逻辑（如 RAG 检索策略、Agent 决策逻辑）
+- Entity 富含业务行为（如 `Agent.publish()` 方法包含发布前的校验逻辑）
+- Repository Interface 定义数据访问契约，遵循依赖倒置原则
+- Event-Driven：通过 Spring ApplicationEvent 实现领域事件发布
+
+**基础设施层 (Infrastructure)**
+- Repository Implementation 使用 MyBatis-Plus 实现
+- LLM Factory 封装多种模型提供商的适配逻辑
+- Docker Client 封装容器管理 API
+
+**优势**：
+- 业务逻辑与技术实现解耦，易于测试和替换
+- 清晰的依赖方向（上层依赖下层，领域层不依赖基础设施层）
+- 便于横向扩展（可将不同领域拆分为微服务）
+
+---
+
+### 2. RAG 混合检索与智能召回
+
+实现了业界领先的 RAG 检索流水线，结合多种技术保证召回质量：
+
+**Vision LLM OCR 文档处理**
+- 使用 Qwen-VL-Max 等视觉大模型进行文档 OCR
+- 支持识别复杂场景：LaTeX 公式、表格、代码块、手写笔记
+- 逐页处理机制：每页独立 OCR 并存储为 `document_unit`，避免内存溢出
+- 内存管理：每处理 10 页执行一次 GC，防止堆内存泄漏
+
+**向量化与存储**
+- 使用 text-embedding-3-large (1024维) / bge-large-zh-v1.5 生成向量
+- PGVector 扩展提供高性能向量存储（IVFFlat 索引）
+- 元数据过滤：支持按 `dataset_id`、`version`、`user_id` 等字段过滤
+
+**混合检索策略**
+1. **向量召回阶段**：
+   - PGVector 余弦相似度检索（Cosine Similarity）
+   - 初始召回 Top-50 候选文档片段
+   - 相似度阈值 0.3（可动态调整）
+
+2. **Rerank 精排阶段**：
+   - 使用 bge-reranker-v2-m3 模型重排序
+   - 将 Top-50 精排至 Top-5，显著提升相关性
+   - 计算跨注意力分数（Cross-Attention Score）
+
+3. **查询扩展**：
+   - 获取命中片段的前后相邻页面（±1 页）
+   - 保证上下文连贯性，避免"断章取义"
+
+4. **降级召回机制**：
+   - 当相似度阈值 > 0.7 但召回数 < 3 时，自动降低阈值至 0.5 重试
+   - 最多重试 3 次，保证用户至少看到部分结果
+
+**版本化机制**
+- 引用型版本 (0.0.1)：向量数据实时同步，动态更新
+- 快照型版本 (≥1.0.0)：向量数据完全隔离，发布时深拷贝向量
+
+---
+
+### 3. Agent 编排与 MCP 工具集成
+
+基于 LangChain4j 构建灵活的 Agent 系统，支持复杂任务分解与工具调用：
+
+**LangChain4j 集成**
+- 使用 `AiServices` 接口自动生成 Agent 代理
+- 支持流式输出（SSE）：前端实时展示 Agent "思考过程"
+- 内置 Prompt 模板引擎（Mustache）
+
+**MCP (Model Context Protocol) 工具管理**
+- 容器化部署：每个 MCP Server 独立运行在 Docker 容器中
+- 工具定义：使用 JSON Schema 描述工具参数（Function Schema）
+- 动态加载：Agent 启动时从数据库加载工具列表并注入到 LLM
+
+**工具调用流程**
+1. LLM 返回 `ToolExecutionRequest`（包含工具名和参数）
+2. 解析工具名称，查找对应的 MCP Server 容器
+3. 通过 HTTP/WebSocket 调用 MCP Server
+4. 获取工具执行结果，注入到下一轮 LLM 推理
+
+**预设参数加密**
+- 用户级工具配置（如 API Key、SMTP 账号）使用 AES-256 加密
+- 存储在 `agent.tool_preset_params` JSONB 字段
+- 运行时解密并注入到工具调用
+
+**执行追踪双表模型**
+- `agent_execution_summary`：汇总表（trace_id、总耗时、总 Token、总成本）
+- `agent_execution_details`：详情表（每个步骤的完整记录）
+- 分区表设计：按月分区（如 `details_202412`），提升查询性能
+
+---
+
+### 4. 高性能异步处理与消息队列
+
+基于 RabbitMQ 构建事件驱动架构，实现高并发文档处理：
+
+**RabbitMQ 配置**
+- 19 个并发消费者（`concurrency=19`）
+- 手动确认模式（Manual ACK）：保证消息不丢失
+- 死信队列（DLX）：处理失败的消息自动转入死信队列
+- 重试机制：最多重试 3 次，超过则标记为失败
+
+**消息队列拓扑**
+- `ocr.queue`：OCR 处理队列
+- `embedding.queue`：向量化处理队列
+- `agent.task.queue`：Agent 异步任务队列
+
+**处理流程**
+1. 用户上传文件 → 发送 OCR 消息
+2. OCR 消费者下载文件 → Vision LLM 识别 → 存储 `document_unit`
+3. 自动触发向量化消息 → Embedding 消费者处理 → 存储向量
+
+**性能优化**
+- 批量插入向量：每 100 条向量批量插入 PGVector
+- 连接池复用：HikariCP 最大 20 连接，避免频繁创建连接
+- 模型实例缓存：LLM 和 Embedding 模型实例缓存在 `ConcurrentHashMap`
+
+---
+
+### 5. 数据库设计与查询优化
+
+**PGVector 向量索引**
+- IVFFlat 索引：将向量空间划分为 100 个聚类（lists=100）
+- 查询时只扫描最近的 10 个聚类（probes=10），大幅提升查询速度
+
+**多租户数据隔离**
+- MyBatis-Plus 多租户插件：自动注入 `WHERE user_id = ?`
+- 所有核心表包含 `user_id` 字段（复合索引）
+
+**分区表设计**
+- `agent_execution_details` 按月分区
+- 自动清理 90 天前的分区，节省存储空间
+
+**慢查询优化**
+- 覆盖索引：查询列表时只查询必要字段（避免 `SELECT *`）
+- 分页优化：使用 `LIMIT + OFFSET` 并配合 `id > last_id` 避免深分页
+
+---
+
+### 6. 安全设计与认证机制
+
+**JWT 无状态认证**
+- 使用 JJWT 库生成 JWT Token（有效期 7 天）
+- Payload 包含：`userId`、`username`、`roles`
+- 签名算法：HS256（HMAC-SHA256）
+
+**API Key 加密存储**
+- 用户的 LLM API Key 使用 AES-256-CBC 加密
+- 加密密钥存储在环境变量 `ENCRYPTION_KEY`
+- 每次调用 LLM 时解密 API Key
+
+**多租户数据隔离**
+- 数据库层面：MyBatis-Plus 自动注入 `user_id` 过滤条件
+- 应用层面：从 JWT Token 提取 `userId`，所有查询自动过滤
+
+**限流与防刷**
+- Guava RateLimiter：单用户每秒最多 10 次 Agent 调用
+- Redis 限流：全局每分钟最多 1000 次 OCR 请求
