@@ -45,6 +45,7 @@ sudo docker logs -f agentx-backend
 
 # 7. 启动后验证 - 云端服务器
 curl -i http://localhost:8088/api/health
+curl -i http://localhost:3000/api/health
 ```
 
 ## 更新

@@ -1,18 +1,13 @@
-// API地址配置 - 智能IP获取，自动适配所有环境
+// API地址配置 - 智能环境适配，支持反向代理
 function getDefaultApiUrl(): string {
   const envApiUrl = process.env.NEXT_PUBLIC_API_URL
   if (envApiUrl) {
     return envApiUrl
   }
 
-  // 客户端环境：直接获取当前访问的IP/域名
+  // 客户端环境：优先使用相对路径，兼容反向代理
   if (typeof window !== 'undefined') {
-    const { protocol, hostname } = window.location;
-
-    // 自动使用当前访问的地址 + 8088端口
-    // 支持: localhost, 127.0.0.1, 192.168.x.x, 服务器IP, 域名等
-    const apiProtocol = protocol === 'https:' ? 'https:' : 'http:';
-    return `${apiProtocol}//${hostname}:8088/api`;
+    return "/api";
   }
 
   // 服务端渲染时的回退值
@@ -26,9 +21,9 @@ function getDefaultWsUrl(): string {
   }
 
   if (typeof window !== 'undefined') {
-    const { protocol, hostname } = window.location;
+    const { protocol, host } = window.location;
     const wsProtocol = protocol === 'https:' ? 'wss:' : 'ws:';
-    return `${wsProtocol}//${hostname}:8088/api`;
+    return `${wsProtocol}//${host}/api`;
   }
 
   return '/api';

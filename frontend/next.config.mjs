@@ -32,6 +32,17 @@ const nextConfig = {
   // 确保静态资源路径正确
   trailingSlash: false,
   generateEtags: false,
+  async rewrites() {
+    if (process.env.NODE_ENV === "development") {
+      return [
+        {
+          source: "/api/:path*",
+          destination: "http://localhost:8088/api/:path*",
+        },
+      ]
+    }
+    return []
+  },
 }
 
 mergeConfig(nextConfig, userConfig)
