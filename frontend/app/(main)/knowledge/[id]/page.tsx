@@ -393,7 +393,7 @@ export default function DatasetDetailPage() {
   // 获取文件状态配置（使用新的统一状态逻辑）
   const getFileStatusDisplay = (file: FileDetail) => {
     const progressInfo = getFileProgressInfo(file.id)
-    return getFileStatusInfo(file, progressInfo)
+    return getFileStatusInfo(file, progressInfo, t)
   }
 
   // 格式化时间
@@ -854,7 +854,7 @@ export default function DatasetDetailPage() {
                           statusEnum === FileProcessingStatusEnum.OCR_COMPLETED ||
                           file.isInitialize === FileInitializeStatus.COMPLETED
                         const statusDescription =
-                          progressInfo?.statusDescription || getStatusDescription(statusEnum)
+                          getStatusDescription(statusEnum, progressInfo?.statusDescription, t)
                         
                         return (
                           <TableRow key={file.id}>

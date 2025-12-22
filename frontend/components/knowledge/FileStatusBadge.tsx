@@ -1,8 +1,11 @@
+"use client"
+
 import { CheckCircle, Clock, AlertCircle, Loader2 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import type { FileDetail, FileProcessProgressDTO } from "@/types/rag-dataset"
 import { getFileStatusConfig, type FileStatusDisplayConfig } from "@/lib/file-status-utils"
+import { useI18n } from "@/contexts/i18n-context"
 
 interface FileStatusBadgeProps {
   file: FileDetail
@@ -10,7 +13,8 @@ interface FileStatusBadgeProps {
 }
 
 export function FileStatusBadge({ file, progressInfo }: FileStatusBadgeProps) {
-  const { status } = getFileStatusConfig(file, progressInfo)
+  const { t } = useI18n()
+  const { status } = getFileStatusConfig(file, progressInfo, t)
   
   const getIcon = (iconType: FileStatusDisplayConfig['iconType']) => {
     switch (iconType) {
