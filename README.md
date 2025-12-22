@@ -1,7 +1,5 @@
-# RAG Agent Platform
+# RAG Agent Platform - 基于 LLM/RAG/MCP 的多租户智能体 SaaS 平台
 
-
-**基于 LLM、RAG 与 MCP 的多租户智能体 SaaS 平台**
 
 [![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://openjdk.java.net/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.3-brightgreen.svg)](https://spring.io/projects/spring-boot)
