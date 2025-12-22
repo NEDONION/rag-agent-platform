@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Database, FileText, Home, Menu, Search, Settings, PenToolIcon as Tool, UploadCloud, LogOut, Wrench, BarChart3, Tag, Wallet, Package, Activity } from "lucide-react"
+import { Database, FileText, Home, Menu, Search, Settings, PenToolIcon as Tool, UploadCloud, LogOut, Wrench, BarChart3, Tag, Wallet, Package, Activity, Languages } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 
 import { cn } from "@/lib/utils"
@@ -21,6 +21,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { deleteCookie } from "@/lib/utils"
 import { getUserInfoWithToast, type UserInfo } from "@/lib/user-service"
 import { useBalance } from "@/contexts/account-context"
+import { useI18n } from "@/contexts/i18n-context"
 
 const navItems = [
   {
@@ -52,6 +53,7 @@ export function NavigationBar() {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const { balance, formatAmount } = useBalance()
+  const { locale, setLocale, t } = useI18n()
 
   // 获取用户信息
   useEffect(() => {
@@ -98,8 +100,8 @@ export function NavigationBar() {
     
     // 显示退出成功提示
     toast({
-      title: "Success",
-      description: "Logout successful"
+      title: t("Success"),
+      description: t("Logout successful"),
     })
     
     // 跳转到登录页
@@ -113,14 +115,14 @@ export function NavigationBar() {
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="mr-2 md:hidden">
               <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle Menu</span>
+              <span className="sr-only">{t("Toggle Menu")}</span>
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="pr-0">
             <div className="px-7">
               <Link href="/" className="flex items-center" onClick={() => setOpen(false)}>
                 <Home className="mr-2 h-5 w-5 text-blue-600" />
-                <span className="font-bold">AgentX Plus</span>
+                <span className="font-bold">{t("AgentX Plus")}</span>
               </Link>
             </div>
             <nav className="mt-6 flex flex-col gap-4 px-2">
@@ -135,7 +137,7 @@ export function NavigationBar() {
                   )}
                 >
                   <item.icon className="h-5 w-5" />
-                  {item.name}
+                  {t(item.name)}
                 </Link>
               ))}
             </nav>
@@ -143,7 +145,7 @@ export function NavigationBar() {
         </Sheet>
         <Link href="/" className="mr-6 flex items-center space-x-2">
           <Home className="h-6 w-6 text-blue-600" />
-          <span className="hidden font-bold sm:inline-block">RAG Agent Platform</span>
+          <span className="hidden font-bold sm:inline-block">{t("RAG Agent Platform")}</span>
         </Link>
         <div className="flex flex-1 items-center justify-between">
           <nav className="flex items-center space-x-6">
@@ -159,7 +161,7 @@ export function NavigationBar() {
                 )}
               >
                 <item.icon className="h-5 w-5" />
-                {item.name}
+                {t(item.name)}
               </Link>
             ))}
           </nav>
@@ -167,8 +169,24 @@ export function NavigationBar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
+                  <Languages className="h-4 w-4" />
+                  <span className="sr-only">{t("Language")}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onSelect={() => setLocale("zh")}>
+                  中文 {locale === "zh" ? "✓" : ""}
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setLocale("en")}>
+                  English {locale === "en" ? "✓" : ""}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User" />
+                    <AvatarImage src="/placeholder.svg?height=32&width=32" alt={t("User")} />
                     <AvatarFallback>
                       {loading ? "..." : getUserAvatarFallback()}
                     </AvatarFallback>
@@ -178,14 +196,14 @@ export function NavigationBar() {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel className="flex items-center gap-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User" />
+                    <AvatarImage src="/placeholder.svg?height=32&width=32" alt={t("User")} />
                     <AvatarFallback>
                       {loading ? "..." : getUserAvatarFallback()}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <div className="font-medium">
-                      {loading ? "Loading..." : (userInfo?.nickname || "Unknown user")}
+                      {loading ? t("Loading...") : (userInfo?.nickname || t("Unknown user"))}
                     </div>
                     {userInfo?.email && (
                       <div className="text-sm text-muted-foreground">
@@ -198,7 +216,7 @@ export function NavigationBar() {
                 <DropdownMenuItem className="cursor-default">
                   <Wallet className="mr-2 h-4 w-4" />
                   <div className="flex items-center justify-between w-full">
-                    <span>Account balance</span>
+                    <span>{t("Account balance")}</span>
                     <span className="font-medium text-green-600">{formatAmount(balance)}</span>
                   </div>
                 </DropdownMenuItem>
@@ -206,13 +224,13 @@ export function NavigationBar() {
                 <DropdownMenuItem asChild>
                   <Link href="/settings/profile">
                     <Settings className="mr-2 h-4 w-4" />
-                    Personal Settings
+                    {t("Personal Settings")}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/settings/general">
                     <Settings className="mr-2 h-4 w-4" />
-                    General Model Settings
+                    {t("General Model Settings")}
                   </Link>
                 </DropdownMenuItem>
                 {/*<DropdownMenuItem asChild>*/}
@@ -230,13 +248,13 @@ export function NavigationBar() {
                 <DropdownMenuItem asChild>
                   <Link href="/settings/api-keys">
                     <Settings className="mr-2 h-4 w-4" />
-                    API Keys
+                    {t("API Keys")}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/settings/providers">
                     <Settings className="mr-2 h-4 w-4" />
-                    Model Providers
+                    {t("Model Providers")}
                   </Link>
                 </DropdownMenuItem>
                 {/*<DropdownMenuItem asChild>*/}
@@ -254,7 +272,7 @@ export function NavigationBar() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
-                  Log out
+                  {t("Log out")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -264,4 +282,3 @@ export function NavigationBar() {
     </header>
   )
 }
-

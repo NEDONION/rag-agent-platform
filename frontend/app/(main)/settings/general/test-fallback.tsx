@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { FallbackConfigComponent } from "@/components/settings/fallback-config"
 import type { FallbackConfig, Model } from "@/lib/user-settings-service"
+import { useI18n } from "@/contexts/i18n-context"
 
 // 模拟模型数据
 const mockModels: Model[] = [
@@ -49,6 +50,7 @@ const mockModels: Model[] = [
 ]
 
 export function TestFallbackConfig() {
+  const { t } = useI18n()
   const [fallbackConfig, setFallbackConfig] = useState<FallbackConfig>({
     enabled: false,
     fallbackChain: []
@@ -62,8 +64,8 @@ export function TestFallbackConfig() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">降级配置测试</h1>
-        <p className="text-muted-foreground">测试拖拽功能和配置保存</p>
+        <h1 className="text-2xl font-bold">{t("降级配置测试")}</h1>
+        <p className="text-muted-foreground">{t("测试拖拽功能和配置保存")}</p>
       </div>
 
       <FallbackConfigComponent
@@ -73,7 +75,7 @@ export function TestFallbackConfig() {
       />
 
       <div className="mt-6 p-4 bg-muted rounded-lg">
-        <h3 className="font-medium mb-2">当前配置:</h3>
+        <h3 className="font-medium mb-2">{t("当前配置:")}</h3>
         <pre className="text-sm">
           {JSON.stringify(fallbackConfig, null, 2)}
         </pre>

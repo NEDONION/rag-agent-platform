@@ -24,8 +24,10 @@ import {
   type FallbackConfig 
 } from "@/lib/user-settings-service"
 import { FallbackConfigComponent } from "@/components/settings/fallback-config"
+import { useI18n } from "@/contexts/i18n-context"
 
 export default function GeneralSettingsPage() {
+  const { t } = useI18n()
   const [settings, setSettings] = useState<UserSettings>({
     settingConfig: {
       defaultModel: null,
@@ -186,8 +188,8 @@ export default function GeneralSettingsPage() {
     return (
       <div className="container mx-auto py-6 space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">通用设置</h1>
-          <p className="text-muted-foreground">管理您的账户偏好设置</p>
+          <h1 className="text-3xl font-bold">{t("通用设置")}</h1>
+          <p className="text-muted-foreground">{t("管理您的账户偏好设置")}</p>
         </div>
         
         <Card>
@@ -206,22 +208,22 @@ export default function GeneralSettingsPage() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">通用设置</h1>
-        <p className="text-muted-foreground">管理您的账户偏好设置</p>
+        <h1 className="text-3xl font-bold">{t("通用设置")}</h1>
+        <p className="text-muted-foreground">{t("管理您的账户偏好设置")}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* 默认模型设置 */}
         <Card>
           <CardHeader>
-            <CardTitle>默认模型</CardTitle>
+            <CardTitle>{t("默认模型")}</CardTitle>
             <CardDescription>
-              选择您的默认AI模型，这将作为新对话的默认选择
+              {t("选择您的默认AI模型，这将作为新对话的默认选择")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <Label htmlFor="default-model">默认模型</Label>
+              <Label htmlFor="default-model">{t("默认模型")}</Label>
               {modelsLoading ? (
                 <Skeleton className="h-10 w-full" />
               ) : (
@@ -230,7 +232,7 @@ export default function GeneralSettingsPage() {
                   onValueChange={handleDefaultModelChange}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="选择默认模型" />
+                    <SelectValue placeholder={t("选择默认模型")} />
                   </SelectTrigger>
                   <SelectContent>
                     {models.map((model) => (
@@ -255,14 +257,14 @@ export default function GeneralSettingsPage() {
         {/* 默认OCR模型设置 */}
         <Card>
           <CardHeader>
-            <CardTitle>默认OCR模型</CardTitle>
+            <CardTitle>{t("默认OCR模型")}</CardTitle>
             <CardDescription>
-              选择用于文档OCR识别的默认模型，用于RAG系统的文档处理
+              {t("选择用于文档OCR识别的默认模型，用于RAG系统的文档处理")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <Label htmlFor="default-ocr-model">默认OCR模型</Label>
+              <Label htmlFor="default-ocr-model">{t("默认OCR模型")}</Label>
               {modelsLoading ? (
                 <Skeleton className="h-10 w-full" />
               ) : (
@@ -271,7 +273,7 @@ export default function GeneralSettingsPage() {
                   onValueChange={handleDefaultOcrModelChange}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="选择默认OCR模型" />
+                    <SelectValue placeholder={t("选择默认OCR模型")} />
                   </SelectTrigger>
                   <SelectContent>
                     {ocrModels.map((model) => (
@@ -296,14 +298,14 @@ export default function GeneralSettingsPage() {
         {/* 默认嵌入模型设置 */}
         <Card>
           <CardHeader>
-            <CardTitle>默认嵌入模型</CardTitle>
+            <CardTitle>{t("默认嵌入模型")}</CardTitle>
             <CardDescription>
-              选择用于向量化的默认嵌入模型，用于RAG系统的语义搜索
+              {t("选择用于向量化的默认嵌入模型，用于RAG系统的语义搜索")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <Label htmlFor="default-embedding-model">默认嵌入模型</Label>
+              <Label htmlFor="default-embedding-model">{t("默认嵌入模型")}</Label>
               {modelsLoading ? (
                 <Skeleton className="h-10 w-full" />
               ) : (
@@ -312,7 +314,7 @@ export default function GeneralSettingsPage() {
                   onValueChange={handleDefaultEmbeddingModelChange}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="选择默认嵌入模型" />
+                    <SelectValue placeholder={t("选择默认嵌入模型")} />
                   </SelectTrigger>
                   <SelectContent>
                     {embeddingModels.map((model) => (
@@ -351,7 +353,7 @@ export default function GeneralSettingsPage() {
               disabled={submitting}
               className="w-full"
             >
-              {submitting ? "保存中..." : "保存设置"}
+              {submitting ? t("保存中...") : t("保存设置")}
             </Button>
           </CardFooter>
         </Card>

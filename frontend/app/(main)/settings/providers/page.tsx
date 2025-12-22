@@ -37,6 +37,7 @@ import { Switch } from "@/components/ui/switch"
 import { Metadata } from "next"
 import { redirect } from "next/navigation"
 import Image from "next/image"
+import { useI18n } from "@/contexts/i18n-context"
 
 // 服务商接口
 interface Model {
@@ -69,7 +70,8 @@ interface Provider {
 }
 
 export default function ProvidersPage() {
-  const [activeTab, setActiveTab] = useState("全部")
+  const { t } = useI18n()
+  const [activeTab, setActiveTab] = useState<"all" | "official" | "personal">("all")
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null)
   const [showDetailDialog, setShowDetailDialog] = useState(false)
   const [providers, setProviders] = useState<Provider[]>([])
@@ -95,9 +97,9 @@ export default function ProvidersPage() {
     setLoading(true)
     try {
       let type: string | undefined;
-      if (activeTab === "官方服务") {
+      if (activeTab === "official") {
         type = "official";
-      } else if (activeTab === "自定义服务") {
+      } else if (activeTab === "personal") {
         type = "custom";
       }
       
@@ -106,11 +108,11 @@ export default function ProvidersPage() {
         console.log("服务商数据:", response.data)
         setProviders(response.data)
       } else {
-        setError(response.message || "获取服务商列表失败")
+        setError(response.message || t("获取服务商列表失败"))
       }
     } catch (err) {
       console.error("获取服务商错误:", err)
-      setError("获取服务商数据失败")
+      setError(t("获取服务商数据失败"))
     } finally {
       setLoading(false)
     }
@@ -165,7 +167,7 @@ export default function ProvidersPage() {
         setShowProviderDialog(true);
       } else {
         toast({
-          title: "获取提供商详情失败",
+          title: t("获取提供商详情失败"),
           description: response.message,
           variant: "destructive"
         });
@@ -173,8 +175,8 @@ export default function ProvidersPage() {
     } catch (err) {
       console.error("获取服务商详情错误:", err);
       toast({
-        title: "获取提供商详情失败",
-        description: "请稍后重试",
+        title: t("获取提供商详情失败"),
+        description: t("请稍后重试"),
         variant: "destructive"
       });
     }
@@ -347,7 +349,7 @@ export default function ProvidersPage() {
     return (
       <div className="container py-6 flex flex-col items-center justify-center min-h-[400px]">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="mt-4 text-muted-foreground">加载服务商...</p>
+        <p className="mt-4 text-muted-foreground">{t("加载服务商...")}</p>
       </div>
     )
   }
@@ -357,14 +359,14 @@ export default function ProvidersPage() {
     return (
       <div className="container py-6">
         <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
-          <h3 className="text-red-800 font-medium">加载失败</h3>
+          <h3 className="text-red-800 font-medium">{t("加载失败")}</h3>
           <p className="text-red-600">{error}</p>
           <Button 
             variant="outline" 
             className="mt-2" 
             onClick={() => window.location.reload()}
           >
-            重试
+            {t("重试")}
           </Button>
         </div>
       </div>
@@ -375,26 +377,26 @@ export default function ProvidersPage() {
     <div className="container py-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Model Provider</h1>
-          <p className="text-muted-foreground">Manage your Model Providers and API keys</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("Model Provider")}</h1>
+          <p className="text-muted-foreground">{t("Manage your Model Providers and API keys")}</p>
         </div>
         <Button className="flex items-center gap-2" onClick={openAddDialog}>
           <Plus className="h-4 w-4" />
-          Add a Model Provider
+          {t("Add a Model Provider")}
         </Button>
       </div>
       
-      <Tabs defaultValue="全部" className="space-y-6" value={activeTab} onValueChange={setActiveTab}>
+      <Tabs defaultValue="all" className="space-y-6" value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
-          <TabsTrigger value="全部">All</TabsTrigger>
-          <TabsTrigger value="官方服务">Official Providers</TabsTrigger>
-          <TabsTrigger value="自定义服务">Personal Providers</TabsTrigger>
+          <TabsTrigger value="all">{t("All")}</TabsTrigger>
+          <TabsTrigger value="official">{t("Official Providers")}</TabsTrigger>
+          <TabsTrigger value="personal">{t("Personal Providers")}</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="全部" className="space-y-6">
+        <TabsContent value="all" className="space-y-6">
           {filteredProviders.length === 0 ? (
             <div className="text-center py-10 border rounded-md bg-gray-50">
-              <p className="text-muted-foreground">No model providers data</p>
+              <p className="text-muted-foreground">{t("No model providers data")}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -416,7 +418,7 @@ export default function ProvidersPage() {
                             {provider.protocol}
                             {provider.isOfficial && (
                               <Badge variant="outline" className="ml-2 text-[10px]">
-                                Official
+                                {t("Official")}
                               </Badge>
                             )}
                           </CardDescription>
@@ -427,17 +429,17 @@ export default function ProvidersPage() {
                           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                             <Button variant="ghost" size="icon" className="absolute top-2 right-2">
                               <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Open menu</span>
+                              <span className="sr-only">{t("Open menu")}</span>
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={(e) => openEditDialog(provider, e)}>
                               <Edit className="mr-2 h-4 w-4" />
-                              Edit
+                              {t("Edit")}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={(e) => openDeleteConfirm(provider, e)}>
                               <Trash className="mr-2 h-4 w-4" />
-                              Delete
+                              {t("Delete")}
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={(e) => toggleProviderStatus(provider, e)}
@@ -446,12 +448,12 @@ export default function ProvidersPage() {
                               {provider.status ? (
                                 <>
                                   <PowerOff className="mr-2 h-4 w-4" />
-                                  Disable
+                                  {t("Disable")}
                                 </>
                               ) : (
                                 <>
                                   <Power className="mr-2 h-4 w-4" />
-                                  Enable
+                                  {t("Enable")}
                                 </>
                               )}
                             </DropdownMenuItem>
@@ -462,21 +464,21 @@ export default function ProvidersPage() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground mb-3">
-                      {provider.description || "No description"}
+                      {provider.description || t("No description")}
                     </p>
                     <div className="flex flex-wrap gap-1 mt-2">
                       {provider.status ? (
                         <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
-                          Enabled
+                          {t("Enabled")}
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">
-                          Disabled
+                          {t("Disabled")}
                         </Badge>
                       )}
                       {provider.models && provider.models.length > 0 && (
                         <div className="w-full mt-2">
-                          <p className="text-xs text-muted-foreground mb-1">Available Models:</p>
+                          <p className="text-xs text-muted-foreground mb-1">{t("Available Models:")}</p>
                           <div className="flex flex-wrap gap-1">
                             {provider.models.slice(0, 3).map((model, index) => (
                               <Badge key={index} variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
@@ -499,10 +501,10 @@ export default function ProvidersPage() {
           )}
         </TabsContent>
         
-        <TabsContent value="官方服务" className="space-y-6">
+        <TabsContent value="official" className="space-y-6">
           {filteredProviders.length === 0 ? (
             <div className="text-center py-10 border rounded-md bg-gray-50">
-              <p className="text-muted-foreground">暂无官方服务商数据</p>
+              <p className="text-muted-foreground">{t("暂无官方服务商数据")}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -524,7 +526,7 @@ export default function ProvidersPage() {
                             {provider.protocol}
                             {provider.isOfficial && (
                               <Badge variant="outline" className="ml-2 text-[10px]">
-                                官方
+                                {t("官方")}
                               </Badge>
                             )}
                           </CardDescription>
@@ -534,21 +536,21 @@ export default function ProvidersPage() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground mb-3">
-                      {provider.description || "No description"}
+                      {provider.description || t("No description")}
                     </p>
                     <div className="flex flex-wrap gap-1 mt-2">
                       {provider.status ? (
                         <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
-                          已启用
+                          {t("已启用")}
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">
-                          已禁用
+                          {t("已禁用")}
                         </Badge>
                       )}
                       {provider.models && provider.models.length > 0 && (
                         <div className="w-full mt-2">
-                          <p className="text-xs text-muted-foreground mb-1">可用模型:</p>
+                          <p className="text-xs text-muted-foreground mb-1">{t("可用模型:")}</p>
                           <div className="flex flex-wrap gap-1">
                             {provider.models.slice(0, 3).map((model, index) => (
                               <Badge key={index} variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
@@ -571,10 +573,10 @@ export default function ProvidersPage() {
           )}
         </TabsContent>
         
-        <TabsContent value="自定义服务" className="space-y-6">
+        <TabsContent value="personal" className="space-y-6">
           {filteredProviders.length === 0 ? (
             <div className="text-center py-10 border rounded-md bg-gray-50">
-              <p className="text-muted-foreground">暂无自定义服务商数据</p>
+              <p className="text-muted-foreground">{t("暂无自定义服务商数据")}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -596,7 +598,7 @@ export default function ProvidersPage() {
                             {provider.protocol}
                             {provider.isOfficial && (
                               <Badge variant="outline" className="ml-2 text-[10px]">
-                                官方
+                                {t("官方")}
                               </Badge>
                             )}
                           </CardDescription>
@@ -607,17 +609,17 @@ export default function ProvidersPage() {
                           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                             <Button variant="ghost" size="icon" className="absolute top-2 right-2">
                               <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">打开菜单</span>
+                              <span className="sr-only">{t("打开菜单")}</span>
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={(e) => openEditDialog(provider, e)}>
                               <Edit className="mr-2 h-4 w-4" />
-                              编辑
+                              {t("编辑")}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={(e) => openDeleteConfirm(provider, e)}>
                               <Trash className="mr-2 h-4 w-4" />
-                              删除
+                              {t("删除")}
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={(e) => toggleProviderStatus(provider, e)}
@@ -626,12 +628,12 @@ export default function ProvidersPage() {
                               {provider.status ? (
                                 <>
                                   <PowerOff className="mr-2 h-4 w-4" />
-                                  禁用
+                                  {t("禁用")}
                                 </>
                               ) : (
                                 <>
                                   <Power className="mr-2 h-4 w-4" />
-                                  启用
+                                  {t("启用")}
                                 </>
                               )}
                             </DropdownMenuItem>
@@ -642,21 +644,21 @@ export default function ProvidersPage() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground mb-3">
-                      {provider.description || "No description"}
+                      {provider.description || t("No description")}
                     </p>
                     <div className="flex flex-wrap gap-1 mt-2">
                       {provider.status ? (
                         <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
-                          已启用
+                          {t("已启用")}
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">
-                          已禁用
+                          {t("已禁用")}
                         </Badge>
                       )}
                       {provider.models && provider.models.length > 0 && (
                         <div className="w-full mt-2">
-                          <p className="text-xs text-muted-foreground mb-1">可用模型:</p>
+                          <p className="text-xs text-muted-foreground mb-1">{t("可用模型:")}</p>
                           <div className="flex flex-wrap gap-1">
                             {provider.models.slice(0, 3).map((model, index) => (
                               <Badge key={index} variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
@@ -686,10 +688,10 @@ export default function ProvidersPage() {
           <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col overflow-hidden">
             <DialogHeader>
               <DialogTitle className="flex justify-between items-center">
-                <span>Model Provider Details</span>
+                <span>{t("Model Provider Details")}</span>
               </DialogTitle>
               <DialogDescription>
-                View and manage provider details and model configurations
+                {t("View and manage provider details and model configurations")}
               </DialogDescription>
             </DialogHeader>
             
@@ -708,15 +710,15 @@ export default function ProvidersPage() {
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-sm text-muted-foreground">{selectedProvider.protocol}</span>
                       {selectedProvider.isOfficial && (
-                        <Badge variant="outline">Official</Badge>
+                        <Badge variant="outline">{t("Official")}</Badge>
                       )}
                       {selectedProvider.status ? (
                         <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
-                          Enabled
+                          {t("Enabled")}
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">
-                          Disabled
+                          {t("Disabled")}
                         </Badge>
                       )}
                     </div>
@@ -728,17 +730,17 @@ export default function ProvidersPage() {
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
                             <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">打开菜单</span>
+                            <span className="sr-only">{t("打开菜单")}</span>
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => openEditDialog(selectedProvider)}>
                             <Edit className="mr-2 h-4 w-4" />
-                            编辑
+                            {t("编辑")}
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={(e) => openDeleteConfirm(selectedProvider, e)}>
                             <Trash className="mr-2 h-4 w-4" />
-                            删除
+                            {t("删除")}
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={(e) => toggleProviderStatus(selectedProvider, e)}
@@ -747,12 +749,12 @@ export default function ProvidersPage() {
                             {selectedProvider.status ? (
                               <>
                                 <PowerOff className="mr-2 h-4 w-4" />
-                                禁用
+                                {t("禁用")}
                               </>
                             ) : (
                               <>
                                 <Power className="mr-2 h-4 w-4" />
-                                启用
+                                {t("启用")}
                               </>
                             )}
                           </DropdownMenuItem>
@@ -763,9 +765,9 @@ export default function ProvidersPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <h4 className="font-medium">Description</h4>
+                  <h4 className="font-medium">{t("Description")}</h4>
                   <p className="text-sm text-muted-foreground">
-                    {selectedProvider.description || "No description"}
+                    {selectedProvider.description || t("No description")}
                   </p>
                 </div>
                 
@@ -774,11 +776,11 @@ export default function ProvidersPage() {
                 {/* 模型列表 */}
                 <div className="flex-1 overflow-hidden flex flex-col">
                   <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-lg font-semibold">Model List</h3>
+                    <h3 className="text-lg font-semibold">{t("Model List")}</h3>
                     {!selectedProvider.isOfficial && (
                       <Button variant="outline" size="sm" onClick={openAddModelDialog}>
                         <PlusCircle className="h-4 w-4 mr-1" />
-                        Add Model
+                        {t("Add Model")}
                       </Button>
                     )}
                   </div>
@@ -786,7 +788,9 @@ export default function ProvidersPage() {
                   <ScrollArea className="flex-1">
                     {!selectedProvider.models || selectedProvider.models.length === 0 ? (
                       <div className="text-center py-6 text-muted-foreground">
-                        No model yet{!selectedProvider.isOfficial && "，点击添加按钮创建模型"}
+                        {selectedProvider.isOfficial
+                          ? t("No model yet")
+                          : t("No model yet, click Add to create one")}
                       </div>
                     ) : (
                       <div className="space-y-2">
@@ -796,9 +800,9 @@ export default function ProvidersPage() {
                               <div>
                                 <div className="font-medium">{model.name}</div>
                                 <div className="text-sm text-muted-foreground flex items-center space-x-2">
-                                  <span>ID: {model.modelId}</span>
+                                  <span>{t("ID")}: {model.modelId}</span>
                                   <span>·</span>
-                                  <span>Type: {model.type}</span>
+                                  <span>{t("Type")}: {model.type}</span>
                                 </div>
                                 {model.description && (
                                   <div className="text-sm mt-1">{model.description}</div>
@@ -860,20 +864,20 @@ export default function ProvidersPage() {
               </div>
             ) : (
               <div className="text-center py-10 text-muted-foreground">
-                无法加载服务商详情
+                {t("无法加载服务商详情")}
               </div>
             )}
             
             <DialogFooter>
               <Button variant="outline" onClick={closeDetail}>
-                Close
+                {t("Close")}
               </Button>
               {!selectedProvider?.isOfficial && (
                 <Button 
                   onClick={() => selectedProvider && openEditDialog(selectedProvider)}
                   disabled={!selectedProvider}
                 >
-                  Edit Configuration
+                  {t("Edit Configuration")}
                 </Button>
               )}
             </DialogFooter>
@@ -885,22 +889,22 @@ export default function ProvidersPage() {
       <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Delete Model Provider</DialogTitle>
+            <DialogTitle>{t("Delete Model Provider")}</DialogTitle>
             <DialogDescription>
-              您确定要删除此服务商吗？此操作无法撤销。
+              {t("您确定要删除此服务商吗？此操作无法撤销。")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)} disabled={isDeleting}>
-              取消
+              {t("取消")}
             </Button>
             <Button variant="destructive" onClick={confirmDelete} disabled={isDeleting}>
               {isDeleting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  删除中...
+                  {t("删除中...")}
                 </>
-              ) : "确认删除"}
+              ) : t("确认删除")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -918,22 +922,22 @@ export default function ProvidersPage() {
       <Dialog open={deleteModelConfirmOpen} onOpenChange={setDeleteModelConfirmOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>删除模型</DialogTitle>
+            <DialogTitle>{t("删除模型")}</DialogTitle>
             <DialogDescription>
-              您确定要删除此模型吗？此操作无法撤销。
+              {t("您确定要删除此模型吗？此操作无法撤销。")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteModelConfirmOpen(false)} disabled={isDeletingModel}>
-              取消
+              {t("取消")}
             </Button>
             <Button variant="destructive" onClick={confirmDeleteModel} disabled={isDeletingModel}>
               {isDeletingModel ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  删除中...
+                  {t("删除中...")}
                 </>
-              ) : "确认删除"}
+              ) : t("确认删除")}
             </Button>
           </DialogFooter>
         </DialogContent>

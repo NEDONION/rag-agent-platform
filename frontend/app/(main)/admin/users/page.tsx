@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search } from "lucide-react";
 import { getUsersWithToast, User, PageResponse } from "@/lib/admin-user-service";
 import { useToast } from "@/hooks/use-toast";
+import { useI18n } from "@/contexts/i18n-context";
 import {
   Pagination,
   PaginationContent,
@@ -20,6 +21,7 @@ import {
 } from "@/components/ui/pagination";
 
 export default function UsersPage() {
+  const { t } = useI18n();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -149,7 +151,7 @@ export default function UsersPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg">加载中...</div>
+        <div className="text-lg">{t("加载中...")}</div>
       </div>
     );
   }
@@ -158,8 +160,8 @@ export default function UsersPage() {
     <div className="space-y-6">
       {/* 页面标题 */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">用户管理</h1>
-        <p className="text-gray-600 mt-1">查看系统中的所有用户账户信息</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t("用户管理")}</h1>
+        <p className="text-gray-600 mt-1">{t("查看系统中的所有用户账户信息")}</p>
       </div>
 
       {/* 搜索和过滤 */}
@@ -168,7 +170,7 @@ export default function UsersPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
-              placeholder="搜索用户邮箱或用户名..."
+              placeholder={t("搜索用户邮箱或用户名...")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -180,17 +182,17 @@ export default function UsersPage() {
       {/* 用户列表 */}
       <Card>
         <CardHeader>
-          <CardTitle>用户列表 ({pageData.total})</CardTitle>
+          <CardTitle>{t("用户列表 ({count})", { count: pageData.total })}</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>用户信息</TableHead>
-                <TableHead>登录平台</TableHead>
-                <TableHead>GitHub信息</TableHead>
-                <TableHead>注册时间</TableHead>
-                <TableHead>更新时间</TableHead>
+                <TableHead>{t("用户信息")}</TableHead>
+                <TableHead>{t("登录平台")}</TableHead>
+                <TableHead>{t("GitHub信息")}</TableHead>
+                <TableHead>{t("注册时间")}</TableHead>
+                <TableHead>{t("更新时间")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -221,10 +223,10 @@ export default function UsersPage() {
                     {user.githubLogin ? (
                       <div className="text-sm">
                         <div className="font-medium">{user.githubLogin}</div>
-                        <div className="text-gray-500">ID: {user.githubId}</div>
+                        <div className="text-gray-500">{t("ID")}: {user.githubId}</div>
                       </div>
                     ) : (
-                      <div className="text-sm text-gray-400">未绑定</div>
+                      <div className="text-sm text-gray-400">{t("未绑定")}</div>
                     )}
                   </TableCell>
                   <TableCell>
@@ -240,7 +242,7 @@ export default function UsersPage() {
           
           {users.length === 0 && !loading && (
             <div className="text-center py-8 text-gray-500">
-              {searchQuery ? "没有找到匹配的用户" : "暂无用户数据"}
+              {searchQuery ? t("没有找到匹配的用户") : t("暂无用户数据")}
             </div>
           )}
         </CardContent>

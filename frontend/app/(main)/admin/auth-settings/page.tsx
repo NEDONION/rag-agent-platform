@@ -23,10 +23,12 @@ import {
 import type { AuthSetting, FeatureType } from "@/lib/types/auth-config";
 import { FEATURE_TYPE, AUTH_FEATURE_KEY } from "@/lib/types/auth-config";
 import SSOConfigDialog from "./components/SSOConfigDialog";
+import { useI18n } from "@/contexts/i18n-context";
 
 interface AuthSettingsPageProps {}
 
 export default function AuthSettingsPage({}: AuthSettingsPageProps) {
+  const { t } = useI18n();
   const [authSettings, setAuthSettings] = useState<AuthSetting[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -65,15 +67,15 @@ export default function AuthSettingsPage({}: AuthSettingsPageProps) {
         
         // 显示成功提示
         toast({
-          title: "设置更新成功",
-          description: `${setting.featureName} 已${newEnabled ? '启用' : '禁用'}`,
+          title: t("设置更新成功"),
+          description: `${setting.featureName} ${newEnabled ? t("已启用") : t("已禁用")}`,
           variant: "default",
         });
       }
     } catch (error) {
       toast({
-        title: "设置更新失败",
-        description: "请检查网络连接后重试",
+        title: t("设置更新失败"),
+        description: t("请检查网络连接后重试"),
         variant: "destructive",
       });
     }
@@ -103,7 +105,7 @@ export default function AuthSettingsPage({}: AuthSettingsPageProps) {
 
   // 获取功能类型显示名称
   const getFeatureTypeDisplay = (featureType: string) => {
-    return featureType === FEATURE_TYPE.LOGIN ? "登录功能" : "注册功能";
+    return featureType === FEATURE_TYPE.LOGIN ? t("登录功能") : t("注册功能");
   };
 
   // 按功能类型分组
@@ -135,8 +137,8 @@ export default function AuthSettingsPage({}: AuthSettingsPageProps) {
       {/* 页面标题 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">认证设置</h1>
-          <p className="text-gray-600 mt-1">管理用户登录和注册方式的配置</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t("认证设置")}</h1>
+          <p className="text-gray-600 mt-1">{t("管理用户登录和注册方式的配置")}</p>
         </div>
       </div>
 
@@ -153,8 +155,8 @@ export default function AuthSettingsPage({}: AuthSettingsPageProps) {
                 </CardTitle>
                 <CardDescription>
                   {featureType === FEATURE_TYPE.LOGIN 
-                    ? "配置用户可用的登录方式" 
-                    : "配置用户注册功能"}
+                    ? t("配置用户可用的登录方式") 
+                    : t("配置用户注册功能")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -177,7 +179,7 @@ export default function AuthSettingsPage({}: AuthSettingsPageProps) {
                                 variant={setting.enabled ? "default" : "secondary"}
                                 className={setting.enabled ? "bg-green-100 text-green-800" : ""}
                               >
-                                {setting.enabled ? "已启用" : "已禁用"}
+                                {setting.enabled ? t("已启用") : t("已禁用")}
                               </Badge>
                             </div>
                             <p className="text-sm text-gray-600 mt-1">
@@ -213,25 +215,25 @@ export default function AuthSettingsPage({}: AuthSettingsPageProps) {
         <CardHeader>
           <CardTitle className="text-blue-900 text-base flex items-center gap-2">
             <Shield className="h-4 w-4" />
-            配置说明
+            {t("配置说明")}
           </CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-blue-800 space-y-2">
           <div className="flex items-start gap-2">
             <ChevronRight className="h-4 w-4 mt-0.5 flex-shrink-0" />
-            <span>普通登录：用户使用邮箱/手机号和密码进行登录</span>
+            <span>{t("普通登录：用户使用邮箱/手机号和密码进行登录")}</span>
           </div>
           <div className="flex items-start gap-2">
             <ChevronRight className="h-4 w-4 mt-0.5 flex-shrink-0" />
-            <span>GitHub登录：用户通过GitHub账号进行OAuth登录</span>
+            <span>{t("GitHub登录：用户通过GitHub账号进行OAuth登录")}</span>
           </div>
           <div className="flex items-start gap-2">
             <ChevronRight className="h-4 w-4 mt-0.5 flex-shrink-0" />
-            <span>敲鸭登录：用户通过敲鸭社区账号进行OAuth登录</span>
+            <span>{t("敲鸭登录：用户通过敲鸭社区账号进行OAuth登录")}</span>
           </div>
           <div className="flex items-start gap-2">
             <ChevronRight className="h-4 w-4 mt-0.5 flex-shrink-0" />
-            <span>用户注册：控制是否允许新用户注册账号</span>
+            <span>{t("用户注册：控制是否允许新用户注册账号")}</span>
           </div>
         </CardContent>
       </Card>

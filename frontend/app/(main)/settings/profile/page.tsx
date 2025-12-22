@@ -10,8 +10,10 @@ import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "@/hooks/use-toast"
 import { getCurrentUserId, getUserInfo, updateUserInfoWithToast, changePasswordWithToast, type UserUpdateRequest, type ChangePasswordRequest } from "@/lib/user-service"
+import { useI18n } from "@/contexts/i18n-context"
 
 export default function ProfilePage() {
+  const { t } = useI18n()
   const [formData, setFormData] = useState({
     nickname: "",
     email: "",
@@ -45,16 +47,16 @@ export default function ProfilePage() {
         } else {
           setError(response.message)
           toast({
-            title: "获取用户信息失败",
+            title: t("获取用户信息失败"),
             description: response.message,
             variant: "destructive",
           })
         }
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "未知错误"
+        const errorMessage = error instanceof Error ? error.message : t("未知错误")
         setError(errorMessage)
         toast({
-          title: "获取用户信息失败",
+          title: t("获取用户信息失败"),
           description: errorMessage,
           variant: "destructive",
         })
@@ -81,7 +83,7 @@ export default function ProfilePage() {
     
     if (!formData.nickname.trim()) {
       toast({
-        title: "昵称不能为空",
+        title: t("昵称不能为空"),
         variant: "destructive",
       })
       return
@@ -114,7 +116,7 @@ export default function ProfilePage() {
     // 客户端验证
     if (!passwordData.currentPassword) {
       toast({
-        title: "请输入当前密码",
+        title: t("请输入当前密码"),
         variant: "destructive",
       })
       return
@@ -122,7 +124,7 @@ export default function ProfilePage() {
     
     if (!passwordData.newPassword) {
       toast({
-        title: "请输入新密码",
+        title: t("请输入新密码"),
         variant: "destructive",
       })
       return
@@ -130,7 +132,7 @@ export default function ProfilePage() {
     
     if (passwordData.newPassword.length < 6) {
       toast({
-        title: "新密码长度不能少于6位",
+        title: t("新密码长度不能少于6位"),
         variant: "destructive",
       })
       return
@@ -139,7 +141,7 @@ export default function ProfilePage() {
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]+$/
     if (!passwordRegex.test(passwordData.newPassword)) {
       toast({
-        title: "新密码必须包含至少一个字母和一个数字",
+        title: t("新密码必须包含至少一个字母和一个数字"),
         variant: "destructive",
       })
       return
@@ -147,7 +149,7 @@ export default function ProfilePage() {
     
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast({
-        title: "新密码和确认密码不一致",
+        title: t("新密码和确认密码不一致"),
         variant: "destructive",
       })
       return
@@ -227,62 +229,62 @@ export default function ProfilePage() {
   return (
     <div className="container py-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">个人资料</h1>
-        <p className="text-muted-foreground">更新您的个人信息和账户安全设置</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t("个人资料")}</h1>
+        <p className="text-muted-foreground">{t("更新您的个人信息和账户安全设置")}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 个人资料 */}
         <Card>
           <CardHeader>
-            <CardTitle>个人资料</CardTitle>
-            <CardDescription>更新您的个人信息</CardDescription>
+            <CardTitle>{t("个人资料")}</CardTitle>
+            <CardDescription>{t("更新您的个人信息")}</CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="nickname">昵称</Label>
+                <Label htmlFor="nickname">{t("昵称")}</Label>
                 <Input 
                   id="nickname" 
                   name="nickname" 
                   value={formData.nickname} 
                   onChange={handleChange}
-                  placeholder="请输入昵称" 
+                  placeholder={t("请输入昵称")} 
                 />
-                <p className="text-xs text-muted-foreground">昵称是您在平台上显示的名称</p>
+                <p className="text-xs text-muted-foreground">{t("昵称是您在平台上显示的名称")}</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">手机号</Label>
+                <Label htmlFor="phone">{t("手机号")}</Label>
                 <Input 
                   id="phone" 
                   name="phone" 
                   type="tel"
                   value={formData.phone} 
                   onChange={handleChange}
-                  placeholder="请输入手机号"
+                  placeholder={t("请输入手机号")}
                   disabled
                 />
-                <p className="text-xs text-muted-foreground">手机号不可修改</p>
+                <p className="text-xs text-muted-foreground">{t("手机号不可修改")}</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">电子邮件</Label>
+                <Label htmlFor="email">{t("电子邮件")}</Label>
                 <Input 
                   id="email" 
                   name="email" 
                   type="email" 
                   value={formData.email} 
                   onChange={handleChange}
-                  placeholder="请输入电子邮件"
+                  placeholder={t("请输入电子邮件")}
                   disabled
                 />
-                <p className="text-xs text-muted-foreground">邮箱地址不可修改</p>
+                <p className="text-xs text-muted-foreground">{t("邮箱地址不可修改")}</p>
               </div>
             </CardContent>
             <CardFooter>
               <Button type="submit" disabled={submitting}>
-                {submitting ? "保存中..." : "保存更改"}
+                {submitting ? t("保存中...") : t("保存更改")}
               </Button>
             </CardFooter>
           </form>
@@ -291,51 +293,51 @@ export default function ProfilePage() {
         {/* 修改密码 */}
         <Card>
           <CardHeader>
-            <CardTitle>修改密码</CardTitle>
-            <CardDescription>为了账户安全，建议定期修改密码</CardDescription>
+            <CardTitle>{t("修改密码")}</CardTitle>
+            <CardDescription>{t("为了账户安全，建议定期修改密码")}</CardDescription>
           </CardHeader>
           <form onSubmit={handlePasswordSubmit}>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="currentPassword">当前密码</Label>
+                <Label htmlFor="currentPassword">{t("当前密码")}</Label>
                 <Input 
                   id="currentPassword" 
                   name="currentPassword"
                   type="password"
                   value={passwordData.currentPassword} 
                   onChange={handlePasswordChange}
-                  placeholder="请输入当前密码" 
+                  placeholder={t("请输入当前密码")} 
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="newPassword">新密码</Label>
+                <Label htmlFor="newPassword">{t("新密码")}</Label>
                 <Input 
                   id="newPassword" 
                   name="newPassword"
                   type="password"
                   value={passwordData.newPassword} 
                   onChange={handlePasswordChange}
-                  placeholder="请输入新密码" 
+                  placeholder={t("请输入新密码")} 
                 />
-                <p className="text-xs text-muted-foreground">密码至少6位，包含字母和数字</p>
+                <p className="text-xs text-muted-foreground">{t("密码至少6位，包含字母和数字")}</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">确认新密码</Label>
+                <Label htmlFor="confirmPassword">{t("确认新密码")}</Label>
                 <Input 
                   id="confirmPassword" 
                   name="confirmPassword"
                   type="password"
                   value={passwordData.confirmPassword} 
                   onChange={handlePasswordChange}
-                  placeholder="请再次输入新密码" 
+                  placeholder={t("请再次输入新密码")} 
                 />
               </div>
             </CardContent>
             <CardFooter>
               <Button type="submit" disabled={passwordSubmitting}>
-                {passwordSubmitting ? "修改中..." : "修改密码"}
+                {passwordSubmitting ? t("修改中...") : t("修改密码")}
               </Button>
             </CardFooter>
           </form>
@@ -344,4 +346,3 @@ export default function ProfilePage() {
     </div>
   )
 }
-

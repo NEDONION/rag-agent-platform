@@ -1,0 +1,120 @@
+package org.lucas.interfaces.api.portal.agent;
+
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.lucas.application.agent.service.AgentSessionAppService;
+import org.lucas.application.conversation.dto.AgentPreviewRequest;
+import org.lucas.application.conversation.dto.ChatRequest;
+import org.lucas.application.conversation.dto.MessageDTO;
+import org.lucas.application.conversation.dto.SessionDTO;
+import org.lucas.application.conversation.service.ChatSessionManager;
+import org.lucas.application.conversation.service.ConversationAppService;
+import org.lucas.infrastructure.auth.UserContext;
+import org.lucas.interfaces.api.common.Result;
+
+/** Agent会话管理 */
+@RestController
+@RequestMapping("/agents/sessions")
+public class PortalAgentSessionController {
+
+    private final Logger logger = LoggerFactory.getLogger(PortalAgentSessionController.class);
+    private final ExecutorService executorService = Executors.newCachedThreadPool();
+    private final AgentSessionAppService agentSessionAppService;
+    private final ConversationAppService conversationAppService;
+    private final ChatSessionManager chatSessionManager;
+
+    public PortalAgentSessionController(AgentSessionAppService agentSessionAppService,
+            ConversationAppService conversationAppService, ChatSessionManager chatSessionManager) {
+        this.agentSessionAppService = agentSessionAppService;
+        this.conversationAppService = conversationAppService;
+        this.chatSessionManager = chatSessionManager;
+    }
+
+    /** 获取会话中的消息列表 */
+    @GetMapping("/{sessionId}/messages")
+    public Result<List<MessageDTO>> getConversationMessages(@PathVariable String sessionId) {
+        String userId = UserContext.getCurrentUserId();
+        return Result.success(conversationAppService.getConversationMessages(sessionId, userId));
+    }
+
+    /** 获取助理会话列表 */
+    @GetMapping("/{agentId}")
+    public Result<List<SessionDTO>> getAgentSessionList(@PathVariable String agentId) {
+        String userId = UserContext.getCurrentUserId();
+        return Result.success(agentSessionAppService.getAgentSessionList(userId, agentId));
+    }
+
+    /** 创建会话 */
+    @PostMapping("/{agentId}")
+    public Result<SessionDTO> createSession(@PathVariable String agentId) {
+        String userId = UserContext.getCurrentUserId();
+        return Result.success(agentSessionAppService.createSession(userId, agentId));
+    }
+
+    /** 更新会话 */
+    @PutMapping("/{id}")
+    public Result<Void> updateSession(@PathVariable String id, @RequestParam String title) {
+        String userId = UserContext.getCurrentUserId();
+        agentSessionAppService.updateSession(id, userId, title);
+        return Result.success();
+    }
+
+    /** 删除会话 */
+    @DeleteMapping("/{id}")
+    public Result<Void> deleteSession(@PathVariable String id) {
+        String userId = UserContext.getCurrentUserId();
+        agentSessionAppService.deleteSession(id, userId);
+        return Result.success();
+    }
+
+    /** 发送消息
+     * @param chatRequest 消息对象
+     * @return */
+    @PostMapping("/chat")
+    public SseEmitter chat(@RequestBody @Validated ChatRequest chatRequest) {
+        return conversationAppService.chat(chatRequest, UserContext.getCurrentUserId());
+    }
+
+    /** Agent预览功能 用于在创建/编辑Agent时预览对话效果，无需保存会话
+     * @param previewRequest 预览请求对象
+     * @return SSE流 */
+    @PostMapping("/preview")
+    public SseEmitter preview(@RequestBody AgentPreviewRequest previewRequest) {
+        String userId = UserContext.getCurrentUserId();
+        return conversationAppService.previewAgent(previewRequest, userId);
+    }
+
+    /** 中断对话会话
+     * @param sessionId 会话ID
+     * @return 中断结果 */
+    @PostMapping("/{sessionId}/interrupt")
+    public Result<String> interruptSession(@PathVariable String sessionId) {
+        String userId = UserContext.getCurrentUserId();
+
+        logger.info("用户 {} 请求中断会话: {}", userId, sessionId);
+
+        boolean success = chatSessionManager.interruptSession(sessionId);
+
+        if (success) {
+            logger.info("成功中断会话: sessionId={}, userId={}", sessionId, userId);
+            return Result.success("对话已中断");
+        } else {
+            logger.warn("中断会话失败，会话不存在: sessionId={}, userId={}", sessionId, userId);
+            return Result.success("会话已结束或不存在");
+        }
+    }
+}

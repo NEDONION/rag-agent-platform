@@ -26,8 +26,10 @@ import { ApiKeyList } from "@/components/api-keys/api-key-list"
 import { CreateApiKeyDialog } from "@/components/api-keys/create-api-key-dialog"
 import { DeleteApiKeyDialog } from "@/components/api-keys/delete-api-key-dialog"
 import { ApiKeyFilters } from "@/components/api-keys/api-key-filters"
+import { useI18n } from "@/contexts/i18n-context"
 
 export default function ApiKeysPage() {
+  const { t } = useI18n()
   // 状态管理
   const [apiKeys, setApiKeys] = useState<ApiKeyResponse[]>([])
   const [agents, setAgents] = useState<Agent[]>([])
@@ -178,8 +180,8 @@ export default function ApiKeysPage() {
       {/* 页面头部 */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">API Key Management</h1>
-          <p className="text-muted-foreground">Create and manage API access keys for all your Agents</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("API Key Management")}</h1>
+          <p className="text-muted-foreground">{t("Create and manage API access keys for all your Agents")}</p>
         </div>
         <div className="flex items-center gap-3">
           <Button
@@ -187,11 +189,11 @@ export default function ApiKeysPage() {
             onClick={() => window.open('https://nz6d48w48i.apifox.cn', '_blank')}
           >
             <ExternalLink className="mr-2 h-4 w-4" />
-            API Documentation
+            {t("API Documentation")}
           </Button>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Create a new key
+            {t("Create a new key")}
           </Button>
         </div>
       </div>
@@ -214,23 +216,23 @@ export default function ApiKeysPage() {
       {/* API密钥列表 */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>API Key List</CardTitle>
-          <CardDescription>Manage your API access keys</CardDescription>
+          <CardTitle>{t("API Key List")}</CardTitle>
+          <CardDescription>{t("Manage your API access keys")}</CardDescription>
         </CardHeader>
         <CardContent>
           {error ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground">{error}</p>
               <Button variant="outline" className="mt-2" onClick={fetchApiKeys}>
-                Retry
+                {t("Retry")}
               </Button>
             </div>
           ) : apiKeys.length === 0 && !loading ? (
             <div className="text-center py-8">
               <Key className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No API key yet</p>
+              <p className="text-muted-foreground">{t("No API key yet")}</p>
               <Button className="mt-2" onClick={() => setIsCreateDialogOpen(true)}>
-                Creating your first key
+                {t("Creating your first key")}
               </Button>
             </div>
           ) : (
