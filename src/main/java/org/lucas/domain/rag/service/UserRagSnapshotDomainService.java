@@ -179,6 +179,8 @@ public class UserRagSnapshotDomainService {
     private UserRagFileEntity convertToUserRagFile(RagVersionFileEntity versionFile, String userRagId) {
         UserRagFileEntity userFile = new UserRagFileEntity();
         BeanUtils.copyProperties(versionFile, userFile);
+        // 清空ID，避免复用版本文件ID导致主键冲突
+        userFile.setId(null);
         userFile.setUserRagId(userRagId);
         return userFile;
     }
