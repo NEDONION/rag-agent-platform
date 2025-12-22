@@ -5,7 +5,9 @@ import org.lucas.infrastructure.exception.BusinessException;
 /** 模型类型枚举 */
 public enum ModelType {
 
-    CHAT("CHAT", "对话模型"), EMBEDDING("EMBEDDING", "嵌入模型");
+    CHAT("CHAT", "对话模型"),
+    EMBEDDING("EMBEDDING", "嵌入模型"),
+    VISION("VISION", "视觉模型");
 
     private final String code;
     private final String description;

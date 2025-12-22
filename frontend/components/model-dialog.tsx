@@ -21,7 +21,7 @@ import { Loader2 } from "lucide-react"
 const MODEL_TYPE_LABELS: Record<string, string> = {
   "CHAT": "对话模型",
   "EMBEDDING": "嵌入模型",
-  "IMAGE": "图像模型"
+  "VISION": "视觉模型"
 }
 
 // 模型配置类型

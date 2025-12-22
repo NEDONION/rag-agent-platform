@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.stereotype.Service;
 import org.lucas.domain.user.model.UserEntity;
 import org.lucas.domain.user.model.UserSettingsEntity;
@@ -17,6 +18,8 @@ import org.lucas.interfaces.dto.user.request.QueryUserRequest;
 
 @Service
 public class UserDomainService {
+    private static final String DEFAULT_AVATAR_URL = "/avatar-male.svg";
+    private static final String[] NICKNAME_PREFIXES = {"用户", "user"};
 
     private final UserRepository userRepository;
 
@@ -65,6 +68,9 @@ public class UserDomainService {
         String nickname = generateNickname();
         userEntity.setNickname(nickname);
 
+        // 设置默认头像
+        userEntity.setAvatarUrl(DEFAULT_AVATAR_URL);
+
         // 设置普通登录平台
         userEntity.setLoginPlatform("normal");
 
@@ -109,7 +115,8 @@ public class UserDomainService {
     /** 随机生成用户昵称
      * @return 用户昵称 */
     private String generateNickname() {
-        return "agent-x" + UUID.randomUUID().toString().replace("-", "").substring(0, 6);
+        String prefix = NICKNAME_PREFIXES[ThreadLocalRandom.current().nextInt(NICKNAME_PREFIXES.length)];
+        return prefix + UUID.randomUUID().toString().replace("-", "").substring(0, 6);
     }
 
     public void updateUserInfo(UserEntity user) {
@@ -173,6 +180,9 @@ public class UserDomainService {
     public void createDefaultUser(UserEntity user) {
         // 设置基础字段
         user.valid();
+        if (user.getAvatarUrl() == null || user.getAvatarUrl().trim().isEmpty()) {
+            user.setAvatarUrl(DEFAULT_AVATAR_URL);
+        }
 
         // 直接插入，不进行重复性校验（因为调用方已经检查过）
         userRepository.insert(user);

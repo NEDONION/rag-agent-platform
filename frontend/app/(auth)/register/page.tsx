@@ -144,9 +144,19 @@ export default function RegisterPage() {
           title: "成功",
           description: "验证码已发送，请查收邮件"
         })
+      } else {
+        toast({
+          variant: "destructive",
+          title: "发送失败",
+          description: res.message || "发送验证码失败"
+        })
       }
     } catch (error) {
-
+      toast({
+        variant: "destructive",
+        title: "发送失败",
+        description: error?.message || "发送验证码时发生错误"
+      })
     } finally {
       setSendingCode(false)
     }
@@ -179,7 +189,11 @@ export default function RegisterPage() {
         })
       }
     } catch (error) {
-
+      toast({
+        variant: "destructive",
+        title: "验证失败",
+        description: error?.message || "验证验证码时发生错误"
+      })
     } finally {
       setVerifying(false)
     }
@@ -258,10 +272,20 @@ export default function RegisterPage() {
           title: "成功",
           description: "注册成功，请登录"
         })
-        router.push("/login")
+        router.push("/login?auto=false")
+      } else {
+        toast({
+          variant: "destructive",
+          title: "注册失败",
+          description: res.message || "注册失败，请检查填写信息"
+        })
       }
     } catch (error: any) {
-
+      toast({
+        variant: "destructive",
+        title: "注册失败",
+        description: error?.message || "注册时发生错误"
+      })
     } finally {
       setLoading(false)
     }

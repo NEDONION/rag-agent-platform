@@ -153,7 +153,7 @@ export default function ExplorePage() {
               <div>
                 <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
                   <AlertCircle className="h-4 w-4 text-blue-500" />
-                  新用户引导：先完成模型服务商配置
+                  新用户引导：先完成模型服务配置
                 </div>
                 <p className="mt-1 text-sm text-slate-600">
                   请先配置服务商的 API Key 与基础 URL，并确认已有可用模型。
@@ -162,19 +162,19 @@ export default function ExplorePage() {
               <div className="flex flex-wrap gap-3">
                 <Link href="/settings/providers">
                   <Button size="sm" className="bg-blue-600 text-white hover:bg-blue-700">
-                    去配置服务商
+                    去配置模型服务
                   </Button>
                 </Link>
-                <Link href="/settings/general">
+                <Link href="/settings/providers">
                   <Button size="sm" variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50">
                     检查默认模型
                   </Button>
                 </Link>
               </div>
             </div>
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <div className="mt-4 space-y-3">
               <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-sm">
-                <span className="text-slate-600">服务商配置</span>
+                <span className="text-slate-600">1. 服务商配置</span>
                 {providerStatus === "loading" ? (
                   <span className="text-slate-400">检测中...</span>
                 ) : providerStatus === "ok" ? (
@@ -188,7 +188,7 @@ export default function ExplorePage() {
                 )}
               </div>
               <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-sm">
-                <span className="text-slate-600">模型可用性</span>
+                <span className="text-slate-600">2. 可用模型配置</span>
                 {modelStatus === "loading" ? (
                   <span className="text-slate-400">检测中...</span>
                 ) : modelStatus === "ok" ? (

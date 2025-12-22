@@ -3,7 +3,7 @@
 # ================================
 
 # 阶段 1: 依赖安装
-FROM node:20-alpine AS deps
+FROM registry.cn-hangzhou.aliyuncs.com/library/node:20-alpine AS deps
 
 WORKDIR /app
 
@@ -19,7 +19,7 @@ RUN pnpm install --no-frozen-lockfile
 # ================================
 # 阶段 2: 构建
 # ================================
-FROM node:20-alpine AS builder
+FROM registry.cn-hangzhou.aliyuncs.com/library/node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -37,7 +37,7 @@ RUN npm run build
 # ================================
 # 阶段 3: 运行时镜像
 # ================================
-FROM node:20-alpine AS runner
+FROM registry.cn-hangzhou.aliyuncs.com/library/node:20-alpine AS runner
 
 WORKDIR /app
 

@@ -203,7 +203,7 @@ export function NavigationBar() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2 rounded-full px-2 py-1.5 text-slate-700 hover:bg-slate-100">
                   <Avatar className="h-8 w-8 ring-1 ring-slate-200">
-                    <AvatarImage src="/placeholder.svg?height=32&width=32" alt={t("User")} />
+                    <AvatarImage src={userInfo?.avatarUrl || "/avatar-male.svg"} alt={t("User")} />
                     <AvatarFallback>
                       {loading ? "..." : getUserAvatarFallback()}
                     </AvatarFallback>
@@ -216,7 +216,7 @@ export function NavigationBar() {
               <DropdownMenuContent align="end" className="w-64">
                 <DropdownMenuLabel className="flex items-center gap-3">
                   <Avatar className="h-9 w-9 ring-1 ring-slate-200">
-                    <AvatarImage src="/placeholder.svg?height=32&width=32" alt={t("User")} />
+                    <AvatarImage src={userInfo?.avatarUrl || "/avatar-male.svg"} alt={t("User")} />
                     <AvatarFallback>
                       {loading ? "..." : getUserAvatarFallback()}
                     </AvatarFallback>
@@ -247,12 +247,12 @@ export function NavigationBar() {
                     {t("Personal Settings")}
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/settings/general">
-                    <Settings className="mr-2 h-4 w-4" />
-                    {t("General Model Settings")}
-                  </Link>
-                </DropdownMenuItem>
+                {/*<DropdownMenuItem asChild>*/}
+                {/*  <Link href="/settings/general">*/}
+                {/*    <Settings className="mr-2 h-4 w-4" />*/}
+                {/*    {t("General Model Settings")}*/}
+                {/*  </Link>*/}
+                {/*</DropdownMenuItem>*/}
                 {/*<DropdownMenuItem asChild>*/}
                 {/*  <Link href="/settings/billing">*/}
                 {/*    <Settings className="mr-2 h-4 w-4" />*/}
@@ -265,12 +265,12 @@ export function NavigationBar() {
                 {/*    价格说明*/}
                 {/*  </Link>*/}
                 {/*</DropdownMenuItem>*/}
-                <DropdownMenuItem asChild>
-                  <Link href="/settings/api-keys">
-                    <Settings className="mr-2 h-4 w-4" />
-                    {t("API Keys")}
-                  </Link>
-                </DropdownMenuItem>
+                {/*<DropdownMenuItem asChild>*/}
+                {/*  <Link href="/settings/api-keys">*/}
+                {/*    <Settings className="mr-2 h-4 w-4" />*/}
+                {/*    {t("API Keys")}*/}
+                {/*  </Link>*/}
+                {/*</DropdownMenuItem>*/}
                 <DropdownMenuItem asChild>
                   <Link href="/settings/providers">
                     <Settings className="mr-2 h-4 w-4" />

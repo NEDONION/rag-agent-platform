@@ -1,9 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { MoreHorizontal, Plus, Edit, Trash, Power, PowerOff, Loader2, RefreshCw, PlusCircle, Settings2 } from "lucide-react"
+import { useCallback, useEffect, useState } from "react"
+import { MoreHorizontal, Plus, Edit, Trash, Power, PowerOff, Loader2, PlusCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Dialog,
   DialogContent,
@@ -28,16 +31,22 @@ import {
   deleteModelWithToast,
   toggleModelStatusWithToast
 } from "@/lib/api-services"
+import {
+  getUserSettingsWithToast,
+  updateUserSettingsWithToast,
+  getChatModelsWithToast,
+  getOcrModelsWithToast,
+  getEmbeddingModelsWithToast,
+  type UserSettings,
+  type Model as ChatModel,
+  type FallbackConfig,
+} from "@/lib/user-settings-service"
 import { ProviderDialog } from "@/components/provider-dialog"
 import { ModelDialog } from "@/components/model-dialog"
 import { toast } from "@/hooks/use-toast"
-import { Separator } from "@/components/ui/separator"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Switch } from "@/components/ui/switch"
-import { Metadata } from "next"
-import { redirect } from "next/navigation"
-import Image from "next/image"
 import { useI18n } from "@/contexts/i18n-context"
+import { FallbackConfigComponent } from "@/components/settings/fallback-config"
 
 // 服务商接口
 interface Model {
@@ -73,11 +82,9 @@ export default function ProvidersPage() {
   const { t } = useI18n()
   const [activeTab, setActiveTab] = useState<"all" | "official" | "personal">("all")
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null)
-  const [showDetailDialog, setShowDetailDialog] = useState(false)
   const [providers, setProviders] = useState<Provider[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [detailLoading, setDetailLoading] = useState(false)
   const [showProviderDialog, setShowProviderDialog] = useState(false)
   const [editingProvider, setEditingProvider] = useState<Provider | null>(null)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
@@ -91,6 +98,25 @@ export default function ProvidersPage() {
   const [deleteModelConfirmOpen, setDeleteModelConfirmOpen] = useState(false)
   const [isDeletingModel, setIsDeletingModel] = useState(false)
   const [isTogglingModelStatus, setIsTogglingModelStatus] = useState(false)
+
+  const [settings, setSettings] = useState<UserSettings>({
+    settingConfig: {
+      defaultModel: null,
+      defaultOcrModel: null,
+      defaultEmbeddingModel: null,
+      fallbackConfig: {
+        enabled: false,
+        fallbackChain: []
+      }
+    }
+  })
+  const [settingsLoading, setSettingsLoading] = useState(true)
+  const [chatModels, setChatModels] = useState<ChatModel[]>([])
+  const [chatModelsLoading, setChatModelsLoading] = useState(true)
+  const [ocrModels, setOcrModels] = useState<ChatModel[]>([])
+  const [embeddingModels, setEmbeddingModels] = useState<ChatModel[]>([])
+  const [modelsLoading, setModelsLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
   
   // 加载服务商数据
   const loadProviders = async () => {
@@ -122,36 +148,290 @@ export default function ProvidersPage() {
   useEffect(() => {
     loadProviders()
   }, [activeTab])
+
+  useEffect(() => {
+    async function fetchSettings() {
+      setSettingsLoading(true)
+      try {
+        const response = await getUserSettingsWithToast()
+        if (response.code === 200 && response.data) {
+          setSettings({
+            ...response.data,
+            settingConfig: {
+              ...response.data.settingConfig,
+              defaultOcrModel: response.data.settingConfig.defaultOcrModel || null,
+              defaultEmbeddingModel: response.data.settingConfig.defaultEmbeddingModel || null,
+              fallbackConfig: response.data.settingConfig.fallbackConfig || {
+                enabled: false,
+                fallbackChain: []
+              }
+            }
+          })
+        }
+      } finally {
+        setSettingsLoading(false)
+      }
+    }
+
+    fetchSettings()
+  }, [])
+
+  const fetchChatModels = useCallback(async () => {
+    setChatModelsLoading(true)
+    try {
+      const response = await getChatModelsWithToast()
+      if (response.code === 200 && response.data) {
+        setChatModels(response.data.filter((model: ChatModel) => model.status))
+      }
+    } finally {
+      setChatModelsLoading(false)
+    }
+  }, [])
+
+  const fetchAdditionalModels = useCallback(async () => {
+    setModelsLoading(true)
+    try {
+      const [ocrResponse, embeddingResponse] = await Promise.all([
+        getOcrModelsWithToast(),
+        getEmbeddingModelsWithToast()
+      ])
+
+      if (ocrResponse.code === 200 && ocrResponse.data) {
+        setOcrModels(ocrResponse.data.filter((model: ChatModel) => model.status))
+      }
+
+      if (embeddingResponse.code === 200 && embeddingResponse.data) {
+        setEmbeddingModels(embeddingResponse.data.filter((model: ChatModel) => model.status))
+      }
+    } finally {
+      setModelsLoading(false)
+    }
+  }, [])
+
+  const refreshModels = useCallback(async () => {
+    await Promise.all([fetchChatModels(), fetchAdditionalModels()])
+  }, [fetchAdditionalModels, fetchChatModels])
+
+  useEffect(() => {
+    fetchChatModels()
+  }, [fetchChatModels])
+
+  useEffect(() => {
+    fetchAdditionalModels()
+  }, [fetchAdditionalModels])
+
+  const handleDefaultModelChange = async (modelId: string) => {
+    const nextSettings = {
+      ...settings,
+      settingConfig: {
+        ...settings.settingConfig,
+        defaultModel: modelId,
+      }
+    }
+    setSettings(nextSettings)
+    await updateUserSettingsWithToast({
+      settingConfig: nextSettings.settingConfig,
+    })
+  }
+
+  const handleDefaultOcrModelChange = (modelId: string) => {
+    setSettings(prev => ({
+      ...prev,
+      settingConfig: {
+        ...prev.settingConfig,
+        defaultOcrModel: modelId
+      }
+    }))
+  }
+
+  const handleDefaultEmbeddingModelChange = (modelId: string) => {
+    setSettings(prev => ({
+      ...prev,
+      settingConfig: {
+        ...prev.settingConfig,
+        defaultEmbeddingModel: modelId
+      }
+    }))
+  }
+
+  const handleFallbackConfigChange = (fallbackConfig: FallbackConfig) => {
+    setSettings(prev => ({
+      ...prev,
+      settingConfig: {
+        ...prev.settingConfig,
+        fallbackConfig
+      }
+    }))
+  }
+
+  const handleSubmit = async () => {
+    try {
+      setSubmitting(true)
+      const response = await updateUserSettingsWithToast({
+        settingConfig: {
+          defaultModel: settings.settingConfig.defaultModel,
+          defaultOcrModel: settings.settingConfig.defaultOcrModel,
+          defaultEmbeddingModel: settings.settingConfig.defaultEmbeddingModel,
+          fallbackConfig: settings.settingConfig.fallbackConfig
+        }
+      })
+      if (response.code === 200 && response.data) {
+        setSettings(response.data)
+      }
+    } finally {
+      setSubmitting(false)
+    }
+  }
   
   // 根据标签筛选服务商（已通过API过滤，无需本地再次过滤）
   const filteredProviders = providers;
 
-  // 打开详情弹窗并获取详细信息
-  const openDetail = async (provider: Provider) => {
-    setSelectedProvider(provider)
-    setShowDetailDialog(true)
-    
-    // 获取服务商详情
-    setDetailLoading(true)
-    try {
-      const response = await getProviderDetail(provider.id);
-      if (response.code === 200) {
-        setSelectedProvider(response.data);
-        // 不再需要单独加载模型列表，因为服务商详情已包含models数组
-      }
-    } catch (err) {
-      console.error("获取服务商详情错误:", err);
-    } finally {
-      setDetailLoading(false);
+  const renderProviders = (items: Provider[]) => {
+    if (items.length === 0) {
+      return (
+        <div className="text-center py-10 border rounded-md bg-gray-50">
+          <p className="text-muted-foreground">{t("No model providers data")}</p>
+        </div>
+      )
     }
+
+    return (
+      <div className="space-y-4">
+        {items.map((provider) => (
+          <Card key={provider.id} className="border-slate-200 shadow-sm">
+            <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 text-slate-600">
+                    {provider.protocol.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">{provider.name}</CardTitle>
+                    <CardDescription className="text-xs flex items-center gap-2">
+                      <Badge variant="secondary" className="text-[10px] uppercase">
+                        {provider.protocol}
+                      </Badge>
+                      {provider.isOfficial && (
+                        <Badge variant="outline" className="text-[10px]">
+                          {t("Official")}
+                        </Badge>
+                      )}
+                    </CardDescription>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className={
+                      provider.status
+                        ? "bg-green-50 text-green-600 border-green-200"
+                        : "bg-red-50 text-red-600 border-red-200"
+                    }
+                  >
+                    {provider.status ? t("Enabled") : t("Disabled")}
+                  </Badge>
+                  {!provider.isOfficial && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">{t("Open menu")}</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={(e) => openEditDialog(provider, e)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          {t("Edit")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => openDeleteConfirm(provider, e)}>
+                          <Trash className="mr-2 h-4 w-4" />
+                          {t("Delete")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => toggleProviderStatus(provider, e)} disabled={isTogglingStatus}>
+                          {provider.status ? (
+                            <>
+                              <PowerOff className="mr-2 h-4 w-4" />
+                              {t("Disable")}
+                            </>
+                          ) : (
+                            <>
+                              <Power className="mr-2 h-4 w-4" />
+                              {t("Enable")}
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                {provider.description || t("No description")}
+              </p>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">{t("Model List")}</span>
+                {!provider.isOfficial && (
+                  <Button variant="outline" size="sm" onClick={() => openAddModelDialog(provider)}>
+                    <PlusCircle className="h-4 w-4 mr-1" />
+                    {t("Add Model")}
+                  </Button>
+                )}
+              </div>
+              {provider.models && provider.models.length > 0 ? (
+                <div className="space-y-2 rounded-md border border-slate-100 bg-slate-50/60 p-3">
+                  {provider.models.map((model) => (
+                    <div key={model.id} className="flex items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2">
+                      <div className="min-w-0">
+                        <div className="font-medium text-sm truncate">{model.name}</div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {t("ID")}: {model.modelId} · {t("Type")}: {model.type}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {!provider.isOfficial && (
+                          <Switch
+                            checked={model.status}
+                            onCheckedChange={() => toggleModelStatus(provider, model)}
+                            disabled={isTogglingModelStatus}
+                          />
+                        )}
+                        {!provider.isOfficial && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => openEditModelDialog(provider, model)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                {t("Edit")}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => openDeleteModelConfirm(provider, model)}>
+                                <Trash className="mr-2 h-4 w-4" />
+                                {t("Delete")}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-md border border-dashed border-slate-200 bg-slate-50 px-3 py-4 text-center text-xs text-muted-foreground">
+                  {provider.isOfficial ? t("No model yet") : t("No model yet, click Add to create one")}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    )
   }
-  
-  // 关闭详情弹窗
-  const closeDetail = () => {
-    setShowDetailDialog(false)
-    setSelectedProvider(null)
-  }
-  
+
   // 打开编辑弹窗
   const openEditDialog = async (provider: Provider, e?: React.MouseEvent) => {
     if (e) {
@@ -204,7 +484,6 @@ export default function ProvidersPage() {
       const response = await deleteProviderWithToast(selectedProvider.id);
       if (response.code === 200) {
         setDeleteConfirmOpen(false);
-        setShowDetailDialog(false);
         loadProviders();
       }
     } catch (error) {
@@ -246,19 +525,22 @@ export default function ProvidersPage() {
   }
   
   // 打开添加模型对话框
-  const openAddModelDialog = () => {
+  const openAddModelDialog = (provider: Provider) => {
+    setSelectedProvider(provider);
     setEditingModel(null);
     setShowModelDialog(true);
   }
   
   // 打开编辑模型对话框
-  const openEditModelDialog = (model: Model) => {
+  const openEditModelDialog = (provider: Provider, model: Model) => {
+    setSelectedProvider(provider);
     setEditingModel(model);
     setShowModelDialog(true);
   }
   
   // 打开删除模型确认
-  const openDeleteModelConfirm = (model: Model) => {
+  const openDeleteModelConfirm = (provider: Provider, model: Model) => {
+    setSelectedProvider(provider);
     setSelectedModel(model);
     setDeleteModelConfirmOpen(true);
   }
@@ -303,8 +585,8 @@ export default function ProvidersPage() {
   }
   
   // 切换模型状态
-  const toggleModelStatus = async (model: Model) => {
-    if (!selectedProvider) return;
+  const toggleModelStatus = async (provider: Provider, model: Model) => {
+    setSelectedProvider(provider);
     
     setIsTogglingModelStatus(true);
     try {
@@ -313,13 +595,13 @@ export default function ProvidersPage() {
         const updatedStatus = !model.status;
         
         // 更新详情页模型状态
-        const updatedModels = selectedProvider.models.map(m => 
+        const updatedModels = provider.models.map(m => 
           m.id === model.id ? { ...m, status: updatedStatus } : m
         );
         
         // 更新选中的服务商
         setSelectedProvider(prev => {
-          if (!prev) return prev;
+          if (!prev || prev.id !== provider.id) return prev;
           return {
             ...prev,
             models: updatedModels
@@ -328,7 +610,7 @@ export default function ProvidersPage() {
         
         // 局部更新providers数组中的对应服务商
         setProviders(prev => prev.map(p => {
-          if (p.id === selectedProvider.id) {
+          if (p.id === provider.id) {
             return {
               ...p,
               models: updatedModels
@@ -374,8 +656,8 @@ export default function ProvidersPage() {
   }
   
   return (
-    <div className="container py-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="container py-8">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{t("Model Provider")}</h1>
           <p className="text-muted-foreground">{t("Manage your Model Providers and API keys")}</p>
@@ -385,505 +667,213 @@ export default function ProvidersPage() {
           {t("Add a Model Provider")}
         </Button>
       </div>
-      
-      <Tabs defaultValue="all" className="space-y-6" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="all">{t("All")}</TabsTrigger>
-          <TabsTrigger value="official">{t("Official Providers")}</TabsTrigger>
-          <TabsTrigger value="personal">{t("Personal Providers")}</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="all" className="space-y-6">
-          {filteredProviders.length === 0 ? (
-            <div className="text-center py-10 border rounded-md bg-gray-50">
-              <p className="text-muted-foreground">{t("No model providers data")}</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProviders.map((provider) => (
-                <Card 
-                  key={provider.id} 
-                  className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => openDetail(provider)}
-                >
-                  <CardHeader className="pb-2 relative">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-blue-100 text-blue-600">
-                          {provider.protocol.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <CardTitle className="text-base">{provider.name}</CardTitle>
-                          <CardDescription className="text-xs">
-                            {provider.protocol}
-                            {provider.isOfficial && (
-                              <Badge variant="outline" className="ml-2 text-[10px]">
-                                {t("Official")}
-                              </Badge>
-                            )}
-                          </CardDescription>
-                        </div>
-                      </div>
-                      {!provider.isOfficial && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" className="absolute top-2 right-2">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">{t("Open menu")}</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={(e) => openEditDialog(provider, e)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              {t("Edit")}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={(e) => openDeleteConfirm(provider, e)}>
-                              <Trash className="mr-2 h-4 w-4" />
-                              {t("Delete")}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={(e) => toggleProviderStatus(provider, e)}
-                              disabled={isTogglingStatus}
-                            >
-                              {provider.status ? (
-                                <>
-                                  <PowerOff className="mr-2 h-4 w-4" />
-                                  {t("Disable")}
-                                </>
-                              ) : (
-                                <>
-                                  <Power className="mr-2 h-4 w-4" />
-                                  {t("Enable")}
-                                </>
-                              )}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      {provider.description || t("No description")}
-                    </p>
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {provider.status ? (
-                        <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
-                          {t("Enabled")}
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">
-                          {t("Disabled")}
-                        </Badge>
-                      )}
-                      {provider.models && provider.models.length > 0 && (
-                        <div className="w-full mt-2">
-                          <p className="text-xs text-muted-foreground mb-1">{t("Available Models:")}</p>
-                          <div className="flex flex-wrap gap-1">
-                            {provider.models.slice(0, 3).map((model, index) => (
-                              <Badge key={index} variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
-                                {model.name}
-                              </Badge>
-                            ))}
-                            {provider.models.length > 3 && (
-                              <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
-                                +{provider.models.length - 3}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="official" className="space-y-6">
-          {filteredProviders.length === 0 ? (
-            <div className="text-center py-10 border rounded-md bg-gray-50">
-              <p className="text-muted-foreground">{t("暂无官方服务商数据")}</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProviders.map((provider) => (
-                <Card 
-                  key={provider.id} 
-                  className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => openDetail(provider)}
-                >
-                  <CardHeader className="pb-2 relative">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-blue-100 text-blue-600">
-                          {provider.protocol.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <CardTitle className="text-base">{provider.name}</CardTitle>
-                          <CardDescription className="text-xs">
-                            {provider.protocol}
-                            {provider.isOfficial && (
-                              <Badge variant="outline" className="ml-2 text-[10px]">
-                                {t("官方")}
-                              </Badge>
-                            )}
-                          </CardDescription>
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      {provider.description || t("No description")}
-                    </p>
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {provider.status ? (
-                        <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
-                          {t("已启用")}
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">
-                          {t("已禁用")}
-                        </Badge>
-                      )}
-                      {provider.models && provider.models.length > 0 && (
-                        <div className="w-full mt-2">
-                          <p className="text-xs text-muted-foreground mb-1">{t("可用模型:")}</p>
-                          <div className="flex flex-wrap gap-1">
-                            {provider.models.slice(0, 3).map((model, index) => (
-                              <Badge key={index} variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
-                                {model.name}
-                              </Badge>
-                            ))}
-                            {provider.models.length > 3 && (
-                              <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
-                                +{provider.models.length - 3}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="personal" className="space-y-6">
-          {filteredProviders.length === 0 ? (
-            <div className="text-center py-10 border rounded-md bg-gray-50">
-              <p className="text-muted-foreground">{t("暂无自定义服务商数据")}</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProviders.map((provider) => (
-                <Card 
-                  key={provider.id} 
-                  className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => openDetail(provider)}
-                >
-                  <CardHeader className="pb-2 relative">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-blue-100 text-blue-600">
-                          {provider.protocol.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <CardTitle className="text-base">{provider.name}</CardTitle>
-                          <CardDescription className="text-xs">
-                            {provider.protocol}
-                            {provider.isOfficial && (
-                              <Badge variant="outline" className="ml-2 text-[10px]">
-                                {t("官方")}
-                              </Badge>
-                            )}
-                          </CardDescription>
-                        </div>
-                      </div>
-                      {!provider.isOfficial && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" className="absolute top-2 right-2">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">{t("打开菜单")}</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={(e) => openEditDialog(provider, e)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              {t("编辑")}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={(e) => openDeleteConfirm(provider, e)}>
-                              <Trash className="mr-2 h-4 w-4" />
-                              {t("删除")}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={(e) => toggleProviderStatus(provider, e)}
-                              disabled={isTogglingStatus}
-                            >
-                              {provider.status ? (
-                                <>
-                                  <PowerOff className="mr-2 h-4 w-4" />
-                                  {t("禁用")}
-                                </>
-                              ) : (
-                                <>
-                                  <Power className="mr-2 h-4 w-4" />
-                                  {t("启用")}
-                                </>
-                              )}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      {provider.description || t("No description")}
-                    </p>
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {provider.status ? (
-                        <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
-                          {t("已启用")}
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">
-                          {t("已禁用")}
-                        </Badge>
-                      )}
-                      {provider.models && provider.models.length > 0 && (
-                        <div className="w-full mt-2">
-                          <p className="text-xs text-muted-foreground mb-1">{t("可用模型:")}</p>
-                          <div className="flex flex-wrap gap-1">
-                            {provider.models.slice(0, 3).map((model, index) => (
-                              <Badge key={index} variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
-                                {model.name}
-                              </Badge>
-                            ))}
-                            {provider.models.length > 3 && (
-                              <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
-                                +{provider.models.length - 3}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
-      
-      {/* 服务商详情弹窗 */}
-      {selectedProvider && (
-        <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-          <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col overflow-hidden">
-            <DialogHeader>
-              <DialogTitle className="flex justify-between items-center">
-                <span>{t("Model Provider Details")}</span>
-              </DialogTitle>
-              <DialogDescription>
-                {t("View and manage provider details and model configurations")}
-              </DialogDescription>
-            </DialogHeader>
-            
-            {detailLoading ? (
-              <div className="flex justify-center py-10">
-                <Loader2 className="h-6 w-6 animate-spin" />
+
+      <div className="mt-8 space-y-10">
+        <section className="space-y-4">
+          <Card className="overflow-hidden border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-200/70 bg-gradient-to-r from-sky-50 via-white to-amber-50 px-6 py-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                    <span className="inline-flex h-1.5 w-1.5 rounded-full bg-sky-500" />
+                    {t("Model Providers")}
+                  </div>
+                  <h2 className="mt-2 text-xl font-semibold text-slate-900">
+                    {t("Manage your Model Providers and API keys")}
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {t("在这里配置服务商、密钥与可用模型")}
+                  </p>
+                </div>
+                <div className="hidden items-center gap-2 text-xs font-medium text-slate-500 md:flex">
+                  <span className="rounded-full bg-white px-2.5 py-1 shadow-sm ring-1 ring-slate-200">
+                    {t("官方")}
+                  </span>
+                  <span className="rounded-full bg-white px-2.5 py-1 shadow-sm ring-1 ring-slate-200">
+                    {t("自定义")}
+                  </span>
+                </div>
               </div>
-            ) : selectedProvider ? (
-              <div className="flex flex-col space-y-4 h-full overflow-hidden">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-blue-100 text-blue-600">
-                    {selectedProvider.protocol.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold">{selectedProvider.name}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-sm text-muted-foreground">{selectedProvider.protocol}</span>
-                      {selectedProvider.isOfficial && (
-                        <Badge variant="outline">{t("Official")}</Badge>
-                      )}
-                      {selectedProvider.status ? (
-                        <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
-                          {t("Enabled")}
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">
-                          {t("Disabled")}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {!selectedProvider.isOfficial && (
-                    <div className="ml-auto">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">{t("打开菜单")}</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => openEditDialog(selectedProvider)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            {t("编辑")}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={(e) => openDeleteConfirm(selectedProvider, e)}>
-                            <Trash className="mr-2 h-4 w-4" />
-                            {t("删除")}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={(e) => toggleProviderStatus(selectedProvider, e)}
-                            disabled={isTogglingStatus}
-                          >
-                            {selectedProvider.status ? (
-                              <>
-                                <PowerOff className="mr-2 h-4 w-4" />
-                                {t("禁用")}
-                              </>
-                            ) : (
-                              <>
-                                <Power className="mr-2 h-4 w-4" />
-                                {t("启用")}
-                              </>
-                            )}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+            </div>
+            <CardContent className="bg-slate-50/40 pt-6">
+              <Tabs defaultValue="all" className="space-y-4" value={activeTab} onValueChange={setActiveTab}>
+                <TabsList>
+                  <TabsTrigger value="all">{t("All")}</TabsTrigger>
+                  <TabsTrigger value="official">{t("Official Providers")}</TabsTrigger>
+                  <TabsTrigger value="personal">{t("Personal Providers")}</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="all" className="space-y-4">
+                  {renderProviders(filteredProviders)}
+                </TabsContent>
+
+                <TabsContent value="official" className="space-y-4">
+                  {renderProviders(filteredProviders)}
+                </TabsContent>
+
+                <TabsContent value="personal" className="space-y-4">
+                  {renderProviders(filteredProviders)}
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold">{t("通用模型设置")}</h2>
+            <p className="text-sm text-muted-foreground">{t("选择默认模型与降级策略")}</p>
+          </div>
+
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("默认模型")}</CardTitle>
+                <CardDescription>{t("选择您的默认AI模型，这将作为新对话的默认选择")}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Label htmlFor="default-model">{t("默认模型")}</Label>
+                  {settingsLoading || chatModelsLoading ? (
+                    <Skeleton className="h-10 w-full" />
+                  ) : (
+                    <Select
+                      value={settings.settingConfig.defaultModel || ""}
+                      onValueChange={handleDefaultModelChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("选择默认模型")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {chatModels.map((model) => (
+                          <SelectItem key={model.id} value={model.id}>
+                            <div className="flex items-center gap-2">
+                              <span>{model.name}</span>
+                              {model.providerName && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {model.providerName}
+                                </Badge>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {!chatModelsLoading && (
+                    <div className="text-sm text-muted-foreground">
+                      {chatModels.length === 0
+                        ? t("暂无可用模型，请先在模型服务配置中配置")
+                        : t("未找到想要的模型？去模型服务配置")}
                     </div>
                   )}
                 </div>
-                
-                <div className="space-y-2">
-                  <h4 className="font-medium">{t("Description")}</h4>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedProvider.description || t("No description")}
-                  </p>
-                </div>
-                
-                <Separator />
-                
-                {/* 模型列表 */}
-                <div className="flex-1 overflow-hidden flex flex-col">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-lg font-semibold">{t("Model List")}</h3>
-                    {!selectedProvider.isOfficial && (
-                      <Button variant="outline" size="sm" onClick={openAddModelDialog}>
-                        <PlusCircle className="h-4 w-4 mr-1" />
-                        {t("Add Model")}
-                      </Button>
-                    )}
-                  </div>
-                  
-                  <ScrollArea className="flex-1">
-                    {!selectedProvider.models || selectedProvider.models.length === 0 ? (
-                      <div className="text-center py-6 text-muted-foreground">
-                        {selectedProvider.isOfficial
-                          ? t("No model yet")
-                          : t("No model yet, click Add to create one")}
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {selectedProvider.models.map((model: Model) => (
-                          <Card key={model.id} className="p-3">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <div className="font-medium">{model.name}</div>
-                                <div className="text-sm text-muted-foreground flex items-center space-x-2">
-                                  <span>{t("ID")}: {model.modelId}</span>
-                                  <span>·</span>
-                                  <span>{t("Type")}: {model.type}</span>
-                                </div>
-                                {model.description && (
-                                  <div className="text-sm mt-1">{model.description}</div>
-                                )}
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                {!selectedProvider.isOfficial && (
-                                  <Switch 
-                                    checked={model.status}
-                                    onCheckedChange={() => {}}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      toggleModelStatus(model);
-                                    }}
-                                  />
-                                )}
-                                {!selectedProvider.isOfficial && (
-                                  <>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="icon"
-                                      className="h-8 w-8" 
-                                      onClick={() => openEditModelDialog(model)}
-                                    >
-                                      <Settings2 className="h-4 w-4" />
-                                    </Button>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="icon"
-                                      className="h-8 w-8 text-destructive" 
-                                      onClick={() => openDeleteModelConfirm(model)}
-                                    >
-                                      <svg
-                                        width="15"
-                                        height="15"
-                                        viewBox="0 0 15 15"
-                                        fill="none"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-4 w-4"
-                                      >
-                                        <path
-                                          d="M5.5 1C5.22386 1 5 1.22386 5 1.5C5 1.77614 5.22386 2 5.5 2H9.5C9.77614 2 10 1.77614 10 1.5C10 1.22386 9.77614 1 9.5 1H5.5ZM3 3.5C3 3.22386 3.22386 3 3.5 3H11.5C11.7761 3 12 3.22386 12 3.5C12 3.77614 11.7761 4 11.5 4H3.5C3.22386 4 3 3.77614 3 3.5ZM3.5 5C3.22386 5 3 5.22386 3 5.5C3 5.77614 3.22386 6 3.5 6H4V12C4 12.5523 4.44772 13 5 13H10C10.5523 13 11 12.5523 11 12V6H11.5C11.7761 6 12 5.77614 12 5.5C12 5.22386 11.7761 5 11.5 5H3.5ZM5 6H10V12H5V6Z"
-                                          fill="currentColor"
-                                          fillRule="evenodd"
-                                          clipRule="evenodd"
-                                        ></path>
-                                      </svg>
-                                    </Button>
-                                  </>
-                                )}
-                              </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+              <CardTitle>{t("默认视觉VLM模型")}</CardTitle>
+              <CardDescription>
+                {t("选择用于文档OCR识别的默认模型，用于RAG系统的文档处理")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Label htmlFor="default-ocr-model">{t("默认视觉VLM模型")}</Label>
+                  {modelsLoading ? (
+                    <Skeleton className="h-10 w-full" />
+                  ) : (
+                    <Select
+                      value={settings.settingConfig.defaultOcrModel || ""}
+                      onValueChange={handleDefaultOcrModelChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("选择默认OCR模型")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ocrModels.map((model) => (
+                          <SelectItem key={model.id} value={model.id}>
+                            <div className="flex items-center gap-2">
+                              <span>{model.name}</span>
+                              {model.providerName && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {model.providerName}
+                                </Badge>
+                              )}
                             </div>
-                          </Card>
+                          </SelectItem>
                         ))}
-                      </div>
-                    )}
-                  </ScrollArea>
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
-              </div>
-            ) : (
-              <div className="text-center py-10 text-muted-foreground">
-                {t("无法加载服务商详情")}
-              </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+              <CardTitle>{t("默认Embedding模型")}</CardTitle>
+              <CardDescription>
+                {t("选择用于向量化的默认嵌入模型，用于RAG系统的语义搜索")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Label htmlFor="default-embedding-model">{t("默认Embedding模型")}</Label>
+                  {modelsLoading ? (
+                    <Skeleton className="h-10 w-full" />
+                  ) : (
+                    <Select
+                      value={settings.settingConfig.defaultEmbeddingModel || ""}
+                      onValueChange={handleDefaultEmbeddingModelChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("选择默认嵌入模型")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {embeddingModels.map((model) => (
+                          <SelectItem key={model.id} value={model.id}>
+                            <div className="flex items-center gap-2">
+                              <span>{model.name}</span>
+                              {model.providerName && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {model.providerName}
+                                </Badge>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {!chatModelsLoading && (
+              <FallbackConfigComponent
+                fallbackConfig={settings.settingConfig.fallbackConfig || { enabled: false, fallbackChain: [] }}
+                models={chatModels}
+                onConfigChange={handleFallbackConfigChange}
+              />
             )}
-            
-            <DialogFooter>
-              <Button variant="outline" onClick={closeDetail}>
-                {t("Close")}
-              </Button>
-              {!selectedProvider?.isOfficial && (
-                <Button 
-                  onClick={() => selectedProvider && openEditDialog(selectedProvider)}
-                  disabled={!selectedProvider}
+
+            <Card>
+              <CardFooter className="pt-6">
+                <Button
+                  type="button"
+                  disabled={submitting}
+                  className="w-full"
+                  onClick={handleSubmit}
                 >
-                  {t("Edit Configuration")}
+                  {submitting ? t("保存中...") : t("保存设置")}
                 </Button>
-              )}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+              </CardFooter>
+            </Card>
+          </div>
+        </section>
+      </div>
       
       {/* 删除确认对话框 */}
       <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
@@ -915,7 +905,10 @@ export default function ProvidersPage() {
         open={showProviderDialog} 
         onOpenChange={setShowProviderDialog}
         provider={editingProvider}
-        onSuccess={loadProviders}
+        onSuccess={async () => {
+          await loadProviders()
+          await refreshModels()
+        }}
       />
       
       {/* 删除模型确认对话框 */}
@@ -952,6 +945,7 @@ export default function ProvidersPage() {
           providerName={selectedProvider.name}
           model={editingModel}
           onSuccess={async () => {
+            const isNewModel = !editingModel
             // 更新详情页数据
             try {
               const response = await getProviderDetail(selectedProvider.id);
@@ -972,6 +966,14 @@ export default function ProvidersPage() {
               }
             } catch (error) {
               console.error("刷新服务商详情失败:", error);
+            }
+            await refreshModels()
+            if (isNewModel) {
+              toast({
+                title: t("模型添加成功"),
+                description: t("已更新可用模型列表"),
+                className: "border-emerald-200 bg-emerald-50 text-emerald-900",
+              })
             }
           }}
         />

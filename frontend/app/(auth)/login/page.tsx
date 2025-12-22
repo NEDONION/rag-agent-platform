@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 
@@ -36,6 +36,7 @@ const GitHubIcon = ({ className }: { className?: string }) => (
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const autoLoginAttempted = useRef(false)
   const [formData, setFormData] = useState({
     account: "",
@@ -65,7 +66,11 @@ export default function LoginPage() {
 
   useEffect(() => {
     const autoLoginEnabled = process.env.NEXT_PUBLIC_AUTO_LOGIN !== "false"
+    const autoLoginSuppressed = searchParams.get("auto") === "false"
     if (!autoLoginEnabled) {
+      return
+    }
+    if (autoLoginSuppressed) {
       return
     }
     if (configLoading || autoLoginAttempted.current) {
@@ -96,7 +101,7 @@ export default function LoginPage() {
     }
 
     autoLogin()
-  }, [configLoading, router])
+  }, [configLoading, router, searchParams])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -124,10 +129,19 @@ export default function LoginPage() {
         localStorage.setItem("auth_token", res.data.token)
         setCookie("token", res.data.token, 30)
         router.push("/")
+      } else {
+        toast({
+          variant: "destructive",
+          title: "登录失败",
+          description: res.message || "账号或密码不正确"
+        })
       }
     } catch (error: any) {
-      // 错误已由API处理
-      console.error("登录失败:", error)
+      toast({
+        variant: "destructive",
+        title: "登录失败",
+        description: error?.message || "登录时发生错误"
+      })
     } finally {
       setLoading(false)
     }
