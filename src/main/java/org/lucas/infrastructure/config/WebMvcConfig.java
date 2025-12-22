@@ -24,6 +24,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .excludePathPatterns( // 不拦截以下路径
                         "/login", // 登录接口
                         "/health", // 健康检查接口
+                        "/api/health", // 健康检查接口（兼容上下文路径）
                         "/register", // 注册接口
                         "/auth/config", // 认证配置接口
                         "/send-email-code", "/verify-email-code", "/get-captcha", "/reset-password",

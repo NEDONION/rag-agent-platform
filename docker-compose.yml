@@ -43,7 +43,10 @@ services:
   # 后端 Spring Boot 应用
   # ================================
   backend:
-    image: crpi-c6nc3ef4yktaqunc.cn-beijing.personal.cr.aliyuncs.com/lucas_acr/rag-agent-platform:backend-latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: rag-agent-platform-backend:local
     container_name: agentx-backend
     restart: unless-stopped
     environment:
@@ -90,7 +93,7 @@ services:
       MAIL_SMTP_PASSWORD: ${MAIL_SMTP_PASSWORD}
 
       # JVM 配置
-      JAVA_OPTS: ${JAVA_OPTS:--Xms2g -Xmx4g -XX:+UseG1GC}
+      JAVA_OPTS: ${JAVA_OPTS:--Xms512m -Xmx768m -XX:+UseG1GC}
 
       TZ: Asia/Shanghai
     volumes:
@@ -105,7 +108,7 @@ services:
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8088/api/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8088/api/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -115,10 +118,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.8'
+          cpus: '1.0'
           memory: 1G
         reservations:
-          cpus: '0.3'
+          cpus: '0.8'
           memory: 512M
 
   # ================================

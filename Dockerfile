@@ -53,7 +53,7 @@ USER appuser
 EXPOSE 8088
 
 # JVM 优化参数
-ENV JAVA_OPTS="-Xms2g -Xmx4g \
+ENV JAVA_OPTS="-Xms1g -Xmx2g \
     -XX:+UseG1GC \
     -XX:MaxGCPauseMillis=200 \
     -XX:+HeapDumpOnOutOfMemoryError \
@@ -62,7 +62,7 @@ ENV JAVA_OPTS="-Xms2g -Xmx4g \
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8088/api/actuator/health || exit 1
+    CMD curl -f http://localhost:8088/api/health || exit 1
 
 # 启动应用
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

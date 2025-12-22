@@ -1,5 +1,10 @@
 // API地址配置 - 智能IP获取，自动适配所有环境
 function getDefaultApiUrl(): string {
+  const envApiUrl = process.env.NEXT_PUBLIC_API_URL
+  if (envApiUrl) {
+    return envApiUrl
+  }
+
   // 客户端环境：直接获取当前访问的IP/域名
   if (typeof window !== 'undefined') {
     const { protocol, hostname } = window.location;
@@ -14,8 +19,24 @@ function getDefaultApiUrl(): string {
   return '/api';
 }
 
+function getDefaultWsUrl(): string {
+  const envWsUrl = process.env.NEXT_PUBLIC_WS_URL
+  if (envWsUrl) {
+    return envWsUrl
+  }
+
+  if (typeof window !== 'undefined') {
+    const { protocol, hostname } = window.location;
+    const wsProtocol = protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${wsProtocol}//${hostname}:8088/api`;
+  }
+
+  return '/api';
+}
+
 export const API_CONFIG = {
   BASE_URL: getDefaultApiUrl(),
+  WS_URL: getDefaultWsUrl(),
   CURRENT_USER_ID: "1", // 当前用户ID
 }
 
