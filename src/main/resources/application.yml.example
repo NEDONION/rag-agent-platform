@@ -1,0 +1,127 @@
+server:
+  port: ${SERVER_PORT}
+  servlet:
+    context-path: ${SERVER_CONTEXT_PATH}
+  # 添加Tomcat异步请求配置
+  tomcat:
+    threads:
+      max: ${SERVER_TOMCAT_THREADS_MAX} # 最大工作线程数
+    connection-timeout: ${SERVER_TOMCAT_CONNECTION_TIMEOUT} # 连接超时毫秒
+    max-connections: ${SERVER_TOMCAT_MAX_CONNECTIONS} # 最大连接数
+    accept-count: ${SERVER_TOMCAT_ACCEPT_COUNT} # 等待队列长度
+
+spring:
+  config:
+    import: ${SPRING_CONFIG_IMPORT}
+  application:
+    name: ${SPRING_APPLICATION_NAME}
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    listener:
+      simple: # 添加 simple 下的并发配置
+        concurrency: ${RABBITMQ_LISTENER_SIMPLE_CONCURRENCY}
+        max-concurrency: ${RABBITMQ_LISTENER_SIMPLE_MAX_CONCURRENCY}
+        prefetch: ${RABBITMQ_LISTENER_SIMPLE_PREFETCH}
+        acknowledge-mode: ${RABBITMQ_LISTENER_SIMPLE_ACK_MODE}
+        default-requeue-rejected: ${RABBITMQ_LISTENER_SIMPLE_DEFAULT_REQUEUE_REJECTED}
+        retry:
+          enabled: ${RABBITMQ_LISTENER_SIMPLE_RETRY_ENABLED}
+          max-attempts: ${RABBITMQ_LISTENER_SIMPLE_RETRY_MAX_ATTEMPTS}
+          initial-interval: ${RABBITMQ_LISTENER_SIMPLE_RETRY_INITIAL_INTERVAL}
+      direct:
+        acknowledge-mode: ${RABBITMQ_LISTENER_DIRECT_ACK_MODE}
+        default-requeue-rejected: ${RABBITMQ_LISTENER_DIRECT_DEFAULT_REQUEUE_REJECTED}
+        retry:
+          enabled: ${RABBITMQ_LISTENER_DIRECT_RETRY_ENABLED}
+          max-attempts: ${RABBITMQ_LISTENER_DIRECT_RETRY_MAX_ATTEMPTS}
+          initial-interval: ${RABBITMQ_LISTENER_DIRECT_RETRY_INITIAL_INTERVAL}
+    publisher-returns: ${RABBITMQ_PUBLISHER_RETURNS}
+    publisher-confirm-type: ${RABBITMQ_PUBLISHER_CONFIRM_TYPE}
+    connection-timeout: ${RABBITMQ_CONNECTION_TIMEOUT}
+    cache:
+      channel:
+        size: ${RABBITMQ_CACHE_CHANNEL_SIZE} # 添加通道缓存大小
+  datasource:
+    driver-class-name: ${DB_DRIVER_CLASS_NAME}
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  jackson:
+    date-format: ${JACKSON_DATE_FORMAT}
+    time-zone: ${JACKSON_TIME_ZONE}
+# MyBatis-Plus配置
+mybatis-plus:
+  mapper-locations: ${MYBATIS_MAPPER_LOCATIONS}
+  type-aliases-package: ${MYBATIS_TYPE_ALIASES_PACKAGE}
+  type-handlers-package: ${MYBATIS_TYPE_HANDLERS_PACKAGE}
+  configuration:
+    map-underscore-to-camel-case: ${MYBATIS_MAP_UNDERSCORE_TO_CAMEL_CASE}
+    cache-enabled: ${MYBATIS_CACHE_ENABLED}
+  global-config:
+    db-config:
+      id-type: ${MYBATIS_GLOBAL_ID_TYPE}
+      logic-delete-field: ${MYBATIS_LOGIC_DELETE_FIELD}
+      logic-delete-value: ${MYBATIS_LOGIC_DELETE_VALUE}
+      logic-not-delete-value: ${MYBATIS_LOGIC_NOT_DELETE_VALUE}
+    banner: ${MYBATIS_BANNER}
+
+logging:
+  level:
+    root: ${LOGGING_LEVEL_ROOT}
+    org.lucas: ${LOGGING_LEVEL_ORG_LUCAS}
+  file:
+    name: ${LOGGING_FILE_NAME}
+mail:
+  smtp:
+    host: ${MAIL_SMTP_HOST}
+    port: ${MAIL_SMTP_PORT}
+    username: ${MAIL_SMTP_USERNAME}
+    password: ${MAIL_SMTP_PASSWORD}
+  verification:
+    template: ${MAIL_VERIFICATION_TEMPLATE}
+    subject: ${MAIL_VERIFICATION_SUBJECT}
+
+oss:
+  endpoint: ${OSS_ENDPOINT}
+  bucket-name: ${OSS_BUCKET_NAME}
+  access-key: ${OSS_ACCESS_KEY}
+  secret-key: ${OSS_SECRET_KEY}
+
+embedding:
+  name: ${EMBEDDING_NAME}
+  vector-store:
+    host: ${VECTOR_DB_HOST}
+    port: ${VECTOR_DB_PORT}
+    user: ${VECTOR_DB_USER}
+    password: ${VECTOR_DB_PASSWORD}
+    database: ${VECTOR_DB_NAME}
+    table: ${VECTOR_DB_TABLE}
+    dimension: ${VECTOR_DB_DIMENSION}
+    drop-table-first: ${VECTOR_DB_DROP_TABLE_FIRST}
+    create-table: ${VECTOR_DB_CREATE_TABLE}
+
+rerank:
+  name: ${RERANK_NAME}
+  api-key: ${SILICONFLOW_API_KEY}
+  api-url: ${SILICONFLOW_API_URL_RERANK}
+  model: ${SILICONFLOW_MODEL_RERANK_MODEL}
+  timeout: ${SILICONFLOW_TIMEOUT}
+
+dromara:
+  x-file-storage: #文件存储配置
+    default-platform: ${X_FILE_STORAGE_DEFAULT_PLATFORM} #默认使用的存储平台
+    thumbnail-suffix: ${X_FILE_STORAGE_THUMBNAIL_SUFFIX} #缩略图后缀，例如【.min.jpg】【.png】
+    #对应平台的配置写在这里，注意缩进要对齐
+    amazon-s3: # 0.0.7 及以前的版本，配置名称是：aws-s3
+      - platform: amazon-s3-1 # 存储平台标识
+        enable-storage: ${X_FILE_STORAGE_S3_ENABLE_STORAGE} # 启用存储
+        access-key: ${S3_SECRET_ID}
+        secret-key: ${S3_SECRET_KEY}
+        region: ${S3_REGION} # 与 end-point 参数至少填一个
+        end-point: ${S3_ENDPOINT} # 与 region 参数至少填一个
+        bucket-name: ${S3_BUCKET_NAME}
+        domain: ${S3_DOMAIN} # 访问域名，注意“/”结尾
+        base-path: ${X_FILE_STORAGE_S3_BASE_PATH} # 基础路径

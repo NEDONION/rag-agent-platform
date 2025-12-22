@@ -43,6 +43,8 @@ services:
   # 后端 Spring Boot 应用
   # ================================
   backend:
+    env_file:
+      - .env
     build:
       context: .
       dockerfile: Dockerfile

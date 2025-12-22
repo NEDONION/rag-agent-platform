@@ -44,9 +44,9 @@ spring:
         size: 25 # 添加通道缓存大小
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:agentx}
-    username: ${DB_USER:postgres}
-    password: ${DB_PASSWORD:postgres}
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
@@ -74,22 +74,22 @@ logging:
     name: logs/agent-x.log
 mail:
   smtp:
-    host: ${MAIL_SMTP_HOST:smtp.qq.com}
+    host: ${MAIL_SMTP_HOST}
     port: ${MAIL_SMTP_PORT:587}
-    username: ${MAIL_SMTP_USERNAME:}
-    password: ${MAIL_SMTP_PASSWORD:}
+    username: ${MAIL_SMTP_USERNAME}
+    password: ${MAIL_SMTP_PASSWORD}
   verification:
     template: ${MAIL_VERIFICATION_TEMPLATE:您的验证码是:%s，有效期10分钟，请勿泄露给他人。}
-    subject: ${MAIL_VERIFICATION_SUBJECT:AgentX - 邮箱验证码}
+    subject: ${MAIL_VERIFICATION_SUBJECT:RAG 智能 Agent 平台 - 邮箱验证码}
 
 embedding:
   name: OpenAI
   vector-store:
-    host: ${VECTOR_DB_HOST:${DB_HOST:localhost}}
-    port: ${VECTOR_DB_PORT:${DB_PORT:5432}}
-    user: ${VECTOR_DB_USER:${DB_USER:postgres}}
-    password: ${VECTOR_DB_PASSWORD:${DB_PASSWORD:postgres}}
-    database: ${VECTOR_DB_NAME:${DB_NAME:agentx}}
+    host: ${VECTOR_DB_HOST:${DB_HOST}}
+    port: ${VECTOR_DB_PORT:${DB_PORT}}
+    user: ${VECTOR_DB_USER:${DB_USER}}
+    password: ${VECTOR_DB_PASSWORD:${DB_PASSWORD}}
+    database: ${VECTOR_DB_NAME:${DB_NAME}}
     table: ${VECTOR_DB_TABLE:public.vector_store}
     dimension: ${VECTOR_DB_DIMENSION:1024}
     drop-table-first: ${VECTOR_DB_DROP_TABLE_FIRST:false}
