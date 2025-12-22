@@ -1,4 +1,3 @@
-version: '3.8'
 
 # ================================
 # RAG Agent Platform - 完整部署方案
@@ -30,6 +29,8 @@ services:
       start_period: 30s
     networks:
       - agentx-network
+    mem_limit: 512m
+    cpus: "0.3"
     deploy:
       resources:
         limits:
@@ -117,6 +118,8 @@ services:
       start_period: 90s
     networks:
       - agentx-network
+    mem_limit: 1536m
+    cpus: "1.2"
     deploy:
       resources:
         limits:
@@ -154,6 +157,8 @@ services:
       start_period: 30s
     networks:
       - agentx-network
+    mem_limit: 768m
+    cpus: "0.6"
     deploy:
       resources:
         limits:

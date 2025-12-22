@@ -57,8 +57,8 @@ curl -i http://localhost:3000/api/health
 
 服务器：
 ```bash
-docker compose pull
-docker compose up -d
+sudo docker compose pull
+sudo docker compose up -d
 ```
 
 ## 环境变量必填项
