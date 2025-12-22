@@ -38,9 +38,11 @@
 - **Agent 编排** - 基于 LangChain4j 快速创建智能体，支持工具调用、多轮对话、任务分解
 - **一键集成** - 灵活接入 OpenAI、SiliconFlow 等多种 LLM 服务商，支持主备模型切换
 - **工具生态** - 容器化 MCP 工具管理，支持 Docker/GitHub/NPM 多种部署方式
-- **精确计费** - Token 级别成本统计，完整执行链路追踪
 - **多租户隔离** - 数据库级别隔离，JWT 认证，保障数据安全
 
+**DEMO 测试账号**
+- `nedjiachenghu@gmail.com`
+- `test123`
 
 ## 核心特性
 
@@ -354,7 +356,6 @@ graph TB
 - **部署**: Docker Compose
 - **监控**: Spring Boot Actuator
 
----
 
 ## 功能模块
 
@@ -500,10 +501,7 @@ npm run dev
 
 访问: http://localhost:3000
 
-#### 7. 默认账号
-
-- 管理员: `admin@agentx.ai / admin123`
-- 测试账号: `test@agentx.ai / test123`
+#### 7. 测试账号
 
 
 ## Docker Compose 部署
