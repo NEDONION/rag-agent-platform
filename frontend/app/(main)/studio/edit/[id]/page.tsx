@@ -530,11 +530,13 @@ export default function EditAgentPage() {
                 <div className="space-y-1">
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">工具数量</span>
-                    <span className="text-sm">{selectedVersion.tools.length}</span>
+                    <span className="text-sm">
+                      {selectedVersion.tools?.length ?? selectedVersion.toolIds?.length ?? 0}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">知识库数量</span>
-                    <span className="text-sm">{selectedVersion.knowledgeBaseIds.length}</span>
+                    <span className="text-sm">{selectedVersion.knowledgeBaseIds?.length ?? 0}</span>
                   </div>
                 </div>
               </div>

@@ -163,11 +163,17 @@ public class AgentDomainService {
         // 设置版本关联的Agent ID
         versionEntity.setAgentId(agentId);
 
-        // 设置版本状态为审核中
-        versionEntity.setPublishStatus(PublishStatus.REVIEWING.getCode());
+        // 直接发布，无需审核
+        versionEntity.setPublishStatus(PublishStatus.PUBLISHED.getCode());
+        versionEntity.setReviewTime(java.time.LocalDateTime.now());
+        versionEntity.setPublishedAt(java.time.LocalDateTime.now());
 
         // 保存版本
         agentVersionRepository.insert(versionEntity);
+
+        // 绑定为Agent的当前发布版本
+        agent.publishVersion(versionEntity.getId());
+        agentRepository.checkedUpdateById(agent);
 
         return versionEntity;
     }

@@ -5,8 +5,17 @@ import { useEffect } from "react"
 import { usePathname } from "next/navigation"
 import { getCookie } from "@/lib/utils"
 import { AccountProvider } from "@/contexts/account-context"
+import { I18nProvider } from "@/contexts/i18n-context"
+import type { Locale } from "@/lib/i18n"
+import { RouteLogger } from "@/components/debug/route-logger"
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({
+  children,
+  initialLocale,
+}: {
+  children: React.ReactNode
+  initialLocale?: Locale
+}) {
   const pathname = usePathname()
 
   useEffect(() => {
@@ -25,17 +34,21 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   if (isWidgetRoute) {
     return (
-        <>
-          {children}
-          <Toaster />
-        </>
+      <I18nProvider initialLocale={initialLocale}>
+        <RouteLogger />
+        {children}
+        <Toaster />
+      </I18nProvider>
     )
   }
 
   return (
+    <I18nProvider initialLocale={initialLocale}>
       <AccountProvider>
+        <RouteLogger />
         {children}
         <Toaster />
       </AccountProvider>
+    </I18nProvider>
   )
 }

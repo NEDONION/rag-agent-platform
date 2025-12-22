@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Bot, Search, Plus, Check } from "lucide-react"
+import { Bot, Search, Plus, Check, AlertCircle } from "lucide-react"
 import { Metadata } from "next"
 import { redirect, useRouter } from "next/navigation"
 
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "@/hooks/use-toast"
 import { getPublishedAgents, addAgentToWorkspaceWithToast } from "@/lib/agent-service"
+import { getProviders } from "@/lib/api-services"
 import type { AgentVersion } from "@/types/agent"
 import { Sidebar } from "@/components/sidebar"
 import { useWorkspace } from "@/contexts/workspace-context"
@@ -27,6 +28,8 @@ export default function ExplorePage() {
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("推荐")
   const [addingAgentId, setAddingAgentId] = useState<string | null>(null)
+  const [providerStatus, setProviderStatus] = useState<"loading" | "ok" | "missing">("loading")
+  const [modelStatus, setModelStatus] = useState<"loading" | "ok" | "missing">("loading")
 
   // 防抖处理搜索查询
   useEffect(() => {
@@ -72,6 +75,35 @@ export default function ExplorePage() {
     fetchAgents()
   }, [debouncedQuery])
 
+  useEffect(() => {
+    let mounted = true
+    async function fetchProviderStatus() {
+      try {
+        const response = await getProviders()
+        if (!mounted) return
+        if (response.code === 200) {
+          const providers = response.data || []
+          const hasProviders = providers.length > 0
+          const hasModels = providers.some((provider: any) => Array.isArray(provider.models) && provider.models.length > 0)
+          setProviderStatus(hasProviders ? "ok" : "missing")
+          setModelStatus(hasModels ? "ok" : "missing")
+        } else {
+          setProviderStatus("missing")
+          setModelStatus("missing")
+        }
+      } catch {
+        if (!mounted) return
+        setProviderStatus("missing")
+        setModelStatus("missing")
+      }
+    }
+
+    fetchProviderStatus()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
   // 处理添加助理到工作区
   const handleAddToWorkspace = async (agentId: string) => {
     try {
@@ -115,6 +147,62 @@ export default function ExplorePage() {
             <h1 className="text-2xl font-bold tracking-tight text-blue-600">Explore Agent Apps</h1>
             <p className="text-muted-foreground mt-1">Use these template Apps, or customize your own Apps based on the templates.</p>
           </div>
+
+          <Card className="mb-6 border border-blue-100 bg-gradient-to-r from-blue-50 via-slate-50 to-white p-4">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                  <AlertCircle className="h-4 w-4 text-blue-500" />
+                  新用户引导：先完成模型服务商配置
+                </div>
+                <p className="mt-1 text-sm text-slate-600">
+                  请先配置服务商的 API Key 与基础 URL，并确认已有可用模型。
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Link href="/settings/providers">
+                  <Button size="sm" className="bg-blue-600 text-white hover:bg-blue-700">
+                    去配置服务商
+                  </Button>
+                </Link>
+                <Link href="/settings/general">
+                  <Button size="sm" variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50">
+                    检查默认模型
+                  </Button>
+                </Link>
+              </div>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-sm">
+                <span className="text-slate-600">服务商配置</span>
+                {providerStatus === "loading" ? (
+                  <span className="text-slate-400">检测中...</span>
+                ) : providerStatus === "ok" ? (
+                  <span className="inline-flex items-center gap-1 text-blue-700">
+                    <Check className="h-4 w-4" /> 已完成
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-red-500">
+                    <AlertCircle className="h-4 w-4" /> 未配置
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-sm">
+                <span className="text-slate-600">模型可用性</span>
+                {modelStatus === "loading" ? (
+                  <span className="text-slate-400">检测中...</span>
+                ) : modelStatus === "ok" ? (
+                  <span className="inline-flex items-center gap-1 text-blue-700">
+                    <Check className="h-4 w-4" /> 已配置
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-red-500">
+                    <AlertCircle className="h-4 w-4" /> 未配置
+                  </span>
+                )}
+              </div>
+            </div>
+          </Card>
 
           <Tabs defaultValue="推荐" className="space-y-6" value={activeTab} onValueChange={setActiveTab}>
             <div className="flex justify-between items-center flex-wrap gap-4">
@@ -257,4 +345,3 @@ export default function ExplorePage() {
     </div>
   )
 }
-

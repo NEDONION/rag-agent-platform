@@ -23,12 +23,19 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(userAuthInterceptor).addPathPatterns("/**") // 拦截所有请求
                 .excludePathPatterns( // 不拦截以下路径
                         "/login", // 登录接口
+                        "/api/login", // 登录接口（兼容上下文路径）
                         "/health", // 健康检查接口
                         "/api/health", // 健康检查接口（兼容上下文路径）
                         "/register", // 注册接口
+                        "/api/register", // 注册接口（兼容上下文路径）
                         "/auth/config", // 认证配置接口
+                        "/api/auth/config", // 认证配置接口（兼容上下文路径）
                         "/send-email-code", "/verify-email-code", "/get-captcha", "/reset-password",
-                        "/send-reset-password-code", "/oauth/github/authorize", "/oauth/github/callback", "/sso/**", // SSO相关接口
+                        "/send-reset-password-code",
+                        "/api/send-email-code", "/api/verify-email-code", "/api/get-captcha", "/api/reset-password",
+                        "/api/send-reset-password-code",
+                        "/oauth/github/authorize", "/oauth/github/callback", "/sso/**", // SSO相关接口
+                        "/api/oauth/github/authorize", "/api/oauth/github/callback", "/api/sso/**", // SSO相关接口（兼容上下文路径）
                         "/v1/**", "/payments/callback/**"); // 外部API接口，使用专门的API
         // Key拦截器
 

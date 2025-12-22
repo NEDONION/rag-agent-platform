@@ -1,8 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
@@ -10,7 +9,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { loginApi, getSsoLoginUrlApi } from "@/lib/api-services"
+import { loginApi } from "@/lib/api-services"
 import { setCookie } from "@/lib/utils"
 import { getAuthConfigWithToast } from "@/lib/auth-config-service"
 import type { AuthConfig } from "@/lib/types/auth-config"
@@ -34,26 +33,15 @@ const GitHubIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-// 敲鸭 Logo 组件
-const QiaoyaLogo = ({ className }: { className?: string }) => (
-  <Image 
-    src="/logo.jpg" 
-    alt="敲鸭 Logo" 
-    width={20} 
-    height={20}
-    className={`${className} rounded`}
-  />
-)
 
 export default function LoginPage() {
   const router = useRouter()
+  const autoLoginAttempted = useRef(false)
   const [formData, setFormData] = useState({
     account: "",
     password: ""
   })
   const [loading, setLoading] = useState(false)
-  const [githubLoading, setGithubLoading] = useState(false)
-  const [qiaoyaLoading, setQiaoyaLoading] = useState(false)
   const [authConfig, setAuthConfig] = useState<AuthConfig | null>(null)
   const [configLoading, setConfigLoading] = useState(true)
 
@@ -74,6 +62,41 @@ export default function LoginPage() {
 
     fetchAuthConfig()
   }, [])
+
+  useEffect(() => {
+    const autoLoginEnabled = process.env.NEXT_PUBLIC_AUTO_LOGIN !== "false"
+    if (!autoLoginEnabled) {
+      return
+    }
+    if (configLoading || autoLoginAttempted.current) {
+      return
+    }
+    if (typeof window === "undefined") {
+      return
+    }
+    if (localStorage.getItem("auth_token")) {
+      return
+    }
+
+    autoLoginAttempted.current = true
+    const account = process.env.NEXT_PUBLIC_AUTO_LOGIN_ACCOUNT || "test@jiacheng"
+    const password = process.env.NEXT_PUBLIC_AUTO_LOGIN_PASSWORD || "test123"
+
+    async function autoLogin() {
+      try {
+        const res = await loginApi({ account, password }, true)
+        if (res.code === 200 && res.data?.token) {
+          localStorage.setItem("auth_token", res.data.token)
+          setCookie("token", res.data.token, 30)
+          router.push("/")
+        }
+      } catch (error) {
+        console.error("自动登录失败:", error)
+      }
+    }
+
+    autoLogin()
+  }, [configLoading, router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -110,56 +133,6 @@ export default function LoginPage() {
     }
   }
 
-  const handleGitHubLogin = async () => {
-    try {
-      setGithubLoading(true)
-      const res = await getSsoLoginUrlApi('github')
-      if (res.code === 200 && res.data?.loginUrl) {
-        window.location.href = res.data.loginUrl
-      } else {
-        toast({
-          variant: "destructive",
-          title: "错误",
-          description: "获取GitHub授权链接失败"
-        })
-      }
-    } catch (error) {
-      console.error("GitHub登录失败:", error)
-      toast({
-        variant: "destructive",
-        title: "错误",
-        description: "GitHub登录失败，请稍后再试"
-      })
-    } finally {
-      setGithubLoading(false)
-    }
-  }
-
-  const handleQiaoyaLogin = async () => {
-    try {
-      setQiaoyaLoading(true)
-      const res = await getSsoLoginUrlApi('community')
-      if (res.code === 200 && res.data?.loginUrl) {
-        window.location.href = res.data.loginUrl
-      } else {
-        toast({
-          variant: "destructive",
-          title: "错误",
-          description: "获取敲鸭授权链接失败"
-        })
-      }
-    } catch (error) {
-      console.error("敲鸭登录失败:", error)
-      toast({
-        variant: "destructive",
-        title: "错误",
-        description: "敲鸭登录失败，请稍后再试"
-      })
-    } finally {
-      setQiaoyaLoading(false)
-    }
-  }
-
   // 配置加载中
   if (configLoading) {
     return (
@@ -180,9 +153,7 @@ export default function LoginPage() {
   // 检查是否有可用的登录方式
   const availableLoginMethods = authConfig?.loginMethods || {}
   const hasNormalLogin = availableLoginMethods[AUTH_FEATURE_KEY.NORMAL_LOGIN]?.enabled
-  const hasGitHubLogin = availableLoginMethods[AUTH_FEATURE_KEY.GITHUB_LOGIN]?.enabled
-  const hasCommunityLogin = availableLoginMethods[AUTH_FEATURE_KEY.COMMUNITY_LOGIN]?.enabled
-  const hasSsoLogin = hasGitHubLogin || hasCommunityLogin
+  const hasSsoLogin = false
 
   // 如果没有可用的登录方式
   if (!hasNormalLogin && !hasSsoLogin) {
@@ -261,45 +232,7 @@ export default function LoginPage() {
           {/* SSO登录按钮 */}
           {hasSsoLogin && (
             <div className="space-y-2">
-              {/* 敲鸭登录 */}
-              {hasCommunityLogin && (
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="w-full flex items-center justify-center gap-2"
-                  onClick={handleQiaoyaLogin}
-                  disabled={qiaoyaLoading}
-                >
-                  {qiaoyaLoading ? (
-                    <>正在跳转到敲鸭...</>
-                  ) : (
-                    <>
-                      <QiaoyaLogo className="h-5 w-5" />
-                      <span>{availableLoginMethods[AUTH_FEATURE_KEY.COMMUNITY_LOGIN]?.name || "使用敲鸭登录"}</span>
-                    </>
-                  )}
-                </Button>
-              )}
-
-              {/* GitHub登录 */}
-              {hasGitHubLogin && (
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="w-full flex items-center justify-center gap-2"
-                  onClick={handleGitHubLogin}
-                  disabled={githubLoading}
-                >
-                  {githubLoading ? (
-                    <>正在跳转到 GitHub...</>
-                  ) : (
-                    <>
-                      <GitHubIcon className="h-5 w-5" />
-                      <span>{availableLoginMethods[AUTH_FEATURE_KEY.GITHUB_LOGIN]?.name || "使用 GitHub 登录"}</span>
-                    </>
-                  )}
-                </Button>
-              )}
+              {/* GitHub登录（暂时禁用） */}
             </div>
           )}
 

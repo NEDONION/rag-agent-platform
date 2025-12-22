@@ -8,6 +8,7 @@ import {
   translate,
   type Locale,
 } from "@/lib/i18n"
+import { debugLog } from "@/lib/debug"
 
 type I18nContextValue = {
   locale: Locale
@@ -120,6 +121,7 @@ export function I18nProvider({
     setLocaleState(nextLocale)
     window.localStorage.setItem(LOCALE_STORAGE_KEY, nextLocale)
     document.cookie = `${LOCALE_STORAGE_KEY}=${nextLocale}; path=/; max-age=31536000`
+    debugLog("i18n.locale.set", nextLocale)
   }
 
   const value = useMemo<I18nContextValue>(() => {

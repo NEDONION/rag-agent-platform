@@ -149,16 +149,19 @@ export default function ModelSelector({
                 onValueChange={handleChangeDefaultModel}
                 disabled={isUpdatingModel || disabled}
               >
-                <SelectTrigger className={`w-40 h-8 bg-white ${triggerClassName}`}>
+                <SelectTrigger
+                  className={`w-72 h-8 bg-white ${triggerClassName}`}
+                  title={defaultModel?.name || "未设置默认模型"}
+                >
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-w-[18rem]">
                   {models.filter(model => model.status && model.type === 'CHAT').map((model) => (
                     <SelectItem key={model.id} value={model.id}>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{model.name}</span>
+                      <div className="flex items-center gap-2 max-w-[16rem]">
+                        <span className="font-medium truncate">{model.name}</span>
                         {model.providerName && (
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-muted-foreground truncate">
                             {model.providerName}
                           </span>
                         )}
@@ -175,16 +178,16 @@ export default function ModelSelector({
                     onValueChange={handleChangeDefaultModel}
                     disabled={isUpdatingModel || disabled}
                   >
-                    <SelectTrigger className={`w-40 h-8 bg-white ${triggerClassName}`}>
+                    <SelectTrigger className={`w-72 h-8 bg-white ${triggerClassName}`}>
                       <SelectValue placeholder="选择模型" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-w-[18rem]">
                       {models.filter(model => model.status && model.type === 'CHAT').map((model) => (
                         <SelectItem key={model.id} value={model.id}>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{model.name}</span>
+                          <div className="flex items-center gap-2 max-w-[16rem]">
+                            <span className="font-medium truncate">{model.name}</span>
                             {model.providerName && (
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-xs text-muted-foreground truncate">
                                 {model.providerName}
                               </span>
                             )}
@@ -223,13 +226,13 @@ export default function ModelSelector({
             <SelectTrigger className={`w-40 h-8 text-xs ${triggerClassName}`}>
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-w-[18rem]">
               {models.filter(model => model.status && model.type === 'CHAT').map((model) => (
                 <SelectItem key={model.id} value={model.id}>
-                  <div className="flex flex-col">
-                    <span className="font-medium">{model.name}</span>
+                  <div className="flex items-center gap-2 max-w-[16rem]">
+                    <span className="font-medium truncate">{model.name}</span>
                     {model.providerName && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-muted-foreground truncate">
                         {model.providerName}
                       </span>
                     )}
@@ -249,13 +252,13 @@ export default function ModelSelector({
                 <SelectTrigger className={`w-32 h-6 text-xs ${triggerClassName}`}>
                   <SelectValue placeholder="选择" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-w-[18rem]">
                   {models.filter(model => model.status && model.type === 'CHAT').map((model) => (
                     <SelectItem key={model.id} value={model.id}>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{model.name}</span>
+                      <div className="flex items-center gap-2 max-w-[16rem]">
+                        <span className="font-medium truncate">{model.name}</span>
                         {model.providerName && (
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-muted-foreground truncate">
                             {model.providerName}
                           </span>
                         )}

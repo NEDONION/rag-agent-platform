@@ -17,7 +17,6 @@ import AgentToolsForm from "@/app/(main)/studio/edit/[id]/components/AgentToolsF
 import ToolDetailSidebar from "@/app/(main)/studio/edit/[id]/components/ToolDetailSidebar"
 import KnowledgeBaseDetailSidebar from "@/app/(main)/studio/edit/[id]/components/KnowledgeBaseDetailSidebar"
 import AgentPreviewChat from "@/components/agent-preview-chat"
-import { AgentWidgetTab } from "@/app/(main)/studio/edit/[id]/components/AgentWidgetTab"
 
 interface AgentFormModalProps {
   // 模式控制
@@ -162,7 +161,7 @@ export default function AgentFormModal({
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-auto p-4">
         <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl flex max-h-[95vh] overflow-hidden">
-          <div className="w-3/5 p-8 overflow-auto">
+          <div className="w-7/12 p-8 overflow-auto">
             <div className="flex items-center justify-between mb-6">
               <Skeleton className="h-8 w-64" />
               <Skeleton className="h-10 w-10 rounded-full" />
@@ -185,7 +184,7 @@ export default function AgentFormModal({
               </div>
             </div>
           </div>
-          <div className="w-2/5 bg-gray-50 p-8 overflow-auto border-l">
+          <div className="w-5/12 bg-gray-50 p-8 overflow-auto border-l">
             <Skeleton className="h-8 w-32 mb-2" />
             <Skeleton className="h-4 w-64 mb-6" />
             <Skeleton className="h-[500px] w-full mb-6" />
@@ -201,7 +200,7 @@ export default function AgentFormModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-auto p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl flex max-h-[95vh] overflow-hidden">
         {/* 左侧表单 */}
-        <div className="w-3/5 p-8 overflow-auto">
+        <div className="w-7/12 p-8 overflow-auto">
           {/* 头部 */}
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -244,8 +243,8 @@ export default function AgentFormModal({
 
           {/* 表单标签页 */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className={`grid w-full ${mode === "edit" ? "grid-cols-4" : "grid-cols-3"}`}>
-              {getAvailableTabs().map((tab) => (
+            <TabsList className={`grid w-full ${mode === "edit" ? "grid-cols-3" : "grid-cols-3"}`}>
+              {getAvailableTabs().filter((tab) => tab.id !== "widget").map((tab) => (
                 <TabsTrigger key={tab.id} value={tab.id}>
                   {tab.label}
                 </TabsTrigger>
@@ -279,12 +278,6 @@ export default function AgentFormModal({
               />
             </TabsContent>
 
-            {/* 小组件标签页 - 仅编辑模式 */}
-            {mode === "edit" && agentId && (
-              <TabsContent value="widget" className="space-y-6">
-                <AgentWidgetTab agentId={agentId} />
-              </TabsContent>
-            )}
           </Tabs>
 
           {/* 底部按钮 */}
@@ -304,7 +297,7 @@ export default function AgentFormModal({
         </div>
 
         {/* 右侧预览 */}
-        <div className="w-2/5 bg-gray-50 p-8 overflow-auto border-l">
+        <div className="w-5/12 bg-gray-50 p-8 overflow-auto border-l">
           <div className="mb-6">
             <div className="flex items-center justify-between">
               <div>

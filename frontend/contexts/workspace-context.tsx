@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { debugLog } from "@/lib/debug"
 
 type WorkspaceContextType = {
   selectedWorkspaceId: string | null
@@ -72,6 +73,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }
   }, [selectedWorkspaceId, selectedConversationId])
 
+  useEffect(() => {
+    debugLog("workspace.selection", {
+      workspaceId: selectedWorkspaceId,
+      conversationId: selectedConversationId,
+    })
+  }, [selectedWorkspaceId, selectedConversationId])
+
   return (
     <WorkspaceContext.Provider
       value={{
@@ -95,4 +103,3 @@ export function useWorkspace() {
   }
   return context
 }
-

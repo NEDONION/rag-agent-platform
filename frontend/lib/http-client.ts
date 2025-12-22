@@ -1,7 +1,7 @@
 import { API_CONFIG } from "@/lib/api-config"
 import { toast } from "@/hooks/use-toast"
 
-import { log } from "console";
+import { debugLog, debugWarn } from "@/lib/debug";
 
 // 请求配置类型
 export interface RequestConfig extends RequestInit {
@@ -41,7 +41,10 @@ const defaultInterceptor: Interceptor = {
 
   // 响应拦截器
   response: async (response, options) => {
-    console.log('ggg')
+    debugLog("http.response", {
+      status: response.status,
+      url: response.url,
+    })
     if (response.status === 401) {
       // 清除本地存储的 token
       if (typeof window !== "undefined") {
@@ -72,7 +75,7 @@ const defaultInterceptor: Interceptor = {
 
   // 错误拦截器
   error: async (error) => {
-    console.log('ggg')
+    debugWarn("http.error", error)
     // 处理超时错误
     if (error.name === "AbortError") {
       return {
@@ -123,6 +126,7 @@ class HttpClient {
   private baseUrl: string;
   private interceptors: Interceptor[];
   private defaultTimeout: number;
+  private publicAuthEndpoints: string[];
 
   constructor(
     baseUrl: string = API_CONFIG.BASE_URL,
@@ -132,6 +136,17 @@ class HttpClient {
     this.baseUrl = baseUrl;
     this.interceptors = interceptors;
     this.defaultTimeout = defaultTimeout;
+    this.publicAuthEndpoints = [
+      "/login",
+      "/register",
+      "/get-captcha",
+      "/send-email-code",
+      "/verify-email-code",
+      "/send-reset-password-code",
+      "/reset-password",
+      "/oauth",
+      "/sso",
+    ];
   }
 
   // 添加拦截器
@@ -160,6 +175,10 @@ class HttpClient {
     return url;
   }
 
+  private isPublicAuthEndpoint(endpoint: string): boolean {
+    return this.publicAuthEndpoints.some((path) => endpoint.startsWith(path));
+  }
+
   // 执行请求
   private async request<T>(endpoint: string, config: RequestConfig = {}, options?: RequestOptions): Promise<T> {
     // 应用请求拦截器 - 使用reduce串联所有拦截器确保只应用一次
@@ -168,9 +187,21 @@ class HttpClient {
       { ...config }
     );
 
+    if (this.isPublicAuthEndpoint(endpoint)) {
+      if (processedConfig.headers && "Authorization" in processedConfig.headers) {
+        const { Authorization, ...rest } = processedConfig.headers as Record<string, string>;
+        processedConfig.headers = rest;
+      }
+    }
+
     // 构建完整URL
     const url = this.buildUrl(endpoint, processedConfig.params);
-    console.log("HTTP Request URL:", url, "Params:", processedConfig.params);
+    const startTime = Date.now();
+    debugLog("http.request", {
+      url,
+      method: processedConfig.method,
+      params: processedConfig.params,
+    });
 
     try {
       // 处理超时
@@ -196,7 +227,7 @@ class HttpClient {
       }
 
       // 处理 401 状态码
-      if (response.status === 401) {
+      if (response.status === 401 && !this.isPublicAuthEndpoint(endpoint)) {
         // 清除认证信息
         if (typeof window !== "undefined") {
           localStorage.removeItem("auth_token");
@@ -238,6 +269,13 @@ class HttpClient {
         });
       }
       
+      debugLog("http.response.parsed", {
+        url,
+        status: response.status,
+        durationMs: Date.now() - startTime,
+        code: result?.code,
+      });
+
       return result;
       
     } catch (error: any) {
@@ -258,6 +296,12 @@ class HttpClient {
         });
       }
       
+      debugWarn("http.request.failed", {
+        url,
+        durationMs: Date.now() - startTime,
+        error: errorResult,
+      });
+
       return errorResult as unknown as T;
     }
   }

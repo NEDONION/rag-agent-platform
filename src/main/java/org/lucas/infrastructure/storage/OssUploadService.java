@@ -30,6 +30,7 @@ public class OssUploadService {
      * @return 上传凭证信息 */
     public UploadCredential generateUploadCredential() {
         try {
+            validateOssConfig();
             // 生成过期时间
             long expireTime = System.currentTimeMillis() + 60 * 1000;
             Date expiration = new Date(expireTime);
@@ -105,6 +106,25 @@ public class OssUploadService {
         mac.init(secretKeySpec);
         byte[] signatureBytes = mac.doFinal(encodedPolicy.getBytes("UTF-8"));
         return Base64.getEncoder().encodeToString(signatureBytes);
+    }
+
+    private void validateOssConfig() {
+        if (isBlank(ossProperties.getBucketName())) {
+            throw new BusinessException("OSS配置缺失: bucketName 不能为空");
+        }
+        if (isBlank(ossProperties.getEndpoint())) {
+            throw new BusinessException("OSS配置缺失: endpoint 不能为空");
+        }
+        if (isBlank(ossProperties.getAccessKey())) {
+            throw new BusinessException("OSS配置缺失: accessKey 不能为空");
+        }
+        if (isBlank(ossProperties.getSecretKey())) {
+            throw new BusinessException("OSS配置缺失: secretKey 不能为空");
+        }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 
     /** 简单的Map转JSON实现 */

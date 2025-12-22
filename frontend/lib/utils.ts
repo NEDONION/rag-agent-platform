@@ -42,7 +42,23 @@ export function getCookie(name: string): string | null {
  * @param name cookie名称
  */
 export function deleteCookie(name: string) {
-  document.cookie = name + "=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+  const expires = "Thu, 01 Jan 1970 00:00:01 GMT"
+  const base = `${name}=; Path=/; Expires=${expires}; SameSite=Lax`
+  document.cookie = base
+
+  const hostname = window.location.hostname
+  if (hostname && hostname.includes(".")) {
+    document.cookie = `${base}; Domain=${hostname}`
+    document.cookie = `${base}; Domain=.${hostname}`
+  }
+
+  if (window.location.protocol === "https:") {
+    document.cookie = `${base}; Secure`
+    if (hostname && hostname.includes(".")) {
+      document.cookie = `${base}; Secure; Domain=${hostname}`
+      document.cookie = `${base}; Secure; Domain=.${hostname}`
+    }
+  }
 }
 
 /**

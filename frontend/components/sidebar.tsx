@@ -123,23 +123,23 @@ function WorkspaceItem({ id, name, icon, avatar, onClick }: WorkspaceItemProps) 
   }
 
   return (
-      <div className="relative group">
+        <div className="relative group">
         <Button
             variant="ghost"
             className={cn(
-                "w-full justify-start px-2 py-1.5 text-sm font-medium pl-8 hover:bg-accent hover:text-accent-foreground",
-                isActive && "bg-accent text-accent-foreground",
+                "w-full justify-start px-3 py-2 text-sm font-medium pl-8 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors",
+                isActive && "bg-blue-100 text-blue-900 shadow-sm ring-1 ring-blue-200",
             )}
             onClick={onClick}
         >
           {avatar && avatar.trim() !== '' ? (
-              <div className="w-5 h-5 rounded-full overflow-hidden mr-2 flex-shrink-0">
+              <div className="w-6 h-6 rounded-full overflow-hidden mr-2 flex-shrink-0 ring-1 ring-slate-200">
                 <img src={avatar} alt={name} className="w-full h-full object-cover" />
               </div>
           ) : icon ? (
               <span className="mr-2">{icon}</span>
           ) : (
-              <Bot className="mr-2 h-4 w-4" />
+              <Bot className="mr-2 h-4 w-4 text-slate-400" />
           )}
           <span className="truncate">{name}</span>
         </Button>
@@ -148,7 +148,7 @@ function WorkspaceItem({ id, name, icon, avatar, onClick }: WorkspaceItemProps) 
         <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7">
+              <Button variant="ghost" size="icon" className="h-7 w-7 rounded-md text-slate-500 hover:text-slate-900">
                 <MoreHorizontal className="h-4 w-4" />
                 <span className="sr-only">操作</span>
               </Button>
@@ -224,16 +224,19 @@ function SidebarItemComponent({ item, depth = 0 }: SidebarItemProps) {
         <div className="space-y-1">
           <Button
               variant="ghost"
-              className={cn("w-full justify-start px-2 py-1.5 text-sm font-medium", depth > 0 && "pl-8")}
+              className={cn(
+                "w-full justify-start px-3 py-2 text-sm font-semibold rounded-lg text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors",
+                depth > 0 && "pl-8"
+              )}
               onClick={() => setExpanded(!expanded)}
           >
             {typeof item.icon === "string" ? (
                 <span className="mr-2">{item.icon}</span>
             ) : (
-                item.icon && <item.icon className="mr-2 h-4 w-4" />
+                item.icon && <item.icon className="mr-2 h-4 w-4 text-slate-500" />
             )}
             <span className="flex-1 text-left">{item.title}</span>
-            {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            {expanded ? <ChevronDown className="h-4 w-4 text-slate-400" /> : <ChevronRight className="h-4 w-4 text-slate-400" />}
           </Button>
           {expanded && (
               <div className="space-y-1">
@@ -265,12 +268,14 @@ function SidebarItemComponent({ item, depth = 0 }: SidebarItemProps) {
       <Button
           variant="ghost"
           className={cn(
-              "w-full justify-start px-2 py-1.5 text-sm font-medium",
-              isActive ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground",
+              "w-full justify-start px-3 py-2 text-sm font-semibold rounded-lg text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors",
+              isActive && "bg-blue-100 text-blue-900 shadow-sm ring-1 ring-blue-200",
               depth > 0 && "pl-8",
           )}
           onClick={() => {
             if (item.href) {
+              setSelectedWorkspaceId(null)
+              setSelectedConversationId(null)
               router.push(item.href)
             }
           }}
@@ -283,6 +288,7 @@ function SidebarItemComponent({ item, depth = 0 }: SidebarItemProps) {
 
 export function Sidebar() {
   const { refreshTrigger } = useWorkspace()
+  const { setSelectedWorkspaceId, setSelectedConversationId } = useWorkspace()
   const [agents, setAgents] = useState<Agent[]>([])
   const [loading, setLoading] = useState(true)
   const [modelDialogOpen, setModelDialogOpen] = useState(false)
@@ -306,6 +312,16 @@ export function Sidebar() {
   useEffect(() => {
     loadWorkspaceAgents()
   }, [refreshTrigger])
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+    if (window.location.pathname.startsWith("/explore")) {
+      setSelectedWorkspaceId(null)
+      setSelectedConversationId(null)
+    }
+  }, [setSelectedWorkspaceId, setSelectedConversationId])
 
   // 处理移除Agent
   const handleRemoveAgent = async (agentId: string) => {
@@ -342,8 +358,8 @@ export function Sidebar() {
   ]
 
   return (
-      <div className="w-[220px] border-r flex flex-col h-full bg-gray-50">
-        <div className="flex-1 overflow-auto py-4 px-3">
+      <div className="w-[260px] border-r border-slate-200/70 flex flex-col h-full bg-gradient-to-b from-slate-50 via-blue-50/40 to-white">
+        <div className="flex-1 overflow-auto py-5 px-3">
           <div className="space-y-2">
             {sidebarItems.map((item, index) => (
                 <SidebarItemComponent key={index} item={item} />
@@ -353,8 +369,8 @@ export function Sidebar() {
             {loading && (
                 <div className="space-y-2 pl-8 pr-2">
                   {Array.from({ length: 3 }).map((_, index) => (
-                      <div key={index} className="flex items-center gap-2 py-1.5">
-                        <Skeleton className="h-5 w-5 rounded-full" />
+                      <div key={index} className="flex items-center gap-2 py-2">
+                        <Skeleton className="h-6 w-6 rounded-full" />
                         <Skeleton className="h-4 w-24" />
                       </div>
                   ))}
@@ -365,4 +381,3 @@ export function Sidebar() {
       </div>
   )
 }
-

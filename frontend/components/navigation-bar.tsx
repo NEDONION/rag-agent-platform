@@ -22,6 +22,7 @@ import { deleteCookie } from "@/lib/utils"
 import { getUserInfoWithToast, type UserInfo } from "@/lib/user-service"
 import { useBalance } from "@/contexts/account-context"
 import { useI18n } from "@/contexts/i18n-context"
+import { debugLog } from "@/lib/debug"
 
 const navItems = [
   {
@@ -65,10 +66,10 @@ export function NavigationBar() {
         if (response.code === 200) {
           setUserInfo(response.data)
         } else {
-          console.error("Failed to fetch user details:", response.message)
+          console.error("获取用户信息失败:", response.message)
         }
       } catch (error) {
-        console.error("Error in fetching user details:", error)
+        console.error("获取用户信息异常:", error)
       } finally {
         setLoading(false)
       }
@@ -92,6 +93,7 @@ export function NavigationBar() {
   }
 
   const handleLogout = () => {
+    debugLog("auth.logout")
     // 清除localStorage中的token
     localStorage.removeItem("auth_token")
     
@@ -105,12 +107,12 @@ export function NavigationBar() {
     })
     
     // 跳转到登录页
-    router.push("/login")
+    window.location.href = "/login"
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center px-4">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200/70 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70">
+      <div className="container flex h-16 items-center px-4">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="mr-2 md:hidden">
@@ -145,19 +147,19 @@ export function NavigationBar() {
         </Sheet>
         <Link href="/" className="mr-6 flex items-center space-x-2">
           <Home className="h-6 w-6 text-blue-600" />
-          <span className="hidden font-bold sm:inline-block">{t("RAG Agent Platform")}</span>
+          <span className="hidden font-semibold tracking-tight sm:inline-block text-slate-900">{t("RAG Agent Platform")}</span>
         </Link>
         <div className="flex flex-1 items-center justify-between">
-          <nav className="flex items-center space-x-6">
+          <nav className="hidden items-center space-x-2 md:flex">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-1 text-sm font-medium transition-colors",
+                  "flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900",
                   isActiveRoute(item.href)
-                    ? "text-blue-600 font-semibold"
-                    : "text-foreground/60 hover:text-foreground/80",
+                    ? "bg-blue-100 text-blue-900 ring-1 ring-blue-200 shadow-sm"
+                    : "text-slate-600",
                 )}
               >
                 <item.icon className="h-5 w-5" />
@@ -168,41 +170,59 @@ export function NavigationBar() {
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <Languages className="h-4 w-4" />
+                <Button variant="ghost" size="sm" className="rounded-full border border-slate-200 bg-white/80 px-3 text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+                  <Languages className="mr-1 h-4 w-4" />
+                  <span className="text-xs font-medium">{locale === "zh" ? "中文" : "EN"}</span>
                   <span className="sr-only">{t("Language")}</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={() => setLocale("zh")}>
-                  中文 {locale === "zh" ? "✓" : ""}
+              <DropdownMenuContent align="end" className="min-w-[140px]">
+                <DropdownMenuItem
+                  onSelect={() => setLocale("zh")}
+                  className={cn(
+                    "flex items-center justify-between",
+                    locale === "zh" && "bg-blue-50 text-blue-900 font-medium"
+                  )}
+                >
+                  <span>中文</span>
+                  {locale === "zh" && <span className="text-xs">已选</span>}
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setLocale("en")}>
-                  English {locale === "en" ? "✓" : ""}
+                <DropdownMenuItem
+                  onSelect={() => setLocale("en")}
+                  className={cn(
+                    "flex items-center justify-between",
+                    locale === "en" && "bg-blue-50 text-blue-900 font-medium"
+                  )}
+                >
+                  <span>English</span>
+                  {locale === "en" && <span className="text-xs">Selected</span>}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <Avatar className="h-8 w-8">
+                <Button variant="ghost" className="flex items-center gap-2 rounded-full px-2 py-1.5 text-slate-700 hover:bg-slate-100">
+                  <Avatar className="h-8 w-8 ring-1 ring-slate-200">
                     <AvatarImage src="/placeholder.svg?height=32&width=32" alt={t("User")} />
                     <AvatarFallback>
                       {loading ? "..." : getUserAvatarFallback()}
                     </AvatarFallback>
                   </Avatar>
+                  <span className="hidden text-sm font-medium sm:inline">
+                    {loading ? t("Loading...") : (userInfo?.nickname || t("Unknown user"))}
+                  </span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
+              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuLabel className="flex items-center gap-3">
+                  <Avatar className="h-9 w-9 ring-1 ring-slate-200">
                     <AvatarImage src="/placeholder.svg?height=32&width=32" alt={t("User")} />
                     <AvatarFallback>
                       {loading ? "..." : getUserAvatarFallback()}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <div className="font-medium">
+                    <div className="font-medium text-slate-900">
                       {loading ? t("Loading...") : (userInfo?.nickname || t("Unknown user"))}
                     </div>
                     {userInfo?.email && (

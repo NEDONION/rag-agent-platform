@@ -1,13 +1,15 @@
 import type React from "react"
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { Providers } from "./providers"
 import { ThemeProvider } from "@/components/theme-provider"
 import { LOCALE_STORAGE_KEY, normalizeLocale, translate } from "@/lib/i18n"
 import "@/styles/globals.css"
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-    const localeCookie = cookies().get(LOCALE_STORAGE_KEY)?.value
-    const locale = normalizeLocale(localeCookie)
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+    const requestHeaders = await headers()
+    const acceptLanguage = requestHeaders.get("accept-language")
+    const localeCookie = (await cookies()).get(LOCALE_STORAGE_KEY)?.value
+    const locale = normalizeLocale(localeCookie || acceptLanguage)
     const htmlLang = locale === "zh" ? "zh-CN" : "en"
     return (
         <html lang={htmlLang} suppressHydrationWarning>

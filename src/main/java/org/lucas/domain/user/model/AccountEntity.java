@@ -178,6 +178,9 @@ public class AccountEntity extends BaseEntity {
     public static AccountEntity createNew(String userId) {
         AccountEntity account = new AccountEntity();
         account.setUserId(userId);
+        account.setBalance(new BigDecimal("999"));
+        account.setCredit(BigDecimal.ZERO);
+        account.setTotalConsumed(BigDecimal.ZERO);
         account.validate();
         return account;
     }

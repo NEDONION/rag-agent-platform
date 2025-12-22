@@ -40,6 +40,10 @@ public class CaptchaUtils {
         if (uuid == null || code == null) {
             return false;
         }
+        String normalizedCode = code.trim();
+        if (normalizedCode.isEmpty()) {
+            return false;
+        }
 
         CaptchaInfo captchaInfo = captchaMap.get(uuid);
         if (captchaInfo == null) {
@@ -53,7 +57,7 @@ public class CaptchaUtils {
         }
 
         // 验证码校验（忽略大小写）
-        boolean result = captchaInfo.getCode().equalsIgnoreCase(code);
+        boolean result = captchaInfo.getCode().equalsIgnoreCase(normalizedCode);
         if (result) {
             captchaMap.remove(uuid);
         }

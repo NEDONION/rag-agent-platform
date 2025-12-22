@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { Account } from "@/types/account";
 import { AccountService } from "@/lib/account-service";
+import { debugLog, debugWarn } from "@/lib/debug";
 
 interface AccountContextType {
   // 账户数据
@@ -29,7 +30,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
   // 刷新账户数据
   const refreshAccount = useCallback(async () => {
-    console.log('[AccountContext] 开始刷新账户数据');
+    debugLog("account.refresh.start");
     setLoading(true);
     setError(null);
     
@@ -37,15 +38,15 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       const response = await AccountService.getCurrentUserAccount();
       
       if (response.code === 200) {
-        console.log('[AccountContext] 账户数据获取成功', response.data);
+        debugLog("account.refresh.success", response.data);
         setAccount(response.data);
       } else {
-        console.error('[AccountContext] 获取账户数据失败', response.message);
+        debugWarn("account.refresh.failed", response.message);
         setError(response.message);
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '网络错误，请稍后重试';
-      console.error('[AccountContext] 获取账户数据异常', error);
+      debugWarn("account.refresh.error", error);
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -54,14 +55,14 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
   // 直接更新账户数据（用于支付成功后的即时更新）
   const updateAccountData = useCallback((accountData: Account) => {
-    console.log('[AccountContext] 直接更新账户数据', accountData);
+    debugLog("account.update", accountData);
     setAccount(accountData);
     setError(null);
   }, []);
 
   // 清除账户数据
   const clearAccount = useCallback(() => {
-    console.log('[AccountContext] 清除账户数据');
+    debugLog("account.clear");
     setAccount(null);
     setError(null);
     setLoading(false);
@@ -72,6 +73,9 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
   // 格式化金额
   const formatAmount = useCallback((amount: number) => {
+    if (amount >= 999) {
+      return "无限";
+    }
     return `¥${amount.toFixed(2)}`;
   }, []);
 
@@ -84,14 +88,14 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden && account) {
-        console.log('[AccountContext] 页面重新可见，刷新账户数据');
+        debugLog("account.refresh.visibility");
         refreshAccount();
       }
     };
 
     const handleFocus = () => {
       if (account) {
-        console.log('[AccountContext] 页面重新获得焦点，刷新账户数据');
+        debugLog("account.refresh.focus");
         refreshAccount();
       }
     };

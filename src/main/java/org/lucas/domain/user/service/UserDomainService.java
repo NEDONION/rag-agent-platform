@@ -68,10 +68,10 @@ public class UserDomainService {
         // 设置普通登录平台
         userEntity.setLoginPlatform("normal");
 
-//        userRepository.checkInsert(userEntity);
+        userRepository.checkInsert(userEntity);
         UserSettingsEntity userSettingsEntity = new UserSettingsEntity();
         userSettingsEntity.setUserId(userEntity.getId());
-//        settingsRepository.insert(userSettingsEntity);
+        settingsRepository.insert(userSettingsEntity);
         return userEntity;
     }
 
@@ -97,8 +97,10 @@ public class UserDomainService {
     /** 检查账号是否存在，邮箱 or 手机号任意值
      * @param email 邮箱账号 */
     public void checkAccountExist(String email) {
-        LambdaQueryWrapper<UserEntity> wrapper = Wrappers.<UserEntity>lambdaQuery().eq(UserEntity::getEmail, email)
-                .or();
+        LambdaQueryWrapper<UserEntity> wrapper = Wrappers.<UserEntity>lambdaQuery()
+                .eq(UserEntity::getEmail, email)
+                .or()
+                .eq(UserEntity::getPhone, email);
         if (userRepository.exists(wrapper)) {
             throw new BusinessException("账号已存在,不可重复账注册");
         }
