@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 
 import type { RagDataset } from "@/types/rag-dataset"
+import { useI18n } from "@/contexts/i18n-context"
 
 interface CreatedRagCardProps {
   dataset: RagDataset
@@ -31,6 +32,7 @@ export function CreatedRagCard({
   onPublish, 
   onViewHistory 
 }: CreatedRagCardProps) {
+  const { t } = useI18n()
   // 格式化时间
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('zh-CN')
@@ -55,7 +57,7 @@ export function CreatedRagCard({
             <div className="w-[calc(100%-60px)] min-w-0">
               <h3 className="font-semibold line-clamp-1 truncate text-ellipsis overflow-hidden whitespace-nowrap max-w-full">{dataset.name}</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Updated at {formatDate(dataset.updatedAt)}
+                {t("更新时间：{time}", { time: formatDate(dataset.updatedAt) })}
               </p>
             </div>
           </Link>
@@ -63,26 +65,26 @@ export function CreatedRagCard({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8">
                 <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">More options</span>
+                <span className="sr-only">{t("更多操作")}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {onEdit && (
                 <DropdownMenuItem onClick={() => onEdit(dataset)}>
                   <Edit className="mr-2 h-4 w-4" />
-                  Edit
+                  {t("编辑")}
                 </DropdownMenuItem>
               )}
               {onPublish && (
                 <DropdownMenuItem onClick={() => onPublish(dataset)}>
                   <Share className="mr-2 h-4 w-4" />
-                  Release to the market
+                  {t("发布到市场")}
                 </DropdownMenuItem>
               )}
               {onViewHistory && (
                 <DropdownMenuItem onClick={() => onViewHistory(dataset)}>
                   <History className="mr-2 h-4 w-4" />
-                  Version History
+                  {t("版本历史")}
                 </DropdownMenuItem>
               )}
               {onDelete && (
@@ -93,7 +95,7 @@ export function CreatedRagCard({
                     onClick={() => onDelete(dataset)}
                   >
                     <Trash className="mr-2 h-4 w-4" />
-                    Delete
+                    {t("删除")}
                   </DropdownMenuItem>
                 </>
               )}
@@ -104,14 +106,14 @@ export function CreatedRagCard({
       <CardContent className="pt-0">
         <Link href={`/knowledge/${dataset.id}`} className="block" style={{ cursor: 'pointer' }}>
           <div className="min-h-[40px] mb-3 line-clamp-2 text-sm">
-            {dataset.description || "No description"}
+            {dataset.description || t("暂无描述")}
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="secondary">
-              {dataset.fileCount} Files
+              {t("文件数：{count}", { count: dataset.fileCount })}
             </Badge>
             <Badge variant="outline">
-              Raw Dataset
+              {t("原始数据集")}
             </Badge>
           </div>
         </Link>

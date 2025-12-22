@@ -1,6 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import { MoreHorizontal, Plus, Edit, Trash, Power, PowerOff, Loader2, PlusCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -33,7 +34,7 @@ import {
 } from "@/lib/api-services"
 import {
   getUserSettingsWithToast,
-  updateUserSettingsWithToast,
+  updateUserSettings,
   getChatModelsWithToast,
   getOcrModelsWithToast,
   getEmbeddingModelsWithToast,
@@ -80,6 +81,7 @@ interface Provider {
 
 export default function ProvidersPage() {
   const { t } = useI18n()
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<"all" | "official" | "personal">("all")
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null)
   const [providers, setProviders] = useState<Provider[]>([])
@@ -117,6 +119,8 @@ export default function ProvidersPage() {
   const [embeddingModels, setEmbeddingModels] = useState<ChatModel[]>([])
   const [modelsLoading, setModelsLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [showSaveNotice, setShowSaveNotice] = useState(false)
+  const saveNoticeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   
   // 加载服务商数据
   const loadProviders = async () => {
@@ -181,7 +185,13 @@ export default function ProvidersPage() {
     try {
       const response = await getChatModelsWithToast()
       if (response.code === 200 && response.data) {
-        setChatModels(response.data.filter((model: ChatModel) => model.status))
+        console.log("[Model Settings] raw chat models:", response.data)
+        const activeModels = response.data.filter((model: ChatModel) => {
+          const modelType = typeof model.type === "string" ? model.type : (model.type as { code?: string })?.code
+          console.log("[Model Settings] chat model type:", model.id, model.name, modelType, model.status)
+          return model.status !== false && modelType === "CHAT"
+        })
+        setChatModels(activeModels)
       }
     } finally {
       setChatModelsLoading(false)
@@ -197,11 +207,23 @@ export default function ProvidersPage() {
       ])
 
       if (ocrResponse.code === 200 && ocrResponse.data) {
-        setOcrModels(ocrResponse.data.filter((model: ChatModel) => model.status))
+        console.log("[Model Settings] raw vision models:", ocrResponse.data)
+        const visionModels = ocrResponse.data.filter((model: ChatModel) => {
+          const modelType = typeof model.type === "string" ? model.type : (model.type as { code?: string })?.code
+          console.log("[Model Settings] vision model type:", model.id, model.name, modelType, model.status)
+          return model.status !== false && modelType === "VISION"
+        })
+        setOcrModels(visionModels)
       }
 
       if (embeddingResponse.code === 200 && embeddingResponse.data) {
-        setEmbeddingModels(embeddingResponse.data.filter((model: ChatModel) => model.status))
+        console.log("[Model Settings] raw embedding models:", embeddingResponse.data)
+        const embeddingList = embeddingResponse.data.filter((model: ChatModel) => {
+          const modelType = typeof model.type === "string" ? model.type : (model.type as { code?: string })?.code
+          console.log("[Model Settings] embedding model type:", model.id, model.name, modelType, model.status)
+          return model.status !== false && modelType === "EMBEDDING"
+        })
+        setEmbeddingModels(embeddingList)
       }
     } finally {
       setModelsLoading(false)
@@ -220,6 +242,14 @@ export default function ProvidersPage() {
     fetchAdditionalModels()
   }, [fetchAdditionalModels])
 
+  useEffect(() => {
+    return () => {
+      if (saveNoticeTimeoutRef.current) {
+        clearTimeout(saveNoticeTimeoutRef.current)
+      }
+    }
+  }, [])
+
   const handleDefaultModelChange = async (modelId: string) => {
     const nextSettings = {
       ...settings,
@@ -229,9 +259,16 @@ export default function ProvidersPage() {
       }
     }
     setSettings(nextSettings)
-    await updateUserSettingsWithToast({
+    const response = await updateUserSettings({
       settingConfig: nextSettings.settingConfig,
     })
+    if (response.code !== 200) {
+      toast({
+        title: t("配置保存失败"),
+        description: t("保存失败，请重试"),
+        variant: "destructive",
+      })
+    }
   }
 
   const handleDefaultOcrModelChange = (modelId: string) => {
@@ -267,7 +304,7 @@ export default function ProvidersPage() {
   const handleSubmit = async () => {
     try {
       setSubmitting(true)
-      const response = await updateUserSettingsWithToast({
+      const response = await updateUserSettings({
         settingConfig: {
           defaultModel: settings.settingConfig.defaultModel,
           defaultOcrModel: settings.settingConfig.defaultOcrModel,
@@ -277,6 +314,20 @@ export default function ProvidersPage() {
       })
       if (response.code === 200 && response.data) {
         setSettings(response.data)
+        setShowSaveNotice(true)
+        if (saveNoticeTimeoutRef.current) {
+          clearTimeout(saveNoticeTimeoutRef.current)
+        }
+        saveNoticeTimeoutRef.current = setTimeout(() => {
+          setShowSaveNotice(false)
+          router.back()
+        }, 1200)
+      } else {
+        toast({
+          title: t("配置保存失败"),
+          description: t("保存失败，请重试"),
+          variant: "destructive",
+        })
       }
     } finally {
       setSubmitting(false)
@@ -656,7 +707,15 @@ export default function ProvidersPage() {
   }
   
   return (
-    <div className="container py-8">
+    <>
+      {showSaveNotice && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-none">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-6 py-4 text-emerald-700 shadow-lg">
+            {t("配置保存成功")}
+          </div>
+        </div>
+      )}
+      <div className="container py-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{t("Model Provider")}</h1>
@@ -741,7 +800,11 @@ export default function ProvidersPage() {
                       value={settings.settingConfig.defaultModel || ""}
                       onValueChange={handleDefaultModelChange}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger
+                        className={`data-[state=open]:ring-2 data-[state=open]:ring-blue-200 data-[state=open]:border-blue-300 ${
+                          settings.settingConfig.defaultModel ? "[&>span]:text-blue-700 [&>span]:font-medium" : ""
+                        }`}
+                      >
                         <SelectValue placeholder={t("选择默认模型")} />
                       </SelectTrigger>
                       <SelectContent>
@@ -788,7 +851,11 @@ export default function ProvidersPage() {
                       value={settings.settingConfig.defaultOcrModel || ""}
                       onValueChange={handleDefaultOcrModelChange}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger
+                        className={`data-[state=open]:ring-2 data-[state=open]:ring-blue-200 data-[state=open]:border-blue-300 ${
+                          settings.settingConfig.defaultOcrModel ? "[&>span]:text-blue-700 [&>span]:font-medium" : ""
+                        }`}
+                      >
                         <SelectValue placeholder={t("选择默认OCR模型")} />
                       </SelectTrigger>
                       <SelectContent>
@@ -807,6 +874,13 @@ export default function ProvidersPage() {
                       </SelectContent>
                     </Select>
                   )}
+                {!modelsLoading && (
+                  <div className="text-sm text-muted-foreground">
+                    {ocrModels.length === 0
+                      ? t("暂无可用视觉模型，请先添加类型为视觉的模型")
+                      : t("未找到想要的模型？去模型服务配置")}
+                  </div>
+                )}
                 </div>
               </CardContent>
             </Card>
@@ -828,7 +902,13 @@ export default function ProvidersPage() {
                       value={settings.settingConfig.defaultEmbeddingModel || ""}
                       onValueChange={handleDefaultEmbeddingModelChange}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger
+                        className={`data-[state=open]:ring-2 data-[state=open]:ring-blue-200 data-[state=open]:border-blue-300 ${
+                          settings.settingConfig.defaultEmbeddingModel
+                            ? "[&>span]:text-blue-700 [&>span]:font-medium"
+                            : ""
+                        }`}
+                      >
                         <SelectValue placeholder={t("选择默认嵌入模型")} />
                       </SelectTrigger>
                       <SelectContent>
@@ -979,5 +1059,6 @@ export default function ProvidersPage() {
         />
       )}
     </div>
+    </>
   )
 } 

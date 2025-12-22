@@ -26,6 +26,7 @@ import { Card } from "@/components/ui/card"
 
 import type { FileDetail } from "@/types/rag-dataset"
 import type { DocumentUnitDTO } from "@/types/rag-dataset"
+import { useI18n } from "@/contexts/i18n-context"
 
 interface MarketRagFilePreviewDialogProps {
   open: boolean
@@ -40,6 +41,7 @@ export function MarketRagFilePreviewDialog({
   file, 
   ragVersionId 
 }: MarketRagFilePreviewDialogProps) {
+  const { t } = useI18n()
   const [documentUnits, setDocumentUnits] = useState<DocumentUnitDTO[]>([])
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
@@ -81,7 +83,7 @@ export function MarketRagFilePreviewDialog({
             <div>
               <DialogTitle>{file.originalFilename}</DialogTitle>
               <DialogDescription>
-                查看文档中的语料内容 • 只读模式
+                {t("查看文档中的语料内容 • 只读模式")}
               </DialogDescription>
             </div>
           </div>
@@ -89,23 +91,26 @@ export function MarketRagFilePreviewDialog({
 
         <div className="px-6 py-3 border-b shrink-0">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Badge variant="outline" className="text-xs">
-                共 {filteredDocuments.length} / {documentUnits.length} 个语料
-              </Badge>
-              <Badge variant="outline" className="text-xs">
-                {file.filePageSize || 0} 页
-              </Badge>
-            </div>
+              <div className="flex items-center gap-4">
+                <Badge variant="outline" className="text-xs">
+                  {t("共 {filtered} / {total} 个语料", {
+                    filtered: filteredDocuments.length,
+                    total: documentUnits.length,
+                  })}
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  {t("{count} 页", { count: file.filePageSize || 0 })}
+                </Badge>
+              </div>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="搜索语料内容..."
-                className="pl-10 pr-10 w-64"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+                <Input
+                  type="search"
+                  placeholder={t("搜索语料内容...")}
+                  className="pl-10 pr-10 w-64"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               {searchQuery && (
                 <Button
                   variant="ghost"
@@ -124,16 +129,16 @@ export function MarketRagFilePreviewDialog({
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin" />
-              <span className="ml-2">加载中...</span>
+              <span className="ml-2">{t("加载中...")}</span>
             </div>
           ) : filteredDocuments.length === 0 ? (
             <div className="text-center py-8">
               <FileSearch className="h-12 w-12 mx-auto text-gray-400 mb-4" />
               <h3 className="text-lg font-medium mb-2">
-                暂不支持市场RAG文档预览
+                {t("暂不支持市场RAG文档预览")}
               </h3>
               <p className="text-muted-foreground">
-                请安装该RAG后查看详细内容
+                {t("请安装该RAG后查看详细内容")}
               </p>
             </div>
           ) : (
@@ -144,22 +149,22 @@ export function MarketRagFilePreviewDialog({
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="text-xs">
-                          第 {unit.page + 1} 页
+                          {t("第 {count} 页", { count: unit.page + 1 })}
                         </Badge>
                         {unit.isVector && (
                           <Badge variant="default" className="text-xs">
                             <CheckCircle className="h-3 w-3 mr-1" />
-                            已向量化
+                            {t("已向量化")}
                           </Badge>
                         )}
                         {unit.isOcr && (
                           <Badge variant="secondary" className="text-xs">
-                            OCR处理
+                            {t("OCR处理")}
                           </Badge>
                         )}
                       </div>
                       <Badge variant="outline" className="text-xs">
-                        只读
+                        {t("只读")}
                       </Badge>
                     </div>
 
@@ -193,10 +198,12 @@ export function MarketRagFilePreviewDialog({
 
                     <div className="flex items-center justify-between pt-2 border-t">
                       <span className="text-xs text-muted-foreground">
-                        ID: {unit.id}
+                        {t("ID：{id}", { id: unit.id })}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        更新时间: {new Date(unit.updatedAt).toLocaleString('zh-CN')}
+                        {t("更新时间：{time}", {
+                          time: new Date(unit.updatedAt).toLocaleString('zh-CN'),
+                        })}
                       </span>
                     </div>
                   </div>

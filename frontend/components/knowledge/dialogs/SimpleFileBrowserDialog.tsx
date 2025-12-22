@@ -40,6 +40,7 @@ import type {
   FileDetail
 } from "@/types/rag-dataset"
 import { FileDetailPanel } from "@/components/rag-chat/FileDetailPanel"
+import { useI18n } from "@/contexts/i18n-context"
 
 interface SimpleFileBrowserDialogProps {
   open: boolean
@@ -52,6 +53,7 @@ export function SimpleFileBrowserDialog({
   onOpenChange,
   userRag
 }: SimpleFileBrowserDialogProps) {
+  const { t } = useI18n()
   const [files, setFiles] = useState<FileDetail[]>([])
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
@@ -91,8 +93,8 @@ export function SimpleFileBrowserDialog({
       }
     } catch (error) {
       toast({
-        title: "加载文件列表失败",
-        description: error instanceof Error ? error.message : "未知错误",
+        title: t("加载文件列表失败"),
+        description: error instanceof Error ? error.message : t("未知错误"),
         variant: "destructive"
       })
     } finally {
@@ -150,10 +152,10 @@ export function SimpleFileBrowserDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <FolderOpen className="h-5 w-5" />
-              文件浏览 - {userRag.name}
+              {t("文件浏览 - {name}", { name: userRag.name })}
             </DialogTitle>
             <DialogDescription>
-              浏览知识库中的所有文件
+              {t("浏览知识库中的所有文件")}
             </DialogDescription>
           </DialogHeader>
 
@@ -162,7 +164,7 @@ export function SimpleFileBrowserDialog({
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="搜索文件名..."
+                placeholder={t("搜索文件名...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -182,17 +184,17 @@ export function SimpleFileBrowserDialog({
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">
-                  {debouncedQuery ? "未找到匹配的文件" : "该知识库暂无文件"}
+                  {debouncedQuery ? t("未找到匹配的文件") : t("该知识库暂无文件")}
                 </p>
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>文件名</TableHead>
-                    <TableHead>大小</TableHead>
-                    <TableHead>上传时间</TableHead>
-                    <TableHead className="w-[100px]">操作</TableHead>
+                    <TableHead>{t("文件名")}</TableHead>
+                    <TableHead>{t("大小")}</TableHead>
+                    <TableHead>{t("上传时间")}</TableHead>
+                    <TableHead className="w-[100px]">{t("操作")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -232,7 +234,7 @@ export function SimpleFileBrowserDialog({
           {/* 文件总数 */}
           <div className="border-t pt-3">
             <p className="text-sm text-muted-foreground">
-              共 {files.length} 个文件
+              {t("共 {count} 个文件", { count: files.length })}
             </p>
           </div>
         </DialogContent>
@@ -245,7 +247,7 @@ export function SimpleFileBrowserDialog({
             <DialogHeader>
               <DialogTitle className="flex items-center gap-3">
                 <FileText className="h-5 w-5" />
-                文档内容 - {selectedFile.originalFilename}
+                {t("文档内容 - {name}", { name: selectedFile.originalFilename })}
                 <Button
                   variant="ghost"
                   size="sm"

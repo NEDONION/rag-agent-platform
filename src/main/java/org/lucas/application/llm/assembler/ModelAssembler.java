@@ -79,6 +79,7 @@ public class ModelAssembler {
         model.setName(request.getName());
         model.setDescription(request.getDescription());
         model.setModelId(request.getModelId());
+        model.setType(request.getType());
         model.setModelEndpoint(request.getModelEndpoint());
         model.setCreatedAt(LocalDateTime.now());
         model.setUpdatedAt(LocalDateTime.now());

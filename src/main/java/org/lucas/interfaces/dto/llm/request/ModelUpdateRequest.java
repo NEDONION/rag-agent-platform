@@ -1,6 +1,7 @@
 package org.lucas.interfaces.dto.llm.request;
 
 import jakarta.validation.constraints.NotBlank;
+import org.lucas.domain.llm.model.enums.ModelType;
 
 /** 模型更新请求 */
 public class ModelUpdateRequest {
@@ -18,6 +19,9 @@ public class ModelUpdateRequest {
 
     /** 模型描述 */
     private String description;
+
+    /** 模型类型 */
+    private ModelType type;
 
     /** 模型部署名称 */
     private String modelEndpoint;
@@ -45,6 +49,14 @@ public class ModelUpdateRequest {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public ModelType getType() {
+        return type;
+    }
+
+    public void setType(ModelType type) {
+        this.type = type;
     }
 
     public String getModelId() {

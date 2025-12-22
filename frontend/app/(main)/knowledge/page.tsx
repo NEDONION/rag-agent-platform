@@ -9,8 +9,10 @@ import { CreateDatasetDialog } from "@/components/knowledge/CreateDatasetDialog"
 import { CreatedRagsSection } from "@/components/knowledge/sections/CreatedRagsSection"
 import { InstalledRagsSection } from "@/components/knowledge/sections/InstalledRagsSection"
 import { RecommendedRagsSection } from "@/components/knowledge/sections/RecommendedRagsSection"
+import { useI18n } from "@/contexts/i18n-context"
 
 export default function KnowledgePage() {
+  const { t } = useI18n()
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   // 触发刷新
@@ -24,8 +26,8 @@ export default function KnowledgePage() {
         {/* 页面头部 */}
         <div className="flex items-center justify-between mb-8 bg-white p-6 rounded-lg shadow-sm">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">Knowledge Base</h1>
-            <p className="text-muted-foreground mt-1">Manage your RAG datasets, discover and use high-quality knowledge bases</p>
+            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">{t("知识库")}</h1>
+            <p className="text-muted-foreground mt-1">{t("管理 RAG 数据集，发现并使用高质量知识库")}</p>
           </div>
           
           <CreateDatasetDialog onSuccess={triggerRefresh} />
@@ -43,4 +45,3 @@ export default function KnowledgePage() {
     </div>
   )
 }
-

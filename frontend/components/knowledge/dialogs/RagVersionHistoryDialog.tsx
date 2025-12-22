@@ -18,6 +18,7 @@ import type { RagDataset } from "@/types/rag-dataset"
 import type { RagVersionDTO } from "@/types/rag-publish"
 import { getRagVersionHistory } from "@/lib/rag-publish-service"
 import { RagPublishStatus, RagPublishStatusText, getPublishStatusColor, formatDateTime } from "@/types/rag-publish"
+import { useI18n } from "@/contexts/i18n-context"
 
 interface RagVersionHistoryDialogProps {
   open: boolean
@@ -30,6 +31,7 @@ export function RagVersionHistoryDialog({
   onOpenChange, 
   dataset 
 }: RagVersionHistoryDialogProps) {
+  const { t } = useI18n()
   const [versions, setVersions] = useState<RagVersionDTO[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -50,7 +52,7 @@ export function RagVersionHistoryDialog({
         setError(response.message)
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : "获取版本历史失败")
+      setError(error instanceof Error ? error.message : t("获取版本历史失败"))
     } finally {
       setLoading(false)
     }
@@ -85,9 +87,9 @@ export function RagVersionHistoryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle>版本历史</DialogTitle>
+          <DialogTitle>{t("版本历史")}</DialogTitle>
           <DialogDescription>
-            查看知识库"{dataset.name}"的发布历史
+            {t("查看知识库“{name}”的发布历史", { name: dataset.name })}
           </DialogDescription>
         </DialogHeader>
         
@@ -111,17 +113,17 @@ export function RagVersionHistoryDialog({
             <div className="text-center py-8">
               <div className="text-red-500 mb-4">{error}</div>
               <Button variant="outline" onClick={loadVersionHistory}>
-                Retry
+                {t("重试")}
               </Button>
             </div>
           ) : versions.length === 0 ? (
             // 空状态
             <div className="text-center py-8">
               <div className="text-muted-foreground mb-4">
-                No version history
+                {t("暂无版本历史")}
               </div>
               <div className="text-sm text-muted-foreground">
-                After publishing the knowledge, the version history will be displayed here
+                {t("发布知识库后，版本历史会显示在这里")}
               </div>
             </div>
           ) : (
@@ -134,7 +136,7 @@ export function RagVersionHistoryDialog({
                       <Badge variant="outline">v{version.version}</Badge>
                       {version.version === "0.0.1" && (
                         <Badge variant="secondary" className="text-xs">
-                          Private Version
+                          {t("私有版本")}
                         </Badge>
                       )}
                       <Badge 
@@ -153,7 +155,7 @@ export function RagVersionHistoryDialog({
 
                   {version.changeLog && (
                     <div className="mb-3">
-                      <div className="text-sm font-medium mb-1">Changelog:</div>
+                      <div className="text-sm font-medium mb-1">{t("更新日志：")}</div>
                       <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded">
                         {version.changeLog}
                       </div>
@@ -164,7 +166,7 @@ export function RagVersionHistoryDialog({
                     <div className="mb-3">
                       <div className="flex items-center gap-1 text-sm text-muted-foreground mb-1">
                         <Tag className="h-3 w-3" />
-                        Label:
+                        {t("标签：")}
                       </div>
                       <div className="flex flex-wrap gap-1">
                         {version.labels.map((label, index) => (
@@ -179,28 +181,28 @@ export function RagVersionHistoryDialog({
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <FileText className="h-3 w-3" />
-                      {version.fileCount} File
+                      {t("文件数：{count}", { count: version.fileCount })}
                     </div>
                     <div className="flex items-center gap-1">
-                      <span>{version.documentCount} Document</span>
+                      <span>{t("文档数：{count}", { count: version.documentCount })}</span>
                     </div>
                     {version.installCount > 0 && (
                       <div className="flex items-center gap-1">
-                        <span>{version.installCount} Install</span>
+                        <span>{t("安装次数：{count}", { count: version.installCount })}</span>
                       </div>
                     )}
                   </div>
 
                   {version.publishStatus === RagPublishStatus.REJECTED && version.rejectReason && (
                     <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm">
-                      <div className="font-medium text-red-800 mb-1">Reason for rejection:</div>
+                      <div className="font-medium text-red-800 mb-1">{t("拒绝原因：")}</div>
                       <div className="text-red-700">{version.rejectReason}</div>
                     </div>
                   )}
 
                   {version.publishStatus === RagPublishStatus.PUBLISHED && version.publishedAt && (
                     <div className="mt-2 text-xs text-muted-foreground">
-                      Published on: {formatDateTime(version.publishedAt)}
+                      {t("发布时间：{time}", { time: formatDateTime(version.publishedAt) })}
                     </div>
                   )}
                 </div>

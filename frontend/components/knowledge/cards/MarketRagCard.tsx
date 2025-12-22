@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 import type { RagMarketDTO } from "@/types/rag-publish"
 import { formatFileSize, formatDateTime, getLabelColor } from "@/types/rag-publish"
+import { useI18n } from "@/contexts/i18n-context"
 
 interface MarketRagCardProps {
   ragMarket: RagMarketDTO
@@ -21,13 +22,14 @@ export function MarketRagCard({
   onInstall, 
   onViewDetails 
 }: MarketRagCardProps) {
+  const { t } = useI18n()
   return (
     <Card className="group relative overflow-hidden border border-gray-100 hover:shadow-md transition-all duration-300 min-h-[180px]">
       {ragMarket.isInstalled && (
         <div className="absolute top-2 right-2 z-10">
           <Badge variant="default" className="text-xs">
             <Check className="mr-1 h-3 w-3" />
-            已安装
+            {t("已安装")}
           </Badge>
         </div>
       )}
@@ -48,7 +50,7 @@ export function MarketRagCard({
           <div className="w-[calc(100%-60px)]">
             <h3 className="font-semibold line-clamp-1">{ragMarket.name}</h3>
             <p className="text-sm text-muted-foreground line-clamp-1">
-              {ragMarket.description || "无描述"}
+              {ragMarket.description || t("暂无描述")}
             </p>
           </div>
         </div>
@@ -83,7 +85,7 @@ export function MarketRagCard({
           </div>
           <div className="flex items-center">
             <Download className="mr-1 h-3 w-3" />
-            <span>{ragMarket.installCount} 安装</span>
+            <span>{t("安装数：{count}", { count: ragMarket.installCount })}</span>
           </div>
         </div>
       </CardContent>
@@ -99,7 +101,7 @@ export function MarketRagCard({
               disabled={ragMarket.isInstalled}
             >
               <Download className="mr-2 h-4 w-4" />
-              {ragMarket.isInstalled ? "已安装" : "安装"}
+              {ragMarket.isInstalled ? t("已安装") : t("安装")}
             </Button>
           )}
           {onViewDetails && (
@@ -110,7 +112,7 @@ export function MarketRagCard({
               onClick={() => onViewDetails(ragMarket)}
             >
               <Eye className="mr-2 h-4 w-4" />
-              详情
+              {t("详情")}
             </Button>
           )}
         </div>

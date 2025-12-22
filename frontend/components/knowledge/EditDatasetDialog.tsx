@@ -19,6 +19,7 @@ import { toast } from "@/hooks/use-toast"
 
 import { updateDatasetWithToast } from "@/lib/rag-dataset-service"
 import type { RagDataset, UpdateDatasetRequest } from "@/types/rag-dataset"
+import { useI18n } from "@/contexts/i18n-context"
 
 interface EditDatasetDialogProps {
   dataset: RagDataset | null
@@ -33,6 +34,7 @@ export function EditDatasetDialog({
   onOpenChange, 
   onSuccess 
 }: EditDatasetDialogProps) {
+  const { t } = useI18n()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState<UpdateDatasetRequest>({
     name: "",
@@ -59,7 +61,7 @@ export function EditDatasetDialog({
     // 客户端验证
     if (!formData.name.trim()) {
       toast({
-        title: "请输入数据集名称",
+        title: t("请输入数据集名称"),
         variant: "destructive",
       })
       return
@@ -67,7 +69,7 @@ export function EditDatasetDialog({
 
     if (formData.name.length > 100) {
       toast({
-        title: "数据集名称不能超过100个字符",
+        title: t("数据集名称不能超过100个字符"),
         variant: "destructive",
       })
       return
@@ -75,7 +77,7 @@ export function EditDatasetDialog({
 
     if (formData.description && formData.description.length > 1000) {
       toast({
-        title: "数据集说明不能超过1000个字符",
+        title: t("数据集说明不能超过1000个字符"),
         variant: "destructive",
       })
       return
@@ -83,7 +85,7 @@ export function EditDatasetDialog({
 
     if (formData.icon && formData.icon.length > 500) {
       toast({
-        title: "图标URL不能超过500个字符",
+        title: t("图标URL不能超过500个字符"),
         variant: "destructive",
       })
       return
@@ -123,58 +125,58 @@ export function EditDatasetDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Edit className="h-5 w-5" />
-              编辑数据集
+              {t("编辑数据集")}
             </DialogTitle>
             <DialogDescription>
-              修改数据集的基本信息
+              {t("修改数据集的基本信息")}
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="edit-name">
-                数据集名称 <span className="text-red-500">*</span>
+                {t("数据集名称")} <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="edit-name"
-                placeholder="请输入数据集名称"
+                placeholder={t("请输入数据集名称")}
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
                 maxLength={100}
                 required
               />
               <p className="text-xs text-muted-foreground">
-                {formData.name.length}/100 字符
+                {t("已输入 {current}/{max} 字符", { current: formData.name.length, max: 100 })}
               </p>
             </div>
             
             <div className="grid gap-2">
-              <Label htmlFor="edit-icon">图标URL（可选）</Label>
+              <Label htmlFor="edit-icon">{t("图标URL（可选）")}</Label>
               <Input
                 id="edit-icon"
-                placeholder="请输入图标URL"
+                placeholder={t("请输入图标URL")}
                 value={formData.icon}
                 onChange={(e) => handleInputChange("icon", e.target.value)}
                 maxLength={500}
                 type="url"
               />
               <p className="text-xs text-muted-foreground">
-                {formData.icon?.length || 0}/500 字符
+                {t("已输入 {current}/{max} 字符", { current: formData.icon?.length || 0, max: 500 })}
               </p>
             </div>
             
             <div className="grid gap-2">
-              <Label htmlFor="edit-description">数据集说明（可选）</Label>
+              <Label htmlFor="edit-description">{t("数据集说明（可选）")}</Label>
               <Textarea
                 id="edit-description"
-                placeholder="请输入数据集说明"
+                placeholder={t("请输入数据集说明")}
                 value={formData.description}
                 onChange={(e) => handleInputChange("description", e.target.value)}
                 maxLength={1000}
                 rows={3}
               />
               <p className="text-xs text-muted-foreground">
-                {formData.description?.length || 0}/1000 字符
+                {t("已输入 {current}/{max} 字符", { current: formData.description?.length || 0, max: 1000 })}
               </p>
             </div>
           </div>
@@ -186,10 +188,10 @@ export function EditDatasetDialog({
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
             >
-              取消
+              {t("取消")}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "保存中..." : "保存"}
+              {isSubmitting ? t("保存中...") : t("保存")}
             </Button>
           </DialogFooter>
         </form>

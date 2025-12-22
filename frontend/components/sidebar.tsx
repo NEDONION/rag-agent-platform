@@ -358,8 +358,8 @@ export function Sidebar() {
   ]
 
   return (
-      <div className="w-[260px] border-r border-slate-200/70 flex flex-col h-full bg-gradient-to-b from-slate-50 via-blue-50/40 to-white">
-        <div className="flex-1 overflow-auto py-5 px-3">
+      <div className="w-[220px] border-r border-slate-200/70 flex flex-col h-full bg-gradient-to-b from-slate-50 via-blue-50/40 to-white">
+        <div className="flex-1 overflow-auto py-5 px-2.5">
           <div className="space-y-2">
             {sidebarItems.map((item, index) => (
                 <SidebarItemComponent key={index} item={item} />

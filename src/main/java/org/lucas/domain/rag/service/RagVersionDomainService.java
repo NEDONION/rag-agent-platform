@@ -80,7 +80,9 @@ public class RagVersionDomainService {
         ragVersion.setChangeLog(changeLog);
         ragVersion.setOriginalRagId(ragId);
         ragVersion.setOriginalRagName(dataset.getName());
-        ragVersion.setPublishStatus(RagPublishStatus.REVIEWING.getCode());
+        ragVersion.setPublishStatus(RagPublishStatus.PUBLISHED.getCode());
+        ragVersion.setReviewTime(LocalDateTime.now());
+        ragVersion.setPublishedAt(LocalDateTime.now());
         ragVersionRepository.insert(ragVersion);
 
         // 复制文件和文档数据

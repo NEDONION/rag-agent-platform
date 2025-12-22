@@ -37,6 +37,7 @@ import type { RagMarketDTO } from "@/types/rag-publish"
 import type { FileDetail } from "@/types/rag-dataset"
 import { installRagVersionWithToast, getMarketRagFilesWithToast } from "@/lib/rag-publish-service"
 import { formatFileSize, formatDateTime, getLabelColor } from "@/types/rag-publish"
+import { useI18n } from "@/contexts/i18n-context"
 
 interface MarketRagDetailDialogProps {
   open: boolean
@@ -53,6 +54,7 @@ export function MarketRagDetailDialog({
   onInstall,
   onInstallSuccess
 }: MarketRagDetailDialogProps) {
+  const { t } = useI18n()
   const [isInstalling, setIsInstalling] = useState(false)
   const [files, setFiles] = useState<FileDetail[]>([])
   const [filesLoading, setFilesLoading] = useState(false)
@@ -144,17 +146,17 @@ export function MarketRagDetailDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Eye className="h-5 w-5" />
-            知识库详情
+            {t("知识库详情")}
           </DialogTitle>
           <DialogDescription>
-            查看知识库的详细信息、统计数据和文件列表
+            {t("查看知识库的详细信息、统计数据和文件列表")}
           </DialogDescription>
         </DialogHeader>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 overflow-hidden flex flex-col">
           <TabsList className="grid grid-cols-2 w-full">
-            <TabsTrigger value="info">基本信息</TabsTrigger>
-            <TabsTrigger value="files">文件列表 ({ragMarket.fileCount})</TabsTrigger>
+            <TabsTrigger value="info">{t("基本信息")}</TabsTrigger>
+            <TabsTrigger value="files">{t("文件列表 ({count})", { count: ragMarket.fileCount })}</TabsTrigger>
           </TabsList>
           
           <TabsContent value="info" className="flex-1 overflow-y-auto">
@@ -178,7 +180,7 @@ export function MarketRagDetailDialog({
                 v{ragMarket.version}
               </Badge>
               <p className="text-sm text-muted-foreground">
-                {ragMarket.description || "暂无描述"}
+                {ragMarket.description || t("暂无描述")}
               </p>
             </div>
           </div>
@@ -189,7 +191,7 @@ export function MarketRagDetailDialog({
           <div className="space-y-3">
             <h4 className="text-sm font-medium flex items-center gap-2">
               <User className="h-4 w-4" />
-              作者信息
+              {t("作者信息")}
             </h4>
             <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
               <Avatar className="h-8 w-8">
@@ -202,7 +204,7 @@ export function MarketRagDetailDialog({
                 <div className="font-medium text-sm">{ragMarket.userNickname}</div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Calendar className="h-3 w-3" />
-                  发布于 {formatDateTime(ragMarket.publishedAt)}
+                  {t("发布于 {time}", { time: formatDateTime(ragMarket.publishedAt) })}
                 </div>
               </div>
             </div>
@@ -213,7 +215,7 @@ export function MarketRagDetailDialog({
             <div className="space-y-3">
               <h4 className="text-sm font-medium flex items-center gap-2">
                 <Tag className="h-4 w-4" />
-                标签
+                {t("标签")}
               </h4>
               <div className="flex flex-wrap gap-2">
                 {ragMarket.labels.map((label, index) => (
@@ -235,7 +237,7 @@ export function MarketRagDetailDialog({
           <div className="space-y-3">
             <h4 className="text-sm font-medium flex items-center gap-2">
               <Package className="h-4 w-4" />
-              统计信息
+              {t("统计信息")}
             </h4>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-3">
@@ -245,7 +247,7 @@ export function MarketRagDetailDialog({
                   </div>
                   <div>
                     <div className="font-semibold text-lg">{ragMarket.installCount}</div>
-                    <div className="text-xs text-muted-foreground">安装次数</div>
+                    <div className="text-xs text-muted-foreground">{t("安装次数")}</div>
                   </div>
                 </div>
                 
@@ -255,7 +257,7 @@ export function MarketRagDetailDialog({
                   </div>
                   <div>
                     <div className="font-semibold text-lg">{ragMarket.fileCount}</div>
-                    <div className="text-xs text-muted-foreground">文件数量</div>
+                    <div className="text-xs text-muted-foreground">{t("文件数量")}</div>
                   </div>
                 </div>
               </div>
@@ -267,7 +269,7 @@ export function MarketRagDetailDialog({
                   </div>
                   <div>
                     <div className="font-semibold text-lg">{ragMarket.documentCount}</div>
-                    <div className="text-xs text-muted-foreground">文档数量</div>
+                    <div className="text-xs text-muted-foreground">{t("文档数量")}</div>
                   </div>
                 </div>
                 
@@ -279,7 +281,7 @@ export function MarketRagDetailDialog({
                     <div className="font-semibold text-lg">
                       {ragMarket.totalSizeDisplay || formatFileSize(ragMarket.totalSize)}
                     </div>
-                    <div className="text-xs text-muted-foreground">总大小</div>
+                    <div className="text-xs text-muted-foreground">{t("总大小")}</div>
                   </div>
                 </div>
               </div>
@@ -293,7 +295,7 @@ export function MarketRagDetailDialog({
               <div className="space-y-3">
                 <h4 className="text-sm font-medium flex items-center gap-2">
                   <Star className="h-4 w-4" />
-                  用户评价
+                  {t("用户评价")}
                 </h4>
                 <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
                   <div className="h-8 w-8 bg-yellow-100 rounded-full flex items-center justify-center">
@@ -306,7 +308,7 @@ export function MarketRagDetailDialog({
                     </div>
                     {ragMarket.reviewCount && (
                       <div className="text-xs text-muted-foreground">
-                        基于 {ragMarket.reviewCount} 个评价
+                        {t("基于 {count} 个评价", { count: ragMarket.reviewCount })}
                       </div>
                     )}
                   </div>
@@ -318,7 +320,7 @@ export function MarketRagDetailDialog({
               {/* 最后更新时间 */}
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Clock className="h-3 w-3" />
-                最后更新: {formatDateTime(ragMarket.updatedAt)}
+                {t("最后更新：{time}", { time: formatDateTime(ragMarket.updatedAt) })}
               </div>
             </div>
           </TabsContent>
@@ -341,8 +343,8 @@ export function MarketRagDetailDialog({
               ) : files.length === 0 ? (
                 <div className="text-center py-12">
                   <File className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">暂无文件</h3>
-                  <p className="text-muted-foreground">此知识库中暂时没有文件</p>
+                  <h3 className="text-lg font-medium mb-2">{t("暂无文件")}</h3>
+                  <p className="text-muted-foreground">{t("此知识库中暂时没有文件")}</p>
                 </div>
               ) : (
                 <div className="space-y-2 p-1">
@@ -365,7 +367,7 @@ export function MarketRagDetailDialog({
                           {file.filePageSize && (
                             <>
                               <span>•</span>
-                              <span>{file.filePageSize} 页</span>
+                              <span>{t("{count} 页", { count: file.filePageSize })}</span>
                             </>
                           )}
                         </div>
@@ -390,7 +392,7 @@ export function MarketRagDetailDialog({
             onClick={() => onOpenChange(false)}
             className="w-full sm:w-auto"
           >
-            关闭
+            {t("关闭")}
           </Button>
           <Button 
             onClick={handleInstall}
@@ -398,7 +400,7 @@ export function MarketRagDetailDialog({
             className="w-full sm:w-auto"
           >
             <Download className="mr-2 h-4 w-4" />
-            {isInstalling ? "安装中..." : ragMarket.isInstalled ? "已安装" : "安装知识库"}
+            {isInstalling ? t("安装中...") : ragMarket.isInstalled ? t("已安装") : t("安装知识库")}
           </Button>
         </DialogFooter>
       </DialogContent>

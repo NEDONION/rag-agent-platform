@@ -97,13 +97,12 @@ public class PortalUserController {
         return Result.success(defaultModelId);
     }
 
-    /** 获取可用的OCR模型列表（复用现有模型接口，支持视觉模型）
-     * @return OCR模型列表 */
+    /** 获取可用的视觉模型列表
+     * @return 视觉模型列表 */
     @GetMapping("/settings/ocr-models")
     public Result<List<ModelDTO>> getOcrModels() {
         String userId = UserContext.getCurrentUserId();
-        // OCR模型实际上是对话模型，但支持视觉输入，所以复用CHAT类型
-        List<ModelDTO> models = llmAppService.getActiveModelsByType(ProviderType.ALL, userId, ModelType.CHAT);
+        List<ModelDTO> models = llmAppService.getActiveModelsByType(ProviderType.ALL, userId, ModelType.VISION);
         return Result.success(models);
     }
 

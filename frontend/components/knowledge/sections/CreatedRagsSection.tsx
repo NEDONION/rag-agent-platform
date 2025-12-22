@@ -31,8 +31,10 @@ import { CreateDatasetDialog } from "../CreateDatasetDialog"
 import { EditDatasetDialog } from "../EditDatasetDialog"
 import { PublishRagDialog } from "../dialogs/PublishRagDialog"
 import { RagVersionHistoryDialog } from "../dialogs/RagVersionHistoryDialog"
+import { useI18n } from "@/contexts/i18n-context"
 
 export function CreatedRagsSection() {
+  const { t } = useI18n()
   const [datasets, setDatasets] = useState<RagDataset[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -180,10 +182,10 @@ export function CreatedRagsSection() {
             <span className="bg-primary/10 p-1.5 rounded-md text-primary mr-2">
               <Book className="h-5 w-5" />
             </span>
-            My Created Knowledge Base
+            {t("我创建的知识库")}
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Manage your created RAG datasets and support publishing to the market
+            {t("管理你创建的 RAG 数据集，并支持发布到市场")}
           </p>
         </div>
       </div>
@@ -193,7 +195,7 @@ export function CreatedRagsSection() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           type="search"
-          placeholder="Search datasets..."
+          placeholder={t("搜索数据集...")}
           className="pl-10 pr-10"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -206,7 +208,7 @@ export function CreatedRagsSection() {
             onClick={clearSearch}
           >
             <X className="h-4 w-4" />
-            <span className="sr-only">Clear Search</span>
+            <span className="sr-only">{t("清除搜索")}</span>
           </Button>
         )}
       </div>
@@ -240,7 +242,7 @@ export function CreatedRagsSection() {
           <div className="text-red-500 mb-4">{error}</div>
           <Button variant="outline" onClick={() => loadDatasets(1, debouncedQuery)}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            Retry
+            {t("重试")}
           </Button>
         </div>
       ) : datasets.length === 0 ? (
@@ -248,10 +250,10 @@ export function CreatedRagsSection() {
         <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-100">
           <Book className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-medium mb-2">
-            {searchQuery ? "No matching datasets found" : "No datasets have been created yet"}
+            {searchQuery ? t("未找到匹配的数据集") : t("暂无已创建的数据集")}
           </h3>
           <p className="text-muted-foreground mb-6">
-            {searchQuery ? "Try using different search terms" : "Create your first RAG dataset and start knowledge management"}
+            {searchQuery ? t("尝试使用其他搜索词") : t("创建你的第一个 RAG 数据集并开始知识管理")}
           </p>
           {!searchQuery && (
             <CreateDatasetDialog onSuccess={() => loadDatasets(1, debouncedQuery)} />
@@ -280,7 +282,9 @@ export function CreatedRagsSection() {
                 variant="outline"
                 onClick={() => setShowAll(!showAll)}
               >
-                {showAll ? "Close" : `See more (${datasets.length - 6})`}
+                {showAll
+                  ? t("收起")
+                  : t("查看更多 ({count})", { count: datasets.length - 6 })}
               </Button>
             </div>
           )}
@@ -320,17 +324,19 @@ export function CreatedRagsSection() {
       <Dialog open={!!datasetToDelete} onOpenChange={(open) => !open && setDatasetToDelete(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>确认删除</DialogTitle>
+            <DialogTitle>{t("确认删除")}</DialogTitle>
             <DialogDescription>
-              您确定要删除数据集 "{datasetToDelete?.name}" 吗？此操作无法撤销，将同时删除数据集中的所有文件。
+              {t("您确定要删除数据集“{name}”吗？此操作无法撤销，将同时删除数据集中的所有文件。", {
+                name: datasetToDelete?.name || "",
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDatasetToDelete(null)}>
-              Cancel
+              {t("取消")}
             </Button>
             <Button variant="destructive" onClick={handleDeleteDataset} disabled={isDeleting}>
-              {isDeleting ? "Deleting..." : "Comfirm to delete"}
+              {isDeleting ? t("删除中...") : t("确认删除")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,4 +1,5 @@
 import { FileProcessingStatusEnum, FileDetail, FileProcessProgressDTO } from "@/types/rag-dataset"
+import { t } from "@/lib/i18n"
 
 // 文件状态显示配置
 export interface FileStatusDisplayConfig {
@@ -32,7 +33,7 @@ export function getFileStatusConfig(
     switch (statusEnum) {
       case FileProcessingStatusEnum.UPLOADED:
         statusConfig = {
-          text: "Uploaded",
+          text: t("已上传"),
           variant: "outline",
           color: "text-yellow-600 border-yellow-300",
           iconType: "clock"
@@ -42,7 +43,7 @@ export function getFileStatusConfig(
 
       case FileProcessingStatusEnum.OCR_PROCESSING:
         statusConfig = {
-          text: "OCR processing",
+          text: t("OCR处理中"),
           variant: "outline",
           color: "text-blue-600 border-blue-300",
           iconType: "loading"
@@ -52,7 +53,7 @@ export function getFileStatusConfig(
 
       case FileProcessingStatusEnum.OCR_COMPLETED:
         statusConfig = {
-          text: "OCR completed",
+          text: t("OCR处理完成"),
           variant: "secondary",
           color: "text-green-600 bg-green-50 border-green-300",
           iconType: "check"
@@ -63,7 +64,7 @@ export function getFileStatusConfig(
 
       case FileProcessingStatusEnum.EMBEDDING_PROCESSING:
         statusConfig = {
-          text: "Vectorizing",
+          text: t("向量化处理中"),
           variant: "outline",
           color: "text-blue-600 border-blue-300",
           iconType: "loading"
@@ -73,7 +74,7 @@ export function getFileStatusConfig(
 
       case FileProcessingStatusEnum.COMPLETED:
         statusConfig = {
-          text: "Completed",
+          text: t("全部处理完成"),
           variant: "default",
           color: "text-green-600 bg-green-50 border-green-300",
           iconType: "check"
@@ -83,7 +84,7 @@ export function getFileStatusConfig(
 
       case FileProcessingStatusEnum.OCR_FAILED:
         statusConfig = {
-          text: "OCR failed",
+          text: t("OCR处理失败"),
           variant: "destructive",
           color: "text-red-600 border-red-300",
           iconType: "alert"
@@ -93,7 +94,7 @@ export function getFileStatusConfig(
 
       case FileProcessingStatusEnum.EMBEDDING_FAILED:
         statusConfig = {
-          text: "Vectorization failed",
+          text: t("向量化处理失败"),
           variant: "destructive",
           color: "text-red-600 border-red-300",
           iconType: "alert"
@@ -104,7 +105,7 @@ export function getFileStatusConfig(
 
       default:
         statusConfig = {
-          text: "Unknown status",
+          text: t("未知状态"),
           variant: "destructive",
           color: "text-red-600",
           iconType: "alert"
@@ -114,7 +115,7 @@ export function getFileStatusConfig(
     // 兼容旧的状态字段
     if (file.isInitialize === 0) {
       statusConfig = {
-        text: "pre-initialized",
+        text: t("未初始化"),
         variant: "outline",
         color: "text-yellow-600 border-yellow-300",
         iconType: "clock"
@@ -122,7 +123,7 @@ export function getFileStatusConfig(
       canStartOcr = true;
     } else if (file.isInitialize === 1) {
       statusConfig = {
-        text: "Initialized",
+        text: t("已初始化"),
         variant: "secondary",
         color: "text-green-600 bg-green-50 border-green-300",
         iconType: "check"
@@ -130,7 +131,7 @@ export function getFileStatusConfig(
       canStartEmbedding = file.isEmbedding === 0;
     } else {
       statusConfig = {
-        text: "Processing",
+        text: t("处理中"),
         variant: "outline",
         color: "text-blue-600 border-blue-300",
         iconType: "loading"
@@ -156,18 +157,18 @@ export function getStatusDescription(
   }
 
   if (!statusEnum) {
-    return "Unknown status";
+    return t("未知状态");
   }
 
   const statusMap = {
-    [FileProcessingStatusEnum.UPLOADED]: "已上传，待开始处理",
-    [FileProcessingStatusEnum.OCR_PROCESSING]: "OCR处理中",
-    [FileProcessingStatusEnum.OCR_COMPLETED]: "OCR处理完成，待向量化",
-    [FileProcessingStatusEnum.EMBEDDING_PROCESSING]: "向量化处理中",
-    [FileProcessingStatusEnum.COMPLETED]: "全部处理完成",
-    [FileProcessingStatusEnum.OCR_FAILED]: "OCR处理失败",
-    [FileProcessingStatusEnum.EMBEDDING_FAILED]: "向量化处理失败"
+    [FileProcessingStatusEnum.UPLOADED]: t("已上传，待开始处理"),
+    [FileProcessingStatusEnum.OCR_PROCESSING]: t("OCR处理中"),
+    [FileProcessingStatusEnum.OCR_COMPLETED]: t("OCR处理完成，待向量化"),
+    [FileProcessingStatusEnum.EMBEDDING_PROCESSING]: t("向量化处理中"),
+    [FileProcessingStatusEnum.COMPLETED]: t("全部处理完成"),
+    [FileProcessingStatusEnum.OCR_FAILED]: t("OCR处理失败"),
+    [FileProcessingStatusEnum.EMBEDDING_FAILED]: t("向量化处理失败")
   };
 
-  return statusMap[statusEnum] || "Unknown status";
+  return statusMap[statusEnum] || t("未知状态");
 } 

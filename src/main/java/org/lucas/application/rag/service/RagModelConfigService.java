@@ -7,6 +7,7 @@ import org.lucas.application.user.dto.UserSettingsDTO;
 import org.lucas.application.user.service.UserSettingsAppService;
 import org.lucas.domain.llm.model.ModelEntity;
 import org.lucas.domain.llm.model.ProviderEntity;
+import org.lucas.domain.llm.model.enums.ModelType;
 import org.lucas.domain.llm.service.LLMDomainService;
 import org.lucas.domain.rag.model.ModelConfig;
 import org.lucas.infrastructure.exception.BusinessException;
@@ -51,7 +52,7 @@ public class RagModelConfigService {
             log.info("Getting OCR model config for user {}, modelId: {}", userId, modelId);
 
             // 根据模型ID从数据库获取真实的模型配置
-            return getModelConfigFromDatabase(modelId, userId, "CHAT");
+            return getModelConfigFromDatabase(modelId, userId, ModelType.VISION.getCode());
 
         } catch (BusinessException e) {
             // 重新抛出业务异常

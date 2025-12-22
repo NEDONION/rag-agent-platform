@@ -10,6 +10,7 @@ import { FileDetailPanel } from "@/components/rag-chat/FileDetailPanel"
 import { useUserRagChatSession } from "@/hooks/rag-chat/useUserRagChatSession"
 import { useChatLayout } from "@/hooks/rag-chat/useChatLayout"
 import type { UserRagDTO, RetrievedFileInfo } from "@/types/rag-dataset"
+import { useI18n } from "@/contexts/i18n-context"
 
 interface InstalledRagChatDialogProps {
   open: boolean
@@ -22,6 +23,7 @@ export function InstalledRagChatDialog({
   onOpenChange, 
   userRag 
 }: InstalledRagChatDialogProps) {
+  const { t } = useI18n()
   const {
     uiState,
     selectFile,
@@ -61,7 +63,7 @@ export function InstalledRagChatDialog({
   // 处理发送消息 - 使用 userRagId 作为数据源
   const handleSendMessage = async (message: string) => {
     if (!userRag?.id) {
-      console.error("无法获取知识库数据源");
+      console.error(t("无法获取知识库数据源"));
       return
     }
 
@@ -93,7 +95,7 @@ export function InstalledRagChatDialog({
       title={
         <div className="flex items-center gap-3">
           <MessageSquare className="h-5 w-5" />
-          <span>RAG Smart Q&A</span>
+          <span>{t("RAG 智能问答")}</span>
           <Badge variant="secondary">{userRag.name}</Badge>
           <Badge variant="outline" className="text-xs">
             v{userRag.version}

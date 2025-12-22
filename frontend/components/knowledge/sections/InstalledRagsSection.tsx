@@ -32,8 +32,10 @@ import { getCurrentUserId, getCurrentUserIdAsync } from "@/lib/user-service"
 import type { UserRagDTO, PageResponse } from "@/types/rag-publish"
 import { InstalledRagCard } from "../cards/InstalledRagCard"
 import { InstalledRagDetailDialog } from "../dialogs/InstalledRagDetailDialog"
+import { useI18n } from "@/contexts/i18n-context"
 
 export function InstalledRagsSection() {
+  const { t } = useI18n()
   const [installedRags, setInstalledRags] = useState<UserRagDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
@@ -210,10 +212,10 @@ export function InstalledRagsSection() {
             <span className="bg-blue-50 p-1.5 rounded-md text-blue-500 mr-2">
               <Download className="h-5 w-5" />
             </span>
-            My Installed Knowledge Base
+            {t("我安装的知识库")}
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Manage your installed RAG version snapshots, available in the dialog
+            {t("管理你安装的 RAG 版本快照，可在详情中切换版本")}
           </p>
         </div>
       </div>
@@ -223,7 +225,7 @@ export function InstalledRagsSection() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           type="search"
-          placeholder="Search the installed knowledge base..."
+          placeholder={t("搜索已安装的知识库...")}
           className="pl-10 pr-10"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -236,7 +238,7 @@ export function InstalledRagsSection() {
             onClick={clearSearch}
           >
             <X className="h-4 w-4" />
-            <span className="sr-only">Clear Search</span>
+            <span className="sr-only">{t("清除搜索")}</span>
           </Button>
         )}
       </div>
@@ -270,7 +272,7 @@ export function InstalledRagsSection() {
           <div className="text-red-500 mb-4">{error}</div>
           <Button variant="outline" onClick={() => loadInstalledRags(1, debouncedQuery)}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            Retry
+            {t("重试")}
           </Button>
         </div>
       ) : installedRags.length === 0 ? (
@@ -278,10 +280,10 @@ export function InstalledRagsSection() {
         <div className="text-center py-12 bg-blue-50 rounded-lg border border-blue-100">
           <Download className="h-12 w-12 mx-auto text-blue-400 mb-4" />
           <h3 className="text-lg font-medium mb-2">
-            {searchQuery ? "No matching knowledge base found" : "No knowledge base installed yet"}
+            {searchQuery ? t("未找到匹配的知识库") : t("暂无已安装的知识库")}
           </h3>
           <p className="text-muted-foreground mb-6">
-            {searchQuery ? "Try using different search terms" : "Browse the recommended knowledge bases below and install the knowledge base you are interested in"}
+            {searchQuery ? t("尝试使用其他搜索词") : t("浏览下方推荐的知识库并安装你感兴趣的知识库")}
           </p>
         </div>
       ) : (
@@ -307,7 +309,7 @@ export function InstalledRagsSection() {
                 variant="outline"
                 onClick={() => loadInstalledRags(1, debouncedQuery)}
               >
-                View All ({installedRags.length})
+                {t("查看全部 ({count})", { count: installedRags.length })}
               </Button>
             </div>
           )}
@@ -328,17 +330,19 @@ export function InstalledRagsSection() {
       <Dialog open={!!ragToUninstall} onOpenChange={(open) => !open && setRagToUninstall(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirm uninstall</DialogTitle>
+            <DialogTitle>{t("确认卸载")}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to uninstall the knowledge base: "{ragToUninstall?.name}" ? After uninstalling, the knowledge base will not be available in conversations.
+              {t("您确定要卸载知识库“{name}”吗？卸载后将无法在对话中使用。", {
+                name: ragToUninstall?.name || "",
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRagToUninstall(null)}>
-              Cancel
+              {t("取消")}
             </Button>
             <Button variant="destructive" onClick={handleUninstallRag} disabled={isUninstalling}>
-              {isUninstalling ? "Uninstalling..." : "Confirm to uninstall"}
+              {isUninstalling ? t("卸载中...") : t("确认卸载")}
             </Button>
           </DialogFooter>
         </DialogContent>

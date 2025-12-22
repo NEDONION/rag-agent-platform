@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge"
 
 import type { UserRagDTO, RagVersionDTO } from "@/types/rag-publish"
 import { getRagVersionHistory, switchRagVersionWithToast } from "@/lib/rag-publish-service"
+import { useI18n } from "@/contexts/i18n-context"
 
 interface InstalledRagCardProps {
   userRag: UserRagDTO
@@ -35,6 +36,7 @@ export function InstalledRagCard({
   onVersionSwitch,
   currentUserId 
 }: InstalledRagCardProps) {
+  const { t } = useI18n()
   // 版本相关状态
   const [availableVersions, setAvailableVersions] = useState<RagVersionDTO[]>([])
   const [isSwitchingVersion, setIsSwitchingVersion] = useState(false)
@@ -105,7 +107,7 @@ export function InstalledRagCard({
               {/* 作者信息 */}
               {userRag.creatorNickname && (
                 <p className="text-sm text-muted-foreground mt-1">
-                  {isOwner ? "我创建的" : userRag.creatorNickname}
+                  {isOwner ? t("我创建的") : userRag.creatorNickname}
                 </p>
               )}
             </div>
@@ -114,7 +116,7 @@ export function InstalledRagCard({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8">
                 <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">更多选项</span>
+                <span className="sr-only">{t("更多选项")}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -129,17 +131,17 @@ export function InstalledRagCard({
                   }}
                 >
                   <History className="mr-2 h-4 w-4" />
-                  切换版本
+                  {t("切换版本")}
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
                   {versionsLoading ? (
                     <DropdownMenuItem disabled>
                       <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                      加载中...
+                      {t("加载中...")}
                     </DropdownMenuItem>
                   ) : availableVersions.length <= 1 ? (
                     <DropdownMenuItem disabled>
-                      仅有当前版本
+                      {t("仅有当前版本")}
                     </DropdownMenuItem>
                   ) : (
                     availableVersions.map((version) => (
@@ -152,12 +154,12 @@ export function InstalledRagCard({
                           <span>v{version.version}</span>
                           {version.version === "0.0.1" && (
                             <Badge variant="secondary" className="text-xs">
-                              私有
+                              {t("私有")}
                             </Badge>
                           )}
                           {version.id === userRag.ragVersionId && (
                             <Badge variant="outline" className="text-xs">
-                              当前
+                              {t("当前")}
                             </Badge>
                           )}
                         </div>
@@ -176,7 +178,7 @@ export function InstalledRagCard({
                   onClick={() => onUninstall(userRag)}
                 >
                   <Trash className="mr-2 h-4 w-4" />
-                  卸载
+                  {t("卸载")}
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
@@ -195,7 +197,7 @@ export function InstalledRagCard({
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <div className="flex items-center">
             <User className="mr-1 h-3 w-3" />
-            <span>{userRag.creatorNickname || "未知作者"}</span>
+            <span>{userRag.creatorNickname || t("未知作者")}</span>
           </div>
           <div className="flex items-center">
             <span>v{userRag.version}</span>

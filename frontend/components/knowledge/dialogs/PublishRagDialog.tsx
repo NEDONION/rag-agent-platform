@@ -19,6 +19,7 @@ import { X } from "lucide-react"
 import type { RagDataset } from "@/types/rag-dataset"
 import type { PublishRagRequest } from "@/types/rag-publish"
 import { publishRagVersionWithToast, getLatestVersionNumber } from "@/lib/rag-publish-service"
+import { useI18n } from "@/contexts/i18n-context"
 
 interface PublishRagDialogProps {
   open: boolean
@@ -33,6 +34,7 @@ export function PublishRagDialog({
   dataset, 
   onSuccess 
 }: PublishRagDialogProps) {
+  const { t } = useI18n()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     version: "",
@@ -165,32 +167,32 @@ export function PublishRagDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>发布到市场</DialogTitle>
+          <DialogTitle>{t("发布到市场")}</DialogTitle>
           <DialogDescription>
-            将知识库"{dataset.name}"发布到市场供其他用户使用
+            {t("将知识库“{name}”发布到市场供其他用户使用", { name: dataset.name })}
           </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="version">版本号 *</Label>
+            <Label htmlFor="version">{t("版本号")} *</Label>
             <Input
               id="version"
-              placeholder="例如: 1.0.0"
+              placeholder={t("例如：1.0.0")}
               value={formData.version}
               onChange={(e) => setFormData(prev => ({ ...prev, version: e.target.value }))}
               required
             />
             <p className="text-xs text-muted-foreground">
-              版本号会自动递增，您也可以手动修改为更高的版本号
+              {t("版本号会自动递增，您也可以手动修改为更高的版本号")}
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="changeLog">更新日志</Label>
+            <Label htmlFor="changeLog">{t("更新日志")}</Label>
             <Textarea
               id="changeLog"
-              placeholder="描述本次发布的更新内容..."
+              placeholder={t("描述本次发布的更新内容...")}
               value={formData.changeLog}
               onChange={(e) => setFormData(prev => ({ ...prev, changeLog: e.target.value }))}
               rows={3}
@@ -198,11 +200,11 @@ export function PublishRagDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="labels">标签</Label>
+            <Label htmlFor="labels">{t("标签")}</Label>
             <div className="flex gap-2">
               <Input
                 id="labels"
-                placeholder="输入标签并按回车"
+                placeholder={t("输入标签并按回车")}
                 value={currentLabel}
                 onChange={(e) => setCurrentLabel(e.target.value)}
                 onKeyPress={handleKeyPress}
@@ -213,7 +215,7 @@ export function PublishRagDialog({
                 onClick={addLabel}
                 disabled={!currentLabel.trim()}
               >
-                添加
+                {t("添加")}
               </Button>
             </div>
             {formData.labels.length > 0 && (
@@ -237,11 +239,11 @@ export function PublishRagDialog({
           </div>
 
           <div className="bg-muted/50 p-3 rounded-lg">
-            <h4 className="font-medium mb-2">发布信息</h4>
+            <h4 className="font-medium mb-2">{t("发布信息")}</h4>
             <div className="space-y-1 text-sm text-muted-foreground">
-              <div>数据集: {dataset.name}</div>
-              <div>文件数量: {dataset.fileCount}</div>
-              <div>描述: {dataset.description || "无"}</div>
+              <div>{t("数据集：{name}", { name: dataset.name })}</div>
+              <div>{t("文件数量：{count}", { count: dataset.fileCount })}</div>
+              <div>{t("描述：{desc}", { desc: dataset.description || t("无") })}</div>
             </div>
           </div>
 
@@ -249,16 +251,16 @@ export function PublishRagDialog({
             <Button 
               type="button" 
               variant="outline" 
-              onClick={() => handleOpenChange(false)}
-            >
-              取消
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={isSubmitting || !formData.version.trim()}
-            >
-              {isSubmitting ? "发布中..." : "发布"}
-            </Button>
+            onClick={() => handleOpenChange(false)}
+          >
+            {t("取消")}
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting || !formData.version.trim()}
+          >
+            {isSubmitting ? t("发布中...") : t("发布")}
+          </Button>
           </DialogFooter>
         </form>
       </DialogContent>

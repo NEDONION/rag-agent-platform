@@ -14,6 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 
 import type { RagDataset } from "@/types/rag-dataset"
+import { useI18n } from "@/contexts/i18n-context"
 
 interface DatasetCardProps {
   dataset: RagDataset
@@ -22,6 +23,7 @@ interface DatasetCardProps {
 }
 
 export function DatasetCard({ dataset, onEdit, onDelete }: DatasetCardProps) {
+  const { t } = useI18n()
   // 格式化时间
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('zh-CN')
@@ -49,16 +51,16 @@ export function DatasetCard({ dataset, onEdit, onDelete }: DatasetCardProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
                 <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">打开菜单</span>
+                <span className="sr-only">{t("打开菜单")}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>操作</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("操作")}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {onEdit && (
                 <DropdownMenuItem onClick={() => onEdit(dataset)}>
                   <Edit className="mr-2 h-4 w-4" />
-                  编辑
+                  {t("编辑")}
                 </DropdownMenuItem>
               )}
               {onEdit && onDelete && <DropdownMenuSeparator />}
@@ -68,23 +70,23 @@ export function DatasetCard({ dataset, onEdit, onDelete }: DatasetCardProps) {
                   onClick={() => onDelete(dataset)}
                 >
                   <Trash className="mr-2 h-4 w-4" />
-                  删除
+                  {t("删除")}
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
         <CardDescription className="text-xs">
-          更新于 {formatDate(dataset.updatedAt)}
+          {t("更新于 {time}", { time: formatDate(dataset.updatedAt) })}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground mb-2">
-          {dataset.description || "无描述"}
+          {dataset.description || t("暂无描述")}
         </p>
         <div className="flex items-center gap-2">
           <Badge variant="secondary">
-            {dataset.fileCount} 个文件
+            {t("文件数：{count}", { count: dataset.fileCount })}
           </Badge>
         </div>
       </CardContent>
@@ -96,13 +98,13 @@ export function DatasetCard({ dataset, onEdit, onDelete }: DatasetCardProps) {
             onClick={() => onEdit(dataset)}
           >
             <Edit className="mr-2 h-4 w-4" />
-            编辑
+            {t("编辑")}
           </Button>
         )}
         <Button size="sm" asChild>
           <Link href={`/knowledge/${dataset.id}`}>
             <Book className="mr-2 h-4 w-4" />
-            查看
+            {t("查看")}
           </Link>
         </Button>
       </CardFooter>

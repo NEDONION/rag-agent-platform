@@ -16,6 +16,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <head>
             <title>AgentX</title>
             <meta name="description" content={translate(locale, "您的全方位 AI 代理平台")} />
+            <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         </head>
         <body>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>

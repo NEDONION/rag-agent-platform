@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useRef, useState } from "react"
 import { 
   Dialog, 
   DialogContent, 
@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { createModelWithToast, updateModelWithToast, getModelTypesWithToast } from "@/lib/api-services"
 import { Loader2 } from "lucide-react"
 
@@ -75,6 +75,8 @@ export function ModelDialog({
   const [loading, setLoading] = useState(false);
   const [modelTypes, setModelTypes] = useState<string[]>([]);
   const [typesLoading, setTypesLoading] = useState(false);
+  const [showSuccessNotice, setShowSuccessNotice] = useState(false);
+  const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // 加载模型类型列表
   useEffect(() => {
@@ -125,6 +127,14 @@ export function ModelDialog({
       });
     }
   }, [model, isEditMode, providerId, open]);
+
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+      }
+    };
+  }, []);
   
   // 处理输入变化
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -160,17 +170,24 @@ export function ModelDialog({
     setLoading(true);
     try {
       let response;
+      console.log("[Model Dialog] submit payload:", formData);
       if (isEditMode) {
         response = await updateModelWithToast(formData);
       } else {
         response = await createModelWithToast(formData);
       }
+      console.log("[Model Dialog] submit response:", response);
       
       if (response.code === 200) {
-        // 关闭对话框
-        onOpenChange(false);
-        // 然后调用onSuccess回调来刷新数据
-        if (onSuccess) onSuccess();
+        setShowSuccessNotice(true);
+        if (successTimeoutRef.current) {
+          clearTimeout(successTimeoutRef.current);
+        }
+        successTimeoutRef.current = setTimeout(() => {
+          setShowSuccessNotice(false);
+          onOpenChange(false);
+          if (onSuccess) onSuccess();
+        }, 1200);
       }
     } catch (error) {
       console.error("提交模型失败:", error);
@@ -180,7 +197,15 @@ export function ModelDialog({
   };
   
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+      {showSuccessNotice && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-none">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-6 py-4 text-emerald-700 shadow-lg">
+            保存成功
+          </div>
+        </div>
+      )}
+      <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{isEditMode ? "编辑模型" : "添加模型"}</DialogTitle>
@@ -230,22 +255,38 @@ export function ModelDialog({
           
           <div className="grid gap-2">
             <Label htmlFor="type">类型 <span className="text-red-500">*</span></Label>
-            <Select 
-              value={formData.type} 
-              onValueChange={handleTypeChange}
-              disabled={isEditMode || typesLoading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={typesLoading ? "加载中..." : "选择模型类型"} />
-              </SelectTrigger>
-              <SelectContent>
-                {modelTypes.map(type => (
-                  <SelectItem key={type} value={type}>
-                    {MODEL_TYPE_LABELS[type] || type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {typesLoading ? (
+              <div className="text-sm text-muted-foreground">加载中...</div>
+            ) : (
+              <RadioGroup
+                value={formData.type}
+                onValueChange={handleTypeChange}
+                className="grid gap-2"
+              >
+                {modelTypes.map((type) => {
+                  const optionId = `model-type-${type}`
+                  const isSelected = formData.type === type
+                  return (
+                    <div
+                      key={type}
+                      className={`flex items-center gap-3 rounded-md border px-3 py-2 transition-colors ${
+                        isSelected
+                          ? "border-blue-300 bg-blue-50 text-blue-700"
+                          : "border-slate-200"
+                      }`}
+                    >
+                      <RadioGroupItem value={type} id={optionId} className="peer" />
+                      <Label
+                        htmlFor={optionId}
+                        className="cursor-pointer text-sm"
+                      >
+                        {MODEL_TYPE_LABELS[type] || type}
+                      </Label>
+                    </div>
+                  )
+                })}
+              </RadioGroup>
+            )}
           </div>
           
           <div className="grid gap-2">
@@ -281,5 +322,6 @@ export function ModelDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    </>
   );
-} 
+}

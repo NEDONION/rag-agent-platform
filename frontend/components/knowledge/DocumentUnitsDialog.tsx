@@ -60,6 +60,7 @@ import type {
   DocumentUnitDTO,
   PageResponse 
 } from "@/types/rag-dataset"
+import { useI18n } from "@/contexts/i18n-context"
 
 interface DocumentUnitsDialogProps {
   open: boolean
@@ -68,6 +69,7 @@ interface DocumentUnitsDialogProps {
 }
 
 export function DocumentUnitsDialog({ open, onOpenChange, file }: DocumentUnitsDialogProps) {
+  const { t } = useI18n()
   const [fileInfo, setFileInfo] = useState<FileDetailInfoDTO | null>(null)
   const [documentUnits, setDocumentUnits] = useState<DocumentUnitDTO[]>([])
   const [loading, setLoading] = useState(false)
@@ -153,7 +155,7 @@ export function DocumentUnitsDialog({ open, onOpenChange, file }: DocumentUnitsD
   const saveEdit = async (unitId: string) => {
     if (!editContent.trim()) {
       toast({
-        title: "内容不能为空",
+        title: t("内容不能为空"),
         variant: "destructive"
       })
       return
@@ -254,7 +256,8 @@ export function DocumentUnitsDialog({ open, onOpenChange, file }: DocumentUnitsD
               <div>
                 <DialogTitle>{file.originalFilename}</DialogTitle>
                 <DialogDescription>
-                  查看和编辑文档中的语料单元 {fileInfo?.filePath && `• ${fileInfo.filePath}`}
+                  {t("查看和编辑文档中的语料单元")}
+                  {fileInfo?.filePath && ` • ${fileInfo.filePath}`}
                 </DialogDescription>
               </div>
             </div>
@@ -264,17 +267,17 @@ export function DocumentUnitsDialog({ open, onOpenChange, file }: DocumentUnitsD
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <Badge variant="outline" className="text-xs">
-                  共 {pageData.total} 个语料
+                  {t("共 {count} 个语料", { count: pageData.total })}
                 </Badge>
                 <Badge variant="outline" className="text-xs">
-                  {file.filePageSize || 0} 页
+                  {t("{count} 页", { count: file.filePageSize || 0 })}
                 </Badge>
               </div>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="搜索语料内容..."
+                  placeholder={t("搜索语料内容...")}
                   className="pl-10 pr-10 w-64"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -297,16 +300,16 @@ export function DocumentUnitsDialog({ open, onOpenChange, file }: DocumentUnitsD
             {loading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin" />
-                <span className="ml-2">加载中...</span>
+                <span className="ml-2">{t("加载中...")}</span>
               </div>
             ) : documentUnits.length === 0 ? (
               <div className="text-center py-8">
                 <FileSearch className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium mb-2">
-                  {searchQuery ? "未找到匹配的语料" : "暂无语料数据"}
+                  {searchQuery ? t("未找到匹配的语料") : t("暂无语料数据")}
                 </h3>
                 <p className="text-muted-foreground">
-                  {searchQuery ? "尝试使用不同的搜索词" : "请先对文件进行初始化处理"}
+                  {searchQuery ? t("尝试使用不同的搜索词") : t("请先对文件进行初始化处理")}
                 </p>
               </div>
             ) : (
@@ -317,17 +320,17 @@ export function DocumentUnitsDialog({ open, onOpenChange, file }: DocumentUnitsD
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="text-xs">
-                            第 {unit.page + 1} 页
+                            {t("第 {count} 页", { count: unit.page + 1 })}
                           </Badge>
                           {unit.isVector && (
                             <Badge variant="default" className="text-xs">
                               <CheckCircle className="h-3 w-3 mr-1" />
-                              已向量化
+                              {t("已向量化")}
                             </Badge>
                           )}
                           {unit.isOcr && (
                             <Badge variant="secondary" className="text-xs">
-                              OCR处理
+                              {t("OCR处理")}
                             </Badge>
                           )}
                         </div>
@@ -339,7 +342,7 @@ export function DocumentUnitsDialog({ open, onOpenChange, file }: DocumentUnitsD
                                 size="sm"
                                 onClick={() => saveEdit(unit.id)}
                                 disabled={savingUnit === unit.id}
-                                title="保存修改"
+                                title={t("保存修改")}
                               >
                                 {savingUnit === unit.id ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -352,7 +355,7 @@ export function DocumentUnitsDialog({ open, onOpenChange, file }: DocumentUnitsD
                                 size="sm"
                                 onClick={cancelEdit}
                                 disabled={savingUnit === unit.id}
-                                title="取消编辑"
+                                title={t("取消编辑")}
                               >
                                 <X className="h-4 w-4" />
                               </Button>
@@ -366,7 +369,7 @@ export function DocumentUnitsDialog({ open, onOpenChange, file }: DocumentUnitsD
                                   console.log('编辑语料单元:', unit);
                                   startEdit(unit);
                                 }}
-                                title="编辑语料"
+                                title={t("编辑语料")}
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
@@ -378,7 +381,7 @@ export function DocumentUnitsDialog({ open, onOpenChange, file }: DocumentUnitsD
                                   console.log('删除语料单元:', unit);
                                   setDeletingUnit(unit);
                                 }}
-                                title="删除语料"
+                                title={t("删除语料")}
                               >
                                 <Trash className="h-4 w-4" />
                               </Button>
@@ -426,10 +429,12 @@ export function DocumentUnitsDialog({ open, onOpenChange, file }: DocumentUnitsD
 
                       <div className="flex items-center justify-between pt-2 border-t">
                         <span className="text-xs text-muted-foreground">
-                          ID: {unit.id}
+                          {t("ID：{id}", { id: unit.id })}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          更新时间: {new Date(unit.updatedAt).toLocaleString('zh-CN')}
+                          {t("更新时间：{time}", {
+                            time: new Date(unit.updatedAt).toLocaleString('zh-CN'),
+                          })}
                         </span>
                       </div>
                     </div>
@@ -482,15 +487,15 @@ export function DocumentUnitsDialog({ open, onOpenChange, file }: DocumentUnitsD
       <AlertDialog open={!!deletingUnit} onOpenChange={(open) => !open && setDeletingUnit(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>确认删除</AlertDialogTitle>
+            <AlertDialogTitle>{t("确认删除")}</AlertDialogTitle>
             <AlertDialogDescription>
-              您确定要删除这个语料单元吗？此操作无法撤销。
+              {t("您确定要删除这个语料单元吗？此操作无法撤销。")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>{t("取消")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-              确认删除
+              {t("确认删除")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

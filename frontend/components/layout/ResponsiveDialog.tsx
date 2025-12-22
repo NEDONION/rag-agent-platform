@@ -25,6 +25,7 @@ export function ResponsiveDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        overlayClassName="bg-transparent"
         className={cn(
           "p-0 flex flex-col",
           layout === 'single'

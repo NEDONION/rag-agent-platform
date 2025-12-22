@@ -26,6 +26,7 @@ import { SimpleFileBrowserDialog } from "./SimpleFileBrowserDialog"
 import { InstalledRagChatDialog } from "./InstalledRagChatDialog"
 import { getInstalledRagFilesWithToast } from "@/lib/rag-publish-service"
 import { getRagVersionHistory, switchRagVersionWithToast } from "@/lib/rag-publish-service"
+import { useI18n } from "@/contexts/i18n-context"
 
 interface InstalledRagDetailDialogProps {
   open: boolean
@@ -44,6 +45,7 @@ export function InstalledRagDetailDialog({
   onVersionSwitch,
   currentUserId
 }: InstalledRagDetailDialogProps) {
+  const { t } = useI18n()
   // 子对话框状态
   const [fileBrowserOpen, setFileBrowserOpen] = useState(false)
   const [chatDialogOpen, setChatDialogOpen] = useState(false)
@@ -168,7 +170,7 @@ export function InstalledRagDetailDialog({
             </div>
           </DialogTitle>
           <DialogDescription>
-            {userRag.description || "无描述"}
+            {userRag.description || t("暂无描述")}
           </DialogDescription>
         </DialogHeader>
 
@@ -176,7 +178,7 @@ export function InstalledRagDetailDialog({
           {/* 安装信息 */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <div className="text-sm font-medium">安装时间</div>
+              <div className="text-sm font-medium">{t("安装时间")}</div>
               <div className="text-sm text-muted-foreground">
                 {formatDate(userRag.installedAt)}
               </div>
@@ -188,20 +190,22 @@ export function InstalledRagDetailDialog({
           {/* 知识库信息 */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <div className="text-sm font-medium">创建者</div>
+              <div className="text-sm font-medium">{t("创建者")}</div>
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 <span className="text-sm text-muted-foreground">
-                  {isOwner ? "我创建的" : userRag.creatorNickname || "未知作者"}
+                  {isOwner ? t("我创建的") : userRag.creatorNickname || t("未知作者")}
                 </span>
               </div>
             </div>
             <div className="space-y-2">
-              <div className="text-sm font-medium">文件数量</div>
+              <div className="text-sm font-medium">{t("文件数量")}</div>
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 <span className="text-sm text-muted-foreground">
-                  {realTimeFileCount !== null ? realTimeFileCount : (userRag.fileCount || 0)} 个文件
+                  {t("文件数：{count}", {
+                    count: realTimeFileCount !== null ? realTimeFileCount : (userRag.fileCount || 0),
+                  })}
                 </span>
               </div>
             </div>
@@ -212,7 +216,7 @@ export function InstalledRagDetailDialog({
             <div className="space-y-2">
               <div className="text-sm font-medium flex items-center gap-2">
                 <History className="h-4 w-4" />
-                版本切换
+                {t("版本切换")}
               </div>
               <div className="flex items-center gap-2">
                 <Select
@@ -223,11 +227,11 @@ export function InstalledRagDetailDialog({
                   <SelectTrigger className="flex-1">
                     <SelectValue>
                       {versionsLoading ? (
-                        "加载版本中..."
+                        t("加载版本中...")
                       ) : (
                         availableVersions.find(v => v.id === selectedVersionId)?.version 
                           ? `v${availableVersions.find(v => v.id === selectedVersionId)?.version}`
-                          : "选择版本"
+                          : t("选择版本")
                       )}
                     </SelectValue>
                   </SelectTrigger>
@@ -238,12 +242,12 @@ export function InstalledRagDetailDialog({
                           <span>v{version.version}</span>
                           {version.version === "0.0.1" && (
                             <Badge variant="secondary" className="text-xs">
-                              私有
+                              {t("私有")}
                             </Badge>
                           )}
                           {version.id === userRag.ragVersionId && (
                             <Badge variant="outline" className="text-xs">
-                              当前
+                              {t("当前")}
                             </Badge>
                           )}
                         </div>
@@ -256,7 +260,7 @@ export function InstalledRagDetailDialog({
                 )}
               </div>
               <div className="text-xs text-muted-foreground">
-                {availableVersions.length} 个可用版本
+                {t("{count} 个可用版本", { count: availableVersions.length })}
               </div>
             </div>
           )}
@@ -272,7 +276,7 @@ export function InstalledRagDetailDialog({
               className="flex items-center gap-2"
             >
               <FolderOpen className="h-4 w-4" />
-              文件浏览
+              {t("文件浏览")}
             </Button>
             <Button
               variant="outline"
@@ -280,7 +284,7 @@ export function InstalledRagDetailDialog({
               className="flex items-center gap-2"
             >
               <Eye className="h-4 w-4" />
-              文档查看
+              {t("文档查看")}
             </Button>
             <Button
               variant="outline"
@@ -288,14 +292,14 @@ export function InstalledRagDetailDialog({
               className="flex items-center gap-2"
             >
               <MessageSquare className="h-4 w-4" />
-              RAG对话
+              {t("RAG对话")}
             </Button>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            关闭
+            {t("关闭")}
           </Button>
           {onUninstall && (
             <Button
@@ -306,7 +310,7 @@ export function InstalledRagDetailDialog({
               }}
             >
               <Trash className="mr-2 h-4 w-4" />
-              卸载知识库
+              {t("卸载知识库")}
             </Button>
           )}
         </DialogFooter>

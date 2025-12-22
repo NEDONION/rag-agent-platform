@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Bot, Search, Plus, Check, AlertCircle } from "lucide-react"
+import { Bot, Search, Plus, Check, AlertCircle, Info, Wrench, Database, Sparkles, Calendar, Layers } from "lucide-react"
 import { Metadata } from "next"
 import { redirect, useRouter } from "next/navigation"
 
@@ -17,6 +17,24 @@ import type { AgentVersion } from "@/types/agent"
 import { Sidebar } from "@/components/sidebar"
 import { useWorkspace } from "@/contexts/workspace-context"
 import Link from "next/link"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet"
+import { Badge } from "@/components/ui/badge"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { getChatModelsWithToast, type Model as ChatModel } from "@/lib/user-settings-service"
+import { previewAgentStream, handlePreviewStream } from "@/lib/agent-preview-service"
 
 export default function ExplorePage() {
   const router = useRouter()
@@ -30,6 +48,15 @@ export default function ExplorePage() {
   const [addingAgentId, setAddingAgentId] = useState<string | null>(null)
   const [providerStatus, setProviderStatus] = useState<"loading" | "ok" | "missing">("loading")
   const [modelStatus, setModelStatus] = useState<"loading" | "ok" | "missing">("loading")
+  const [detailOpen, setDetailOpen] = useState(false)
+  const [selectedAgent, setSelectedAgent] = useState<AgentVersion | null>(null)
+  const [previewMessages, setPreviewMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([])
+  const [previewInput, setPreviewInput] = useState("")
+  const [previewModels, setPreviewModels] = useState<ChatModel[]>([])
+  const [previewModelId, setPreviewModelId] = useState<string>("")
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [previewStreaming, setPreviewStreaming] = useState(false)
+  const [previewAbortController, setPreviewAbortController] = useState<AbortController | null>(null)
 
   // 防抖处理搜索查询
   useEffect(() => {
@@ -123,6 +150,137 @@ export default function ExplorePage() {
     }
   }
 
+  const openAgentDetail = (agent: AgentVersion) => {
+    setSelectedAgent(agent)
+    setDetailOpen(true)
+    const starter = agent.welcomeMessage || agent.description || "你好！我是这个 Agent，可以先问我 1-2 个问题试试。"
+    setPreviewMessages([{ role: "assistant", content: starter }])
+    setPreviewInput("")
+  }
+
+  const closeAgentDetail = () => {
+    previewAbortController?.abort()
+    setPreviewAbortController(null)
+    setDetailOpen(false)
+    setSelectedAgent(null)
+    setPreviewMessages([])
+    setPreviewInput("")
+    setPreviewStreaming(false)
+  }
+
+  const stopPreviewStream = () => {
+    previewAbortController?.abort()
+    setPreviewAbortController(null)
+    setPreviewStreaming(false)
+  }
+
+  useEffect(() => {
+    if (!detailOpen) return
+    const loadPreviewModels = async () => {
+      setPreviewLoading(true)
+      try {
+        const response = await getChatModelsWithToast()
+        if (response.code === 200 && response.data) {
+          const activeModels = response.data.filter((model: ChatModel) => model.status)
+          setPreviewModels(activeModels)
+          if (!previewModelId && activeModels.length > 0) {
+            setPreviewModelId(activeModels[0].id)
+          }
+        }
+      } finally {
+        setPreviewLoading(false)
+      }
+    }
+    loadPreviewModels()
+  }, [detailOpen, previewModelId])
+
+  const handlePreviewSend = async () => {
+    if (!selectedAgent || !previewInput.trim()) return
+    const userTurns = previewMessages.filter((message) => message.role === "user").length
+    if (userTurns >= 2) return
+    if (!previewModelId) {
+      toast({
+        title: "请先选择模型",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (previewStreaming) {
+      stopPreviewStream()
+    }
+
+    const nextMessages = [...previewMessages, { role: "user", content: previewInput.trim() }]
+    const assistantIndex = nextMessages.length
+    nextMessages.push({ role: "assistant", content: "" })
+    setPreviewMessages(nextMessages)
+    setPreviewInput("")
+    setPreviewStreaming(true)
+
+    try {
+      const controller = new AbortController()
+      setPreviewAbortController(controller)
+      const history = nextMessages.slice(0, assistantIndex).map((message) => ({
+        role: message.role === "user" ? "USER" : "ASSISTANT",
+        content: message.content,
+      }))
+      const stream = await previewAgentStream({
+        userMessage: history[history.length - 1].content,
+        systemPrompt: selectedAgent.systemPrompt || undefined,
+        toolIds: selectedAgent.toolIds,
+        toolPresetParams: selectedAgent.toolPresetParams,
+        knowledgeBaseIds: selectedAgent.knowledgeBaseIds,
+        messageHistory: history.slice(0, -1),
+        modelId: previewModelId,
+      }, controller.signal)
+      if (!stream) {
+        throw new Error("预览请求失败")
+      }
+      await handlePreviewStream(
+        stream,
+        (response) => {
+          if (!response.content) return
+          setPreviewMessages((prev) => {
+            const updated = [...prev]
+            const lastIndex = updated.length - 1
+            if (lastIndex >= 0 && updated[lastIndex].role === "assistant") {
+              updated[lastIndex] = {
+                ...updated[lastIndex],
+                content: `${updated[lastIndex].content}${response.content}`,
+              }
+            }
+            return updated
+          })
+        },
+        (error) => {
+          if (controller.signal.aborted) return
+          toast({
+            title: "预览失败",
+            description: error.message,
+            variant: "destructive",
+          })
+        },
+        () => {
+          setPreviewStreaming(false)
+          setPreviewAbortController(null)
+        }
+      )
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        setPreviewStreaming(false)
+        setPreviewAbortController(null)
+        return
+      }
+      toast({
+        title: "预览失败",
+        description: error instanceof Error ? error.message : "未知错误",
+        variant: "destructive",
+      })
+      setPreviewStreaming(false)
+      setPreviewAbortController(null)
+    }
+  }
+
   // 根据类型过滤助理
   const getFilteredAgents = (tab: string) => {
     if (tab === "推荐") return agents
@@ -142,7 +300,7 @@ export default function ExplorePage() {
 
       {/* 右侧内容区域 */}
       <div className="flex-1 overflow-auto">
-        <div className="container py-6 px-4">
+        <div className="container py-6 px-3">
           <div className="mb-6">
             <h1 className="text-2xl font-bold tracking-tight text-blue-600">Explore Agent Apps</h1>
             <p className="text-muted-foreground mt-1">Use these template Apps, or customize your own Apps based on the templates.</p>
@@ -307,30 +465,40 @@ export default function ExplorePage() {
                           <p className="text-sm text-gray-600 line-clamp-3">{agent.description || "无描述"}</p>
 
                           <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                            {agent.addWorkspace ? (
-                              <Button 
-                                className="w-full bg-green-500 text-white cursor-default" 
-                                disabled
+                            <div className="space-y-2">
+                              {agent.addWorkspace ? (
+                                <Button 
+                                  className="w-full bg-green-500 text-white cursor-default" 
+                                  disabled
+                                >
+                                  <Check className="h-4 w-4 mr-2" />
+                                  已添加到工作区
+                                </Button>
+                              ) : (
+                                <Button 
+                                  className="w-full bg-blue-500 hover:bg-blue-600 text-white" 
+                                  onClick={() => handleAddToWorkspace(agent.agentId)}
+                                  disabled={addingAgentId === agent.agentId}
+                                >
+                                  {addingAgentId === agent.agentId ? (
+                                    "添加中..."
+                                  ) : (
+                                    <>
+                                      <Plus className="h-4 w-4 mr-2" />
+                                      添加到工作区
+                                    </>
+                                  )}
+                                </Button>
+                              )}
+                              <Button
+                                variant="outline"
+                                className="w-full"
+                                onClick={() => openAgentDetail(agent)}
                               >
-                                <Check className="h-4 w-4 mr-2" />
-                                已添加到工作区
+                                <Info className="h-4 w-4 mr-2" />
+                                查看详情
                               </Button>
-                            ) : (
-                              <Button 
-                                className="w-full bg-blue-500 hover:bg-blue-600 text-white" 
-                                onClick={() => handleAddToWorkspace(agent.agentId)}
-                                disabled={addingAgentId === agent.agentId}
-                              >
-                                {addingAgentId === agent.agentId ? (
-                                  "添加中..."
-                                ) : (
-                                  <>
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    添加到工作区
-                                  </>
-                                )}
-                              </Button>
-                            )}
+                            </div>
                           </div>
                         </div>
                       </Card>
@@ -342,6 +510,210 @@ export default function ExplorePage() {
           </Tabs>
         </div>
       </div>
+      <Sheet open={detailOpen} onOpenChange={(open) => (open ? setDetailOpen(true) : closeAgentDetail())}>
+        <SheetContent
+          side="right"
+          overlayClassName="bg-transparent"
+          className="w-full sm:max-w-xl overflow-y-auto"
+        >
+          {selectedAgent && (
+            <div className="flex h-full flex-col">
+              <SheetHeader className="space-y-3">
+                <div className="flex items-start gap-4">
+                  <div className="h-12 w-12 rounded-lg overflow-hidden bg-amber-100 flex items-center justify-center shrink-0">
+                    {selectedAgent.avatar ? (
+                      <img
+                        src={selectedAgent.avatar}
+                        alt={selectedAgent.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Bot className="h-6 w-6 text-amber-500" />
+                    )}
+                  </div>
+                  <div>
+                    <SheetTitle className="text-xl">{selectedAgent.name}</SheetTitle>
+                    <SheetDescription className="mt-1">
+                      {selectedAgent.description || "暂无描述"}
+                    </SheetDescription>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Badge variant="secondary">v{selectedAgent.versionNumber || "-"}</Badge>
+                      {selectedAgent.publishStatusText && (
+                        <Badge variant="outline">{selectedAgent.publishStatusText}</Badge>
+                      )}
+                      {selectedAgent.multiModal && (
+                        <Badge variant="secondary" className="bg-emerald-50 text-emerald-700">
+                          多模态
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </SheetHeader>
+
+              <div className="mt-4 space-y-6 text-sm text-muted-foreground">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="text-slate-700 font-medium">快速试聊</div>
+                    <span className="text-xs text-slate-400">仅支持 1-2 轮</span>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 bg-white p-3">
+                    <div className="mb-3">
+                      <Select
+                        value={previewModelId}
+                        onValueChange={setPreviewModelId}
+                        disabled={previewLoading}
+                      >
+                        <SelectTrigger className="h-9 data-[state=open]:ring-2 data-[state=open]:ring-blue-200 data-[state=open]:border-blue-300">
+                          <SelectValue placeholder={previewLoading ? "加载模型中..." : "选择模型"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {previewModels.map((model) => (
+                            <SelectItem
+                              key={model.id}
+                              value={model.id}
+                              className="data-[state=checked]:bg-blue-50 data-[state=checked]:text-blue-700 data-[state=checked]:font-medium data-[state=checked]:focus:bg-blue-50 data-[state=checked]:focus:text-blue-700 data-[state=checked]:hover:bg-blue-50"
+                            >
+                              <div className="flex items-center gap-2">
+                                <span>{model.name}</span>
+                                {model.providerName && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    {model.providerName}
+                                  </Badge>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="max-h-56 space-y-2 overflow-y-auto pr-1">
+                      {previewMessages.map((message, index) => (
+                        <div
+                          key={`${message.role}-${index}`}
+                          className={message.role === "user" ? "flex justify-end" : "flex justify-start"}
+                        >
+                          <div
+                            className={
+                              message.role === "user"
+                                ? "max-w-[80%] rounded-lg bg-blue-600 px-3 py-2 text-xs text-white"
+                                : "max-w-[80%] rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-700"
+                            }
+                          >
+                            {message.content || (previewStreaming && index === previewMessages.length - 1 ? "..." : "")}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-3 flex items-center gap-2">
+                      <Input
+                        value={previewInput}
+                        onChange={(e) => setPreviewInput(e.target.value)}
+                        placeholder="输入一句话试试..."
+                        className="h-9"
+                        disabled={
+                          previewStreaming ||
+                          previewMessages.filter((message) => message.role === "user").length >= 2
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault()
+                            handlePreviewSend()
+                          }
+                        }}
+                      />
+                      {previewStreaming ? (
+                        <Button size="sm" variant="destructive" onClick={stopPreviewStream}>
+                          停止
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          onClick={handlePreviewSend}
+                          disabled={
+                            !previewInput.trim() ||
+                            previewMessages.filter((message) => message.role === "user").length >= 2
+                          }
+                        >
+                          发送
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+                  <div className="flex items-center gap-3 text-slate-700">
+                    <Layers className="h-4 w-4 text-slate-500" />
+                    <span className="font-medium">基础信息</span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-slate-400" />
+                      <span>发布时间：{selectedAgent.publishedAt || "未知"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-slate-400" />
+                      <span>默认模型：{selectedAgent.modelConfig?.modelName || "未配置"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Wrench className="h-4 w-4 text-slate-400" />
+                      <span>工具数量：{selectedAgent.tools?.length || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Database className="h-4 w-4 text-slate-400" />
+                      <span>知识库：{selectedAgent.knowledgeBaseIds?.length || 0}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="text-slate-700 font-medium">系统提示词</div>
+                  <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-600 whitespace-pre-wrap">
+                    {selectedAgent.systemPrompt || "暂无系统提示词"}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="text-slate-700 font-medium">欢迎语</div>
+                  <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-600 whitespace-pre-wrap">
+                    {selectedAgent.welcomeMessage || "暂无欢迎语"}
+                  </div>
+                </div>
+
+                {selectedAgent.changeLog && (
+                  <div className="space-y-2">
+                    <div className="text-slate-700 font-medium">更新记录</div>
+                    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-600 whitespace-pre-wrap">
+                      {selectedAgent.changeLog}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <SheetFooter className="mt-8">
+                {selectedAgent.addWorkspace ? (
+                  <Button className="w-full bg-green-500 text-white cursor-default" disabled>
+                    <Check className="h-4 w-4 mr-2" />
+                    已添加到工作区
+                  </Button>
+                ) : (
+                  <Button
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={() => handleAddToWorkspace(selectedAgent.agentId)}
+                    disabled={addingAgentId === selectedAgent.agentId}
+                  >
+                    {addingAgentId === selectedAgent.agentId ? "添加中..." : "添加到工作区"}
+                  </Button>
+                )}
+                <Button variant="outline" onClick={closeAgentDetail}>
+                  关闭
+                </Button>
+              </SheetFooter>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

@@ -17,6 +17,7 @@ import { Download, User, Calendar, FileText, Database } from "lucide-react"
 import type { RagMarketDTO } from "@/types/rag-publish"
 import { installRagVersionWithToast } from "@/lib/rag-publish-service"
 import { formatFileSize, formatDateTime, getLabelColor } from "@/types/rag-publish"
+import { useI18n } from "@/contexts/i18n-context"
 
 interface InstallRagDialogProps {
   open: boolean
@@ -31,6 +32,7 @@ export function InstallRagDialog({
   ragMarket, 
   onSuccess 
 }: InstallRagDialogProps) {
+  const { t } = useI18n()
   const [isInstalling, setIsInstalling] = useState(false)
 
   // 处理安装
@@ -61,9 +63,9 @@ export function InstallRagDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>安装知识库</DialogTitle>
+          <DialogTitle>{t("安装知识库")}</DialogTitle>
           <DialogDescription>
-            确认安装这个知识库到您的账户
+            {t("确认安装这个知识库到您的账户")}
           </DialogDescription>
         </DialogHeader>
         
@@ -84,7 +86,7 @@ export function InstallRagDialog({
             <div className="flex-1">
               <h3 className="font-medium">{ragMarket.name}</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                {ragMarket.description || "无描述"}
+                {ragMarket.description || t("暂无描述")}
               </p>
             </div>
           </div>
@@ -123,33 +125,35 @@ export function InstallRagDialog({
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm">
                 <Badge variant="secondary">v{ragMarket.version}</Badge>
-                <span className="text-muted-foreground">版本</span>
+                <span className="text-muted-foreground">{t("版本")}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <FileText className="h-4 w-4" />
-                <span>{ragMarket.fileCount} 个文件</span>
+                <span>{t("文件数：{count}", { count: ragMarket.fileCount })}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-muted-foreground">
-                  大小: {ragMarket.totalSizeDisplay || formatFileSize(ragMarket.totalSize)}
+                  {t("大小：{size}", {
+                    size: ragMarket.totalSizeDisplay || formatFileSize(ragMarket.totalSize),
+                  })}
                 </span>
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm">
                 <Download className="h-4 w-4" />
-                <span>{ragMarket.installCount} 次安装</span>
+                <span>{t("安装次数：{count}", { count: ragMarket.installCount })}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Database className="h-4 w-4" />
-                <span>{ragMarket.documentCount} 个文档</span>
+                <span>{t("文档数：{count}", { count: ragMarket.documentCount })}</span>
               </div>
               {ragMarket.rating && (
                 <div className="flex items-center gap-2 text-sm">
                   <span>⭐ {ragMarket.rating.toFixed(1)}</span>
                   {ragMarket.reviewCount && (
                     <span className="text-muted-foreground">
-                      ({ragMarket.reviewCount} 评价)
+                      {t("({count} 评价)", { count: ragMarket.reviewCount })}
                     </span>
                   )}
                 </div>
@@ -159,11 +163,11 @@ export function InstallRagDialog({
 
           {/* 安装说明 */}
           <div className="text-sm text-muted-foreground p-3 bg-blue-50 rounded-lg">
-            <div className="font-medium mb-1">安装说明:</div>
+            <div className="font-medium mb-1">{t("安装说明：")}</div>
             <ul className="list-disc list-inside space-y-1">
-              <li>安装后可以在"我安装的知识库"中查看</li>
-              <li>可以在对话中使用这个知识库</li>
-              <li>随时可以卸载已安装的知识库</li>
+              <li>{t("安装后可以在“我安装的知识库”中查看")}</li>
+              <li>{t("可以在对话中使用这个知识库")}</li>
+              <li>{t("随时可以卸载已安装的知识库")}</li>
             </ul>
           </div>
         </div>
@@ -174,14 +178,14 @@ export function InstallRagDialog({
             variant="outline" 
             onClick={() => onOpenChange(false)}
           >
-            取消
+            {t("取消")}
           </Button>
           <Button 
             onClick={handleInstall}
             disabled={isInstalling || ragMarket.isInstalled}
           >
             <Download className="mr-2 h-4 w-4" />
-            {isInstalling ? "安装中..." : ragMarket.isInstalled ? "已安装" : "安装"}
+            {isInstalling ? t("安装中...") : ragMarket.isInstalled ? t("已安装") : t("安装")}
           </Button>
         </DialogFooter>
       </DialogContent>

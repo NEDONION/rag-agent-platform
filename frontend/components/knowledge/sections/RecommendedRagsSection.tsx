@@ -32,8 +32,10 @@ import type { RagMarketDTO, PageResponse } from "@/types/rag-publish"
 import { MarketRagCard } from "../cards/MarketRagCard"
 import { InstallRagDialog } from "../dialogs/InstallRagDialog"
 import { MarketRagDetailDialog } from "../dialogs/MarketRagDetailDialog"
+import { useI18n } from "@/contexts/i18n-context"
 
 export function RecommendedRagsSection() {
+  const { t } = useI18n()
   const [marketRags, setMarketRags] = useState<RagMarketDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -209,10 +211,10 @@ export function RecommendedRagsSection() {
             <span className="bg-green-50 p-1.5 rounded-md text-green-500 mr-2">
               <Store className="h-5 w-5" />
             </span>
-            Recommended Knowledge Base
+            {t("推荐知识库")}
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Discover and install high-quality knowledge bases shared by other users
+            {t("发现并安装其他用户分享的高质量知识库")}
           </p>
         </div>
       </div>
@@ -225,14 +227,14 @@ export function RecommendedRagsSection() {
               <Store className="h-5 w-5 text-green-500" />
             </div>
             <div>
-              <h3 className="font-medium text-lg">Explore the Knowledge Base Marketplace</h3>
-              <p className="text-sm text-muted-foreground">Discover more high-quality knowledge bases</p>
+              <h3 className="font-medium text-lg">{t("探索知识库市场")}</h3>
+              <p className="text-sm text-muted-foreground">{t("发现更多高质量知识库")}</p>
             </div>
           </div>
           <Button asChild className="shadow-sm">
             <Link href="/knowledge?tab=recommended">
               <Search className="mr-2 h-4 w-4" />
-              View All
+              {t("查看全部")}
             </Link>
           </Button>
         </div>
@@ -244,7 +246,7 @@ export function RecommendedRagsSection() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search the Knowledge Base..."
+            placeholder={t("搜索知识库...")}
             className="pl-10 pr-10"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -257,24 +259,24 @@ export function RecommendedRagsSection() {
               onClick={clearSearch}
             >
               <X className="h-4 w-4" />
-              <span className="sr-only">Clear Search</span>
+              <span className="sr-only">{t("清除搜索")}</span>
             </Button>
           )}
         </div>
         <Select value={sortBy} onValueChange={setSortBy}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="sort by" />
+            <SelectValue placeholder={t("排序方式")} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="publishedAt">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4" />
-                Latest Releases
+                {t("最新发布")}
               </div>
             </SelectItem>
-            <SelectItem value="installCount">Number of installations</SelectItem>
-            <SelectItem value="fileCount">Number of files</SelectItem>
-            <SelectItem value="rating">Rating</SelectItem>
+            <SelectItem value="installCount">{t("安装数量")}</SelectItem>
+            <SelectItem value="fileCount">{t("文件数量")}</SelectItem>
+            <SelectItem value="rating">{t("评分")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -312,7 +314,7 @@ export function RecommendedRagsSection() {
           <div className="text-red-500 mb-4">{error}</div>
           <Button variant="outline" onClick={() => loadMarketRags(1, debouncedQuery)}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            Retry
+            {t("重试")}
           </Button>
         </div>
       ) : marketRags.length === 0 ? (
@@ -320,10 +322,10 @@ export function RecommendedRagsSection() {
         <div className="text-center py-12 bg-green-50 rounded-lg border border-green-100">
           <Store className="h-12 w-12 mx-auto text-green-400 mb-4" />
           <h3 className="text-lg font-medium mb-2">
-            {searchQuery ? "No matching knowledge base found" : "No recommended knowledge base yet"}
+            {searchQuery ? t("未找到匹配的知识库") : t("暂无推荐知识库")}
           </h3>
           <p className="text-muted-foreground mb-6">
-            {searchQuery ? "Please try using different search terms" : "No knowledge base published in the current market"}
+            {searchQuery ? t("请尝试使用其他搜索词") : t("当前市场暂无已发布的知识库")}
           </p>
         </div>
       ) : (
@@ -348,7 +350,7 @@ export function RecommendedRagsSection() {
                 variant="outline"
                 onClick={() => loadMarketRags(1, debouncedQuery)}
               >
-                See more recommendations ({marketRags.length - 8})
+                {t("查看更多推荐 ({count})", { count: marketRags.length - 8 })}
               </Button>
             </div>
           )}
