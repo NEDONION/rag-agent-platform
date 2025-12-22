@@ -1,6 +1,5 @@
 # RAG Agent Platform
 
-<div align="center">
 
 **基于 LLM、RAG 与 MCP 的多租户智能体 SaaS 平台**
 
@@ -10,28 +9,45 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-blue.svg)](https://www.postgresql.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-[English](./README_EN.md) | 简体中文
+> 产品主页
 
-</div>
+![](https://raw.githubusercontent.com/NEDONION/my-pics-space/main/20251222050014.png)
+
+> RAG 知识库
+
+![](https://raw.githubusercontent.com/NEDONION/my-pics-space/main/20251222050110.png)
+
+![](https://raw.githubusercontent.com/NEDONION/my-pics-space/main/20251222050206.png)
+
+> 模型服务商配置
+
+![](https://raw.githubusercontent.com/NEDONION/my-pics-space/main/20251222050242.png)
+
+> 使用他人发布的 Agent 助手
+
+![](https://raw.githubusercontent.com/NEDONION/my-pics-space/main/20251222050349.png)
+
 
 ---
 
-## 📖 项目简介
+## 项目简介
 
-**RAG Agent Platform** 是一个企业级多租户智能体 SaaS 平台，整合了大语言模型（LLM）、检索增强生成（RAG）和模型上下文协议（MCP）技术。平台为用户提供：
+**RAG Agent Platform** 是一个企业级多租户智能体 SaaS 平台，整合了大语言模型（LLM）、检索增强生成（RAG）和模型上下文协议（MCP）技术。本项目设计思路参照 [Dify](https://github.com/langgenius/dify) 平台，采用 DDD 分层架构和事件驱动模式，提供更灵活的技术选型和扩展能力。
 
-- 🧠 **智能知识库** - 上传文档（PDF/WORD/TXT），自动 OCR 识别 + 向量化，构建企业级知识库
-- 🤖 **Agent 编排** - 基于 LangChain4j 快速创建智能体，支持工具调用、多轮对话、任务分解
-- 🔌 **一键集成** - 灵活接入 OpenAI、SiliconFlow 等多种 LLM 服务商，支持主备模型切换
-- 🛠️ **工具生态** - 容器化 MCP 工具管理，支持 Docker/GitHub/NPM 多种部署方式
-- 📊 **精确计费** - Token 级别成本统计，完整执行链路追踪
-- 🔒 **多租户隔离** - 数据库级别隔离，JWT 认证，保障数据安全
+平台为用户提供：
+
+- **智能知识库** - 上传文档（PDF/WORD/TXT），自动 OCR 识别 + 向量化，构建企业级知识库
+- **Agent 编排** - 基于 LangChain4j 快速创建智能体，支持工具调用、多轮对话、任务分解
+- **一键集成** - 灵活接入 OpenAI、SiliconFlow 等多种 LLM 服务商，支持主备模型切换
+- **工具生态** - 容器化 MCP 工具管理，支持 Docker/GitHub/NPM 多种部署方式
+- **精确计费** - Token 级别成本统计，完整执行链路追踪
+- **多租户隔离** - 数据库级别隔离，JWT 认证，保障数据安全
 
 ---
 
-## ✨ 核心特性
+## 核心特性
 
-### 🎯 RAG 增强能力
+### RAG 增强能力
 
 - **Vision LLM OCR** - 智能识别数学公式、表格、代码块
 - **混合检索** - 向量召回 + Rerank 精排 + 查询扩展
@@ -39,7 +55,7 @@
 - **进度追踪** - 实时展示 OCR 和向量化处理进度（0-100%）
 - **降级召回** - 相似度阈值过高时自动降低重试，保证召回率
 
-### 🤖 Agent 智能编排
+### Agent 智能编排
 
 - **LangChain4j 集成** - 标准化 Agent 编排框架，支持流式输出
 - **MCP 工具集成** - 容器化工具管理，支持 Function Calling
@@ -47,14 +63,7 @@
 - **版本管理** - Agent 草稿编辑 → 审核 → 发布 → 回滚完整流程
 - **执行追踪** - 双表追踪模型（汇总 + 详情），记录每次执行的完整链路
 
-### 💰 计费与成本管理
-
-- **Token 级别计费** - 精确到小数点后 8 位
-- **使用记录** - 记录每次 Agent 执行的成本（输入/输出 Token、模型费用）
-- **账户余额** - 支持充值、扣减、退款
-- **订单管理** - 支持支付宝、Stripe 等支付方式
-
-### 🔒 安全与多租户
+### 安全与多租户
 
 - **JWT 认证** - 无状态认证（7 天有效期）
 - **数据隔离** - 数据库层面多租户隔离（MyBatis-Plus 插件）
@@ -64,7 +73,7 @@
 
 ---
 
-## 🏗️ 系统架构
+## 系统架构
 
 ### 整体架构
 
@@ -312,7 +321,7 @@ graph TB
 
 ---
 
-## 🛠️ 技术栈
+## 技术栈
 
 ### 后端
 
@@ -353,66 +362,66 @@ graph TB
 
 ---
 
-## 📦 功能模块
+## 功能模块
 
-### 1️⃣ Agent 智能体模块
+### 1. Agent 智能体模块
 
-- ✅ Agent 创建、编辑、删除
-- ✅ System Prompt 配置（定义角色与行为）
-- ✅ 工具集成（MCP 工具调用）
-- ✅ 知识库关联（RAG 增强）
-- ✅ 多模态支持（文本 + 图像）
-- ✅ 版本发布、审核、回滚
-- ✅ 会话管理（多轮对话）
-- ✅ 执行追踪（完整链路记录）
-- ✅ 成本统计（Token 级别计费）
+- Agent 创建、编辑、删除
+- System Prompt 配置（定义角色与行为）
+- 工具集成（MCP 工具调用）
+- 知识库关联（RAG 增强）
+- 多模态支持（文本 + 图像）
+- 版本发布、审核、回滚
+- 会话管理（多轮对话）
+- 执行追踪（完整链路记录）
+- 成本统计（Token 级别计费）
 
-### 2️⃣ RAG 知识库模块
+### 2. RAG 知识库模块
 
-- ✅ 文档上传（PDF/WORD/TXT/MD）
-- ✅ Vision LLM OCR（识别公式/表格/代码）
-- ✅ 向量化处理（Embedding 模型）
-- ✅ 混合检索（向量召回 + Rerank 精排）
-- ✅ 查询扩展（获取相邻页面上下文）
-- ✅ 版本化机制（引用型 vs 快照型）
-- ✅ 进度追踪（实时展示处理进度）
-- ✅ 降级召回（阈值自动调整）
+- 文档上传（PDF/WORD/TXT/MD）
+- Vision LLM OCR（识别公式/表格/代码）
+- 向量化处理（Embedding 模型）
+- 混合检索（向量召回 + Rerank 精排）
+- 查询扩展（获取相邻页面上下文）
+- 版本化机制（引用型 vs 快照型）
+- 进度追踪（实时展示处理进度）
+- 降级召回（阈值自动调整）
 
-### 3️⃣ LLM 模型管理
+### 3. LLM 模型管理
 
-- ✅ 模型提供商管理（OpenAI、SiliconFlow 等）
-- ✅ 模型配置（API Key、Base URL、模型 ID）
-- ✅ Embedding 模型管理
-- ✅ 模型高可用（主模型 + 平替模型）
-- ✅ Token 计费（精确到小数点后 8 位）
+- 模型提供商管理（OpenAI、SiliconFlow 等）
+- 模型配置（API Key、Base URL、模型 ID）
+- Embedding 模型管理
+- 模型高可用（主模型 + 平替模型）
+- Token 计费（精确到小数点后 8 位）
 
-### 4️⃣ MCP 工具模块
+### 4. MCP 工具模块
 
-- ✅ 工具定义（Function Schema）
-- ✅ 工具上传（Docker/GitHub/NPM）
-- ✅ 容器化部署（Docker Engine）
-- ✅ 工具调用（Function Calling）
-- ✅ 工具预设参数（加密存储）
+- 工具定义（Function Schema）
+- 工具上传（Docker/GitHub/NPM）
+- 容器化部署（Docker Engine）
+- 工具调用（Function Calling）
+- 工具预设参数（加密存储）
 
-### 5️⃣ 用户与认证
+### 5. 用户与认证
 
-- ✅ 用户注册/登录（JWT 认证）
-- ✅ 邮箱验证码（SMTP）
-- ✅ 图形验证码（防机器人）
-- ✅ 密码重置
-- ✅ 用户设置（模型配置、Fallback 策略）
+- 用户注册/登录（JWT 认证）
+- 邮箱验证码（SMTP）
+- 图形验证码（防机器人）
+- 密码重置
+- 用户设置（模型配置、Fallback 策略）
 
-### 6️⃣ 计费与账户
+### 6. 计费与账户
 
-- ✅ 账户余额管理
-- ✅ Token 级别计费（输入 Token + 输出 Token）
-- ✅ 使用记录（每次 Agent 执行）
-- ✅ 交易记录（充值、扣减、退款）
-- ✅ 订单管理（充值订单、支付回调）
+- 账户余额管理
+- Token 级别计费（输入 Token + 输出 Token）
+- 使用记录（每次 Agent 执行）
+- 交易记录（充值、扣减、退款）
+- 订单管理（充值订单、支付回调）
 
 ---
 
-## 🚀 快速开始
+## 快速开始
 
 ### 前置要求
 
@@ -514,7 +523,7 @@ npm run dev
 
 ---
 
-## 🐳 Docker Compose 部署
+## Docker Compose 部署
 
 ### 一键部署
 
@@ -557,7 +566,7 @@ docker logs -f agentx-frontend
 
 ---
 
-## 📚 项目结构
+## 项目结构
 
 ```
 rag-agent-platform/
@@ -601,7 +610,7 @@ rag-agent-platform/
 
 ---
 
-## 📖 API 文档
+## API 文档
 
 详细 API 文档请查看: [docs/API.md](./docs/API.md)
 
@@ -639,72 +648,7 @@ rag-agent-platform/
 
 ---
 
-## 📸 产品截图
-
-### Agent 工作室
-![Agent Studio](https://raw.githubusercontent.com/NEDONION/my-pics-space/main/20250820155212.png)
-
-### 知识库管理
-![Knowledge Base](https://raw.githubusercontent.com/NEDONION/my-pics-space/main/20250820155154.png)
-
-### 对话界面
-![Chat Interface](https://raw.githubusercontent.com/NEDONION/my-pics-space/main/20250820152009.png)
-
----
-
-## 🎯 适用场景
-
-- **企业知识库问答** - 上传内部文档，构建企业级 RAG 系统
-- **客服智能助手** - 集成 CRM 工具，提供 7×24 智能客服
-- **代码助手** - 集成 GitHub 工具，辅助代码审查与生成
-- **数据分析 Agent** - 集成数据库查询工具，自然语言查询数据
-- **多模态应用** - 图像识别 + 文本理解
-- **SaaS 平台** - 多租户隔离，支持订阅计费
-
----
-
-## 🔧 开发指南
-
-### 代码规范
-
-- **后端**: 遵循 DDD 分层架构，使用 Spotless 格式化代码
-- **前端**: 遵循 Next.js 最佳实践，使用 ESLint + Prettier
-
-### 数据库迁移
-
-```bash
-# 创建新的迁移脚本
-psql -d agentx -f ./docs/sql/migrations/V2_xxx.sql
-```
-
-### 测试
-
-```bash
-# 后端单元测试
-mvn test
-
-# 前端测试
-cd frontend
-npm test
-```
-
-### 本地调试
-
-#### 后端
-
-1. IDEA 打开项目
-2. 运行 `RAGAgentPlatformApplication.java`
-3. 访问 http://localhost:8088/api/health
-
-#### 前端
-
-1. VSCode 打开 `frontend` 目录
-2. 运行 `npm run dev`
-3. 访问 http://localhost:3000
-
----
-
-## 💡 技术亮点
+## 技术亮点
 
 ### 1. DDD 分层架构
 - 业务逻辑集中在领域层
@@ -734,49 +678,3 @@ npm test
 - 多租户数据隔离
 - API Key AES 加密
 - Guava 限流
-
----
-
-## 🤝 贡献指南
-
-欢迎贡献代码！请遵循以下流程：
-
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 提交 Pull Request
-
----
-
-## 📄 许可证
-
-本项目采用 [MIT License](LICENSE) 开源许可证。
-
----
-
-## 🙏 致谢
-
-- [LangChain4j](https://github.com/langchain4j/langchain4j) - 强大的 Java LLM 框架
-- [Spring Boot](https://spring.io/projects/spring-boot) - 企业级 Java 框架
-- [Next.js](https://nextjs.org/) - 优秀的 React 框架
-- [PGVector](https://github.com/pgvector/pgvector) - PostgreSQL 向量数据库扩展
-- [SiliconFlow](https://www.siliconflow.com/) - 国内领先的 AI 模型平台
-
----
-
-## 📞 联系方式
-
-- **项目主页**: https://github.com/NEDONION/rag-agent-platform
-- **问题反馈**: https://github.com/NEDONION/rag-agent-platform/issues
-- **邮箱**: nedonion@outlook.com
-
----
-
-<div align="center">
-
-**如果这个项目对你有帮助，请给我们一个 ⭐️ Star！**
-
-Made with ❤️ by [NEDONION](https://github.com/NEDONION)
-
-</div>
