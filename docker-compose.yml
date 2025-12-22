@@ -48,7 +48,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: rag-agent-platform-backend:local
+    image: crpi-c6nc3ef4yktaqunc.cn-beijing.personal.cr.aliyuncs.com/lucas_acr/rag-agent-platform:backend-latest
     container_name: agentx-backend
     restart: unless-stopped
     environment:
