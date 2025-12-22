@@ -32,7 +32,6 @@ function getDefaultWsUrl(): string {
 export const API_CONFIG = {
   BASE_URL: getDefaultApiUrl(),
   WS_URL: getDefaultWsUrl(),
-  CURRENT_USER_ID: "1", // 当前用户ID
 }
 
 // API 端点

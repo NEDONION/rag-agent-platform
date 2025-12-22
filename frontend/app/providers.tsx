@@ -29,10 +29,15 @@ export function Providers({
     }
   }, [])
 
-  // 如果是Widget路由，不加载认证相关的Provider
+  // 如果是Widget或认证路由，不加载认证相关的Provider
   const isWidgetRoute = pathname?.startsWith('/widget')
+  const isAuthRoute = pathname
+    ? ["/login", "/register", "/reset-password"].some((route) =>
+        pathname.startsWith(route)
+      )
+    : false
 
-  if (isWidgetRoute) {
+  if (isWidgetRoute || isAuthRoute) {
     return (
       <I18nProvider initialLocale={initialLocale}>
         <RouteLogger />

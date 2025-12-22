@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { Account } from "@/types/account";
 import { AccountService } from "@/lib/account-service";
 import { debugLog, debugWarn } from "@/lib/debug";
@@ -24,12 +25,21 @@ interface AccountContextType {
 const AccountContext = createContext<AccountContextType | undefined>(undefined);
 
 export function AccountProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const isAuthRoute = pathname
+    ? ["/login", "/register", "/reset-password"].some((route) =>
+        pathname.startsWith(route)
+      )
+    : false;
   const [account, setAccount] = useState<Account | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // 刷新账户数据
   const refreshAccount = useCallback(async () => {
+    if (isAuthRoute) {
+      return;
+    }
     debugLog("account.refresh.start");
     setLoading(true);
     setError(null);
@@ -51,7 +61,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAuthRoute]);
 
   // 直接更新账户数据（用于支付成功后的即时更新）
   const updateAccountData = useCallback((accountData: Account) => {
@@ -81,11 +91,19 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
   // 组件挂载时自动获取账户数据
   useEffect(() => {
+    if (isAuthRoute) {
+      setLoading(false);
+      return;
+    }
     refreshAccount();
-  }, [refreshAccount]);
+  }, [isAuthRoute, refreshAccount]);
 
   // 监听页面焦点变化，自动刷新账户数据
   useEffect(() => {
+    if (isAuthRoute) {
+      return;
+    }
+
     const handleVisibilityChange = () => {
       if (!document.hidden && account) {
         debugLog("account.refresh.visibility");
@@ -109,7 +127,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
     };
-  }, [account, refreshAccount]);
+  }, [account, isAuthRoute, refreshAccount]);
 
   const value: AccountContextType = {
     account,

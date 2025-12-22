@@ -1,4 +1,4 @@
-import { API_CONFIG, API_ENDPOINTS } from "@/lib/api-config"
+import { API_ENDPOINTS } from "@/lib/api-config"
 import { httpClient } from "@/lib/http-client"
 import type {
   Agent,
@@ -272,9 +272,11 @@ export async function getAgentLatestVersion(agentId: string): Promise<ApiRespons
 }
 
 // 搜索助理
-export async function searchAgents(params: SearchAgentsRequest): Promise<ApiResponse<Agent[]>> {
+export async function searchAgents(
+  userId: string,
+  params: SearchAgentsRequest
+): Promise<ApiResponse<Agent[]>> {
   try {
-    const userId = API_CONFIG.CURRENT_USER_ID
     console.log(`Searching agents for user: ${userId}`)
     
     const response = await httpClient.get<ApiResponse<Agent[]>>(API_ENDPOINTS.USER_AGENTS(userId), {
@@ -423,4 +425,3 @@ export const addAgentToWorkspaceWithToast = withToast(addAgentToWorkspace, {
   successTitle: "已成功添加助理到工作区",
   errorTitle: "添加失败"
 })
-

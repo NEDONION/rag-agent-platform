@@ -38,6 +38,8 @@ export default function RegisterPage() {
   const [sendingCode, setSendingCode] = useState(false)
   const [authConfig, setAuthConfig] = useState<AuthConfig | null>(null)
   const [configLoading, setConfigLoading] = useState(true)
+  const pageShellClass =
+    "min-h-screen bg-slate-50 text-slate-900"
 
   // 加载认证配置
   useEffect(() => {
@@ -327,27 +329,32 @@ export default function RegisterPage() {
   // 配置加载中
   if (configLoading) {
     return (
-        <div className="container max-w-[400px] py-10 h-screen flex flex-col justify-center">
-          <div className="mb-8 space-y-2 text-center">
-            <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-          </div>
-          <div className="space-y-4">
-            <div className="h-20 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-20 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+      <div className={pageShellClass}>
+        <div className="container max-w-[480px] min-h-screen flex flex-col justify-center py-16 px-4">
+          <div className="rounded-2xl bg-white/90 px-8 py-10 shadow-[0_10px_24px_-20px_rgba(15,23,42,0.35)] ring-1 ring-slate-200/60">
+            <div className="mb-8 space-y-2 text-center">
+              <div className="h-7 bg-slate-100 rounded animate-pulse"></div>
+              <div className="h-4 bg-slate-100 rounded animate-pulse"></div>
+            </div>
+            <div className="space-y-4">
+              <div className="h-11 bg-slate-100 rounded animate-pulse"></div>
+              <div className="h-11 bg-slate-100 rounded animate-pulse"></div>
+              <div className="h-10 bg-slate-100 rounded animate-pulse"></div>
+            </div>
           </div>
         </div>
+      </div>
     )
   }
 
   // 注册功能未启用
   if (!authConfig?.registerEnabled) {
     return (
-        <div className="container max-w-[400px] py-10 h-screen flex flex-col justify-center">
-          <div className="text-center space-y-4">
+      <div className={pageShellClass}>
+        <div className="container max-w-[480px] min-h-screen flex flex-col justify-center py-16 px-4">
+          <div className="rounded-2xl bg-white/90 px-8 py-10 text-center shadow-[0_10px_24px_-20px_rgba(15,23,42,0.35)] ring-1 ring-slate-200/60">
             <h1 className="text-2xl font-semibold tracking-tight">暂停注册</h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="mt-3 text-sm text-muted-foreground">
               系统暂时关闭了用户注册功能，请稍后再试或联系管理员。
             </p>
             <div className="pt-4">
@@ -359,18 +366,26 @@ export default function RegisterPage() {
             </div>
           </div>
         </div>
+      </div>
     )
   }
 
   return (
-      <div className="container max-w-[400px] py-10 h-screen flex flex-col justify-center">
-        <div className="mb-8 space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">注册</h1>
-          <p className="text-sm text-muted-foreground">创建您的新账号</p>
-        </div>
-        <form onSubmit={handleSubmit}>
+    <div className={pageShellClass}>
+      <div className="container max-w-[480px] min-h-screen flex flex-col justify-center py-16 px-4">
+        <div className="rounded-2xl bg-white/90 px-8 py-10 shadow-[0_12px_28px_-22px_rgba(15,23,42,0.4)] ring-1 ring-slate-200/70">
+          <div className="mb-8 space-y-2 text-center">
+            <p className="text-xs font-medium uppercase tracking-[0.28em] text-slate-400">
+              Create Account
+            </p>
+            <h1 className="text-2xl font-semibold tracking-tight">注册 RAG Agent 智能平台</h1>
+            <p className="text-sm text-muted-foreground">👋 欢迎！创建账号以开始使用。</p>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-4">
-            <p className="text-xs text-muted-foreground">带 <span className="text-red-500">*</span> 的字段为必填项</p>
+            <p className="text-xs text-muted-foreground">
+              带 <span className="text-red-500">*</span> 的字段为必填项
+            </p>
 
             <div className="space-y-2">
               <Label htmlFor="email">电子邮件</Label>
@@ -382,7 +397,7 @@ export default function RegisterPage() {
                     placeholder="请输入电子邮件"
                     value={formData.email}
                     onChange={handleChange}
-                    className="flex-1"
+                    className="flex-1 border-slate-200 bg-slate-50/70 focus-visible:ring-blue-500/40"
                 />
               </div>
               <p className="text-xs text-muted-foreground">邮箱和手机号至少填写一个</p>
@@ -401,7 +416,7 @@ export default function RegisterPage() {
                         placeholder="请输入图形验证码"
                         value={formData.captchaCode}
                         onChange={handleChange}
-                        className="flex-1"
+                        className="flex-1 border-slate-200 bg-slate-50/70 focus-visible:ring-blue-500/40"
                     />
                     <div
                         className="flex-shrink-0 w-[120px] h-[40px] relative cursor-pointer border rounded-md overflow-hidden"
@@ -443,7 +458,7 @@ export default function RegisterPage() {
                         placeholder="请输入验证码"
                         value={formData.code}
                         onChange={handleChange}
-                        className="flex-1"
+                        className="flex-1 border-slate-200 bg-slate-50/70 focus-visible:ring-blue-500/40"
                         disabled={!codeSent}
                     />
                     <Button
@@ -467,6 +482,7 @@ export default function RegisterPage() {
                   placeholder="请输入手机号"
                   value={formData.phone}
                   onChange={handleChange}
+                  className="border-slate-200 bg-slate-50/70 focus-visible:ring-blue-500/40"
               />
             </div>
 
@@ -482,6 +498,7 @@ export default function RegisterPage() {
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  className="border-slate-200 bg-slate-50/70 focus-visible:ring-blue-500/40"
               />
             </div>
 
@@ -497,20 +514,26 @@ export default function RegisterPage() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
+                  className="border-slate-200 bg-slate-50/70 focus-visible:ring-blue-500/40"
               />
             </div>
 
-            <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={loading}>
+            <Button type="submit" className="w-full bg-blue-600 text-white hover:bg-blue-700" disabled={loading}>
               {loading ? "注册中..." : "注册"}
             </Button>
             <div className="text-sm text-center text-muted-foreground">
               已有账号？{" "}
-              <Link href="/login" className="text-primary hover:underline">
+              <Link href="/login" className="text-blue-600 hover:underline">
                 立即登录
               </Link>
             </div>
+            <p className="text-xs text-muted-foreground text-center">
+              使用即代表您同意我们的 使用协议 & 隐私政策
+            </p>
           </div>
         </form>
+        </div>
       </div>
+    </div>
   )
 } 

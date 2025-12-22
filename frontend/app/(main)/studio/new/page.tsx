@@ -4,12 +4,13 @@ import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
 
 import { createAgentWithToast } from "@/lib/agent-service"
-import { API_CONFIG } from "@/lib/api-config"
+import { useAccount } from "@/contexts/account-context"
 import AgentFormModal from "@/components/agent-form-modal"
 import type { AgentFormData } from "@/hooks/use-agent-form"
 
 export default function CreateAgentPage() {
   const router = useRouter()
+  const { account, loading: accountLoading } = useAccount()
 
   // 处理创建助理
   const handleCreateAgent = async (formData: AgentFormData) => {
@@ -19,6 +20,24 @@ export default function CreateAgentPage() {
         variant: "destructive",
       });
       return;
+    }
+
+    if (accountLoading) {
+      toast({
+        title: "账户信息加载中",
+        description: "请稍候再试",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!account?.userId) {
+      toast({
+        title: "无法获取用户信息",
+        description: "请重新登录后再试",
+        variant: "destructive",
+      })
+      return
     }
 
     try {
@@ -40,7 +59,7 @@ export default function CreateAgentPage() {
         toolIds: toolIds,
         knowledgeBaseIds: formData.knowledgeBaseIds,
         toolPresetParams: formData.toolPresetParams,
-        userId: API_CONFIG.CURRENT_USER_ID,
+        userId: account.userId,
         multiModal: formData.multiModal,
       };
 
@@ -80,4 +99,3 @@ export default function CreateAgentPage() {
     />
   )
 }
-
