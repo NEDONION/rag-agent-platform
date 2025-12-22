@@ -7,7 +7,6 @@ import type { Tool, ToolVersion } from '@/types/tool';
 import { getToolDetail, getMarketToolVersions, getMarketToolVersionDetail } from '@/lib/tool-service';
 import { X, RefreshCw, Puzzle, Command, Key, Save, Settings } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import ToolParametersModal from './ToolParametersModal';
 

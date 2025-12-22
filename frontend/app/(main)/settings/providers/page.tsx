@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { MoreHorizontal, Plus, Edit, Trash, Power, PowerOff, Loader2, PlusCircle } from "lucide-react"
+import { ArrowLeft, MoreHorizontal, Plus, Edit, Trash, Power, PowerOff, Loader2, PlusCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -680,9 +680,16 @@ export default function ProvidersPage() {
   // 显示加载中状态
   if (loading) {
     return (
-      <div className="container py-6 flex flex-col items-center justify-center min-h-[400px]">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="mt-4 text-muted-foreground">{t("加载服务商...")}</p>
+      <div className="container py-6">
+        <div className="mb-6">
+          <Button variant="ghost" size="icon" onClick={() => router.push("/")}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="flex flex-col items-center justify-center min-h-[320px]">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="mt-4 text-muted-foreground">{t("加载服务商...")}</p>
+        </div>
       </div>
     )
   }
@@ -691,6 +698,11 @@ export default function ProvidersPage() {
   if (error) {
     return (
       <div className="container py-6">
+        <div className="mb-6">
+          <Button variant="ghost" size="icon" onClick={() => router.push("/")}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        </div>
         <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
           <h3 className="text-red-800 font-medium">{t("加载失败")}</h3>
           <p className="text-red-600">{error}</p>
@@ -717,9 +729,14 @@ export default function ProvidersPage() {
       )}
       <div className="container py-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
+        <div className="flex items-start gap-3">
+          <Button variant="ghost" size="icon" onClick={() => router.push("/")}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
           <h1 className="text-3xl font-bold tracking-tight">{t("Model Provider")}</h1>
           <p className="text-muted-foreground">{t("Manage your Model Providers and API keys")}</p>
+          </div>
         </div>
         <Button className="flex items-center gap-2" onClick={openAddDialog}>
           <Plus className="h-4 w-4" />

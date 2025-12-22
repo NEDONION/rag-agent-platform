@@ -9,7 +9,8 @@ import { toast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { registerApi, sendEmailCodeApi, verifyEmailCodeApi, getCaptchaApi } from "@/lib/api-services"
+import { loginApi, registerApi, sendEmailCodeApi, verifyEmailCodeApi, getCaptchaApi } from "@/lib/api-services"
+import { setCookie } from "@/lib/utils"
 import { getAuthConfigWithToast } from "@/lib/auth-config-service"
 import type { AuthConfig } from "@/lib/types/auth-config"
 
@@ -105,7 +106,8 @@ export default function RegisterPage() {
       toast({
         variant: "destructive",
         title: "错误",
-        description: "请输入邮箱"
+        description: "请输入邮箱",
+        className: "border-red-200 bg-red-50 text-red-900"
       })
       return
     }
@@ -115,7 +117,8 @@ export default function RegisterPage() {
       toast({
         variant: "destructive",
         title: "错误",
-        description: "请输入有效的邮箱地址"
+        description: "请输入有效的邮箱地址",
+        className: "border-red-200 bg-red-50 text-red-900"
       })
       return
     }
@@ -124,7 +127,8 @@ export default function RegisterPage() {
       toast({
         variant: "destructive",
         title: "错误",
-        description: "请输入图形验证码"
+        description: "请输入图形验证码",
+        className: "border-red-200 bg-red-50 text-red-900"
       })
       return
     }
@@ -142,20 +146,23 @@ export default function RegisterPage() {
         setCountdown(60)
         toast({
           title: "成功",
-          description: "验证码已发送，请查收邮件"
+          description: "验证码已发送，请查收邮件",
+          className: "border-emerald-200 bg-emerald-50 text-emerald-900"
         })
       } else {
         toast({
           variant: "destructive",
           title: "发送失败",
-          description: res.message || "发送验证码失败"
+          description: res.message || "发送验证码失败",
+          className: "border-red-200 bg-red-50 text-red-900"
         })
       }
     } catch (error) {
       toast({
         variant: "destructive",
         title: "发送失败",
-        description: error?.message || "发送验证码时发生错误"
+        description: error?.message || "发送验证码时发生错误",
+        className: "border-red-200 bg-red-50 text-red-900"
       })
     } finally {
       setSendingCode(false)
@@ -167,7 +174,8 @@ export default function RegisterPage() {
       toast({
         variant: "destructive",
         title: "错误",
-        description: "请输入验证码"
+        description: "请输入验证码",
+        className: "border-red-200 bg-red-50 text-red-900"
       })
       return
     }
@@ -179,20 +187,23 @@ export default function RegisterPage() {
         setCodeVerified(true)
         toast({
           title: "成功",
-          description: "验证码验证成功"
+          description: "验证码验证成功",
+          className: "border-emerald-200 bg-emerald-50 text-emerald-900"
         })
       } else {
         toast({
           variant: "destructive",
           title: "错误",
-          description: res.message || "验证码无效或已过期"
+          description: res.message || "验证码无效或已过期",
+          className: "border-red-200 bg-red-50 text-red-900"
         })
       }
     } catch (error) {
       toast({
         variant: "destructive",
         title: "验证失败",
-        description: error?.message || "验证验证码时发生错误"
+        description: error?.message || "验证验证码时发生错误",
+        className: "border-red-200 bg-red-50 text-red-900"
       })
     } finally {
       setVerifying(false)
@@ -205,7 +216,8 @@ export default function RegisterPage() {
       toast({
         variant: "destructive",
         title: "错误",
-        description: "请输入密码"
+        description: "请输入密码",
+        className: "border-red-200 bg-red-50 text-red-900"
       })
       return false
     }
@@ -213,7 +225,8 @@ export default function RegisterPage() {
       toast({
         variant: "destructive",
         title: "错误",
-        description: "两次输入的密码不一致"
+        description: "两次输入的密码不一致",
+        className: "border-red-200 bg-red-50 text-red-900"
       })
       return false
     }
@@ -222,7 +235,8 @@ export default function RegisterPage() {
       toast({
         variant: "destructive",
         title: "错误",
-        description: "邮箱和手机号至少填写一个"
+        description: "邮箱和手机号至少填写一个",
+        className: "border-red-200 bg-red-50 text-red-900"
       })
       return false
     }
@@ -232,17 +246,19 @@ export default function RegisterPage() {
         toast({
           variant: "destructive",
           title: "错误",
-          description: "请输入验证码"
+          description: "请输入验证码",
+          className: "border-red-200 bg-red-50 text-red-900"
         })
         return false
       }
 
       if (!formData.code) {
-        toast({
-          variant: "destructive",
-          title: "错误",
-          description: "请先验证邮箱验证码"
-        })
+      toast({
+        variant: "destructive",
+        title: "错误",
+        description: "请先验证邮箱验证码",
+        className: "border-red-200 bg-red-50 text-red-900"
+      })
         return false
       }
     }
@@ -269,22 +285,39 @@ export default function RegisterPage() {
 
       if (res.code === 200) {
         toast({
-          title: "成功",
-          description: "注册成功，请登录"
+          title: "注册成功",
+          description: "正在为你自动登录",
+          className: "border-emerald-200 bg-emerald-50 text-emerald-900"
         })
-        router.push("/login?auto=false")
+        const account = email || phone || ""
+        const loginRes = await loginApi({ account, password }, false)
+        if (loginRes.code === 200 && loginRes.data?.token) {
+          localStorage.setItem("auth_token", loginRes.data.token)
+          setCookie("token", loginRes.data.token, 30)
+          router.push("/")
+        } else {
+          toast({
+            variant: "destructive",
+            title: "自动登录失败",
+            description: loginRes.message || "请手动登录",
+            className: "border-red-200 bg-red-50 text-red-900"
+          })
+          router.push("/login?auto=false")
+        }
       } else {
         toast({
           variant: "destructive",
           title: "注册失败",
-          description: res.message || "注册失败，请检查填写信息"
+          description: res.message || "注册失败，请检查填写信息",
+          className: "border-red-200 bg-red-50 text-red-900"
         })
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "注册失败",
-        description: error?.message || "注册时发生错误"
+        description: error?.message || "注册时发生错误",
+        className: "border-red-200 bg-red-50 text-red-900"
       })
     } finally {
       setLoading(false)

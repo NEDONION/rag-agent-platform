@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Key, Save, AlertCircle, Check } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import type { Tool } from '@/types/tool';
 
 interface ToolParametersModalProps {
@@ -92,10 +92,15 @@ const ToolParametersModal: React.FC<ToolParametersModalProps> = ({
   const savePresetParameters = () => {
     if (onSavePresetParameters && tool && tool.toolId) {
       onSavePresetParameters(tool.toolId, localPresetParams);
-      toast.success("参数预设已保存");
+      toast({
+        title: "参数预设已保存"
+      });
       onClose();
     } else if (!tool?.toolId) {
-      toast.error("工具ID不存在，无法保存参数");
+      toast({
+        title: "工具ID不存在，无法保存参数",
+        variant: "destructive"
+      });
     }
   };
 
@@ -106,7 +111,9 @@ const ToolParametersModal: React.FC<ToolParametersModalProps> = ({
       delete newParams[functionName];
       return newParams;
     });
-    toast.success(`已清除 ${functionName} 的所有预设参数`);
+    toast({
+      title: `已清除 ${functionName} 的所有预设参数`
+    });
   };
 
   // 清理参数名称，移除前缀的花括号

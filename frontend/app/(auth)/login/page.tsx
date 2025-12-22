@@ -117,30 +117,40 @@ export default function LoginPage() {
         toast({
           variant: "destructive",
           title: "错误",
-          description: "请输入账号和密码"
+          description: "请输入账号和密码",
+          className: "border-red-200 bg-red-50 text-red-900"
         })
         setLoading(false)
         return
       }
       
       // 使用带toast参数的API
-      const res = await loginApi({ account, password }, true)
+      const res = await loginApi({ account, password }, false)
       if (res.code === 200 && res.data?.token) {
         localStorage.setItem("auth_token", res.data.token)
         setCookie("token", res.data.token, 30)
-        router.push("/")
+        toast({
+          title: "登录成功",
+          description: "欢迎回来",
+          className: "border-emerald-200 bg-emerald-50 text-emerald-900"
+        })
+        setTimeout(() => {
+          router.push("/")
+        }, 300)
       } else {
         toast({
           variant: "destructive",
           title: "登录失败",
-          description: res.message || "账号或密码不正确"
+          description: res.message || "账号或密码不正确",
+          className: "border-red-200 bg-red-50 text-red-900"
         })
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "登录失败",
-        description: error?.message || "登录时发生错误"
+        description: error?.message || "登录时发生错误",
+        className: "border-red-200 bg-red-50 text-red-900"
       })
     } finally {
       setLoading(false)

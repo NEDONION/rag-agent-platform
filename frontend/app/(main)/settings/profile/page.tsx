@@ -2,6 +2,8 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { ArrowLeft, ShieldCheck, User } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,6 +16,7 @@ import { useI18n } from "@/contexts/i18n-context"
 
 export default function ProfilePage() {
   const { t } = useI18n()
+  const router = useRouter()
   const [formData, setFormData] = useState({
     nickname: "",
     email: "",
@@ -179,9 +182,14 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="container py-6">
-        <div className="mb-6">
-          <Skeleton className="h-10 w-64 mb-2" />
-          <Skeleton className="h-4 w-40" />
+        <div className="mb-6 flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => router.push("/")}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <Skeleton className="h-10 w-64 mb-2" />
+            <Skeleton className="h-4 w-40" />
+          </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 个人资料 Skeleton */}
@@ -228,16 +236,24 @@ export default function ProfilePage() {
 
   return (
     <div className="container py-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">{t("个人资料")}</h1>
-        <p className="text-muted-foreground">{t("更新您的个人信息和账户安全设置")}</p>
+      <div className="mb-6 flex items-start gap-3">
+        <Button variant="ghost" size="icon" onClick={() => router.push("/")}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">{t("个人资料")}</h1>
+          <p className="text-muted-foreground">{t("更新您的个人信息和账户安全设置")}</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-6">
         {/* 个人资料 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("个人资料")}</CardTitle>
+        <Card className="border-slate-200 shadow-sm">
+          <CardHeader className="border-b border-slate-100 bg-slate-50/70">
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-4 w-4 text-slate-600" />
+              {t("个人资料")}
+            </CardTitle>
             <CardDescription>{t("更新您的个人信息")}</CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
@@ -254,35 +270,37 @@ export default function ProfilePage() {
                 <p className="text-xs text-muted-foreground">{t("昵称是您在平台上显示的名称")}</p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="phone">{t("手机号")}</Label>
-                <Input 
-                  id="phone" 
-                  name="phone" 
-                  type="tel"
-                  value={formData.phone} 
-                  onChange={handleChange}
-                  placeholder={t("请输入手机号")}
-                  disabled
-                />
-                <p className="text-xs text-muted-foreground">{t("手机号不可修改")}</p>
-              </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">{t("手机号")}</Label>
+                  <Input 
+                    id="phone" 
+                    name="phone" 
+                    type="tel"
+                    value={formData.phone} 
+                    onChange={handleChange}
+                    placeholder={t("请输入手机号")}
+                    disabled
+                  />
+                  <p className="text-xs text-muted-foreground">{t("手机号不可修改")}</p>
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">{t("电子邮件")}</Label>
-                <Input 
-                  id="email" 
-                  name="email" 
-                  type="email" 
-                  value={formData.email} 
-                  onChange={handleChange}
-                  placeholder={t("请输入电子邮件")}
-                  disabled
-                />
-                <p className="text-xs text-muted-foreground">{t("邮箱地址不可修改")}</p>
+                <div className="space-y-2">
+                  <Label htmlFor="email">{t("电子邮件")}</Label>
+                  <Input 
+                    id="email" 
+                    name="email" 
+                    type="email" 
+                    value={formData.email} 
+                    onChange={handleChange}
+                    placeholder={t("请输入电子邮件")}
+                    disabled
+                  />
+                  <p className="text-xs text-muted-foreground">{t("邮箱地址不可修改")}</p>
+                </div>
               </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="border-t border-slate-100 bg-slate-50/40">
               <Button type="submit" disabled={submitting}>
                 {submitting ? t("保存中...") : t("保存更改")}
               </Button>
@@ -291,9 +309,12 @@ export default function ProfilePage() {
         </Card>
 
         {/* 修改密码 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("修改密码")}</CardTitle>
+        <Card className="border-slate-200 shadow-sm">
+          <CardHeader className="border-b border-slate-100 bg-slate-50/70">
+            <CardTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-slate-600" />
+              {t("修改密码")}
+            </CardTitle>
             <CardDescription>{t("为了账户安全，建议定期修改密码")}</CardDescription>
           </CardHeader>
           <form onSubmit={handlePasswordSubmit}>
@@ -335,7 +356,7 @@ export default function ProfilePage() {
                 />
               </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="border-t border-slate-100 bg-slate-50/40">
               <Button type="submit" disabled={passwordSubmitting}>
                 {passwordSubmitting ? t("修改中...") : t("修改密码")}
               </Button>

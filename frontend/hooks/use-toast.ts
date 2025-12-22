@@ -144,6 +144,13 @@ type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
   const id = genId()
+  const isDestructive = props.variant === "destructive"
+  const className =
+    !props.className && !isDestructive
+      ? "border-emerald-300 bg-emerald-50 text-emerald-900 shadow-lg ring-1 ring-emerald-200/60"
+      : !props.className && isDestructive
+        ? "border-red-300 bg-red-50 text-red-900 shadow-lg ring-1 ring-red-200/60"
+        : props.className
 
   const update = (props: ToasterToast) =>
     dispatch({
@@ -156,6 +163,7 @@ function toast({ ...props }: Toast) {
     type: "ADD_TOAST",
     toast: {
       ...props,
+      className,
       id,
       open: true,
       onOpenChange: (open) => {
