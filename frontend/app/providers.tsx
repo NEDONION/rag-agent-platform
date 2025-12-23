@@ -1,7 +1,7 @@
 "use client"
 
 import { Toaster } from "@/components/ui/toaster"
-import { useEffect } from "react"
+import { useEffect, Suspense } from "react"
 import { usePathname } from "next/navigation"
 import { getCookie } from "@/lib/utils"
 import { AccountProvider } from "@/contexts/account-context"
@@ -40,7 +40,9 @@ export function Providers({
   if (isWidgetRoute || isAuthRoute) {
     return (
       <I18nProvider initialLocale={initialLocale} enableDomTranslation={false}>
-        <RouteLogger />
+        <Suspense fallback={null}>
+          <RouteLogger />
+        </Suspense>
         {children}
         <Toaster />
       </I18nProvider>
@@ -50,7 +52,9 @@ export function Providers({
   return (
     <I18nProvider initialLocale={initialLocale}>
       <AccountProvider>
-        <RouteLogger />
+        <Suspense fallback={null}>
+          <RouteLogger />
+        </Suspense>
         {children}
         <Toaster />
       </AccountProvider>
