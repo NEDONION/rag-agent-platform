@@ -9,7 +9,7 @@ import type {
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+const TOAST_REMOVE_DELAY = 4000
 
 type ToasterToast = ToastProps & {
   id: string
@@ -145,12 +145,30 @@ type Toast = Omit<ToasterToast, "id">
 function toast({ ...props }: Toast) {
   const id = genId()
   const isDestructive = props.variant === "destructive"
+  const resolveAccentClass = (className?: string) => {
+    if (!className) return ""
+    if (className.includes("before:bg-")) return ""
+    if (className.includes("emerald") || className.includes("green")) {
+      return "before:bg-emerald-500/70"
+    }
+    if (className.includes("red")) {
+      return "before:bg-red-500/70"
+    }
+    if (className.includes("blue")) {
+      return "before:bg-blue-500/70"
+    }
+    return ""
+  }
   const className =
     !props.className && !isDestructive
-      ? "border-emerald-300 bg-emerald-50 text-emerald-900 shadow-lg ring-1 ring-emerald-200/60"
+      ? "border-blue-200 bg-blue-50 text-blue-900 shadow-lg ring-1 ring-blue-200/60"
       : !props.className && isDestructive
         ? "border-red-300 bg-red-50 text-red-900 shadow-lg ring-1 ring-red-200/60"
         : props.className
+  const accentClassName =
+    resolveAccentClass(className) ||
+    (isDestructive ? "before:bg-red-500/70" : "before:bg-blue-500/70")
+  const mergedClassName = `${className} ${accentClassName}`
 
   const update = (props: ToasterToast) =>
     dispatch({
@@ -163,7 +181,7 @@ function toast({ ...props }: Toast) {
     type: "ADD_TOAST",
     toast: {
       ...props,
-      className,
+      className: mergedClassName,
       id,
       open: true,
       onOpenChange: (open) => {

@@ -39,7 +39,7 @@ export function Providers({
 
   if (isWidgetRoute || isAuthRoute) {
     return (
-      <I18nProvider initialLocale={initialLocale}>
+      <I18nProvider initialLocale={initialLocale} enableDomTranslation={false}>
         <RouteLogger />
         {children}
         <Toaster />

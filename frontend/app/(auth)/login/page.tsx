@@ -14,6 +14,7 @@ import { setCookie } from "@/lib/utils"
 import { getAuthConfigWithToast } from "@/lib/auth-config-service"
 import type { AuthConfig } from "@/lib/types/auth-config"
 import { AUTH_FEATURE_KEY } from "@/lib/types/auth-config"
+import { useI18n } from "@/contexts/i18n-context"
 
 // GitHub 图标组件
 const GitHubIcon = ({ className }: { className?: string }) => (
@@ -35,13 +36,10 @@ const GitHubIcon = ({ className }: { className?: string }) => (
 
 export default function LoginPage() {
   const router = useRouter()
-  const prefillEnabled = process.env.NEXT_PUBLIC_PREFILL_LOGIN === "true"
-  const defaultAccount = prefillEnabled
-    ? process.env.NEXT_PUBLIC_PREFILL_ACCOUNT || ""
-    : ""
-  const defaultPassword = prefillEnabled
-    ? process.env.NEXT_PUBLIC_PREFILL_PASSWORD || ""
-    : ""
+  const { locale, setLocale, t } = useI18n()
+  const defaultAccount = "nedjiachenghu@gmail.com"
+  const defaultPassword = "test123"
+  const showTestCredentials = true
   const [formData, setFormData] = useState({
     account: defaultAccount,
     password: defaultPassword,
@@ -73,6 +71,18 @@ export default function LoginPage() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
+  const handlePrefill = () => {
+    setFormData({
+      account: defaultAccount,
+      password: defaultPassword,
+    })
+    toast({
+      title: t("已填充测试账号"),
+      description: t("可直接点击登录"),
+      className: "border-blue-200 bg-blue-50 text-blue-900",
+    })
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -81,8 +91,8 @@ export default function LoginPage() {
       if (!account || !password) {
         toast({
           variant: "destructive",
-          title: "错误",
-          description: "请输入账号和密码",
+          title: t("错误"),
+          description: t("请输入账号和密码"),
           className: "border-red-200 bg-red-50 text-red-900",
         })
         setLoading(false)
@@ -95,8 +105,8 @@ export default function LoginPage() {
         localStorage.setItem("auth_token", res.data.token)
         setCookie("token", res.data.token, 30)
         toast({
-          title: "登录成功",
-          description: "欢迎回来",
+          title: t("登录成功"),
+          description: t("欢迎回来"),
           className: "border-emerald-200 bg-emerald-50 text-emerald-900",
         })
         setTimeout(() => {
@@ -105,16 +115,16 @@ export default function LoginPage() {
       } else {
         toast({
           variant: "destructive",
-          title: "登录失败",
-          description: res.message || "账号或密码不正确",
+          title: t("登录失败"),
+          description: res.message || t("账号或密码不正确"),
           className: "border-red-200 bg-red-50 text-red-900",
         })
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "登录失败",
-        description: error?.message || "登录时发生错误",
+        title: t("登录失败"),
+        description: error?.message || t("登录时发生错误"),
         className: "border-red-200 bg-red-50 text-red-900",
       })
     } finally {
@@ -124,6 +134,8 @@ export default function LoginPage() {
 
   const pageShellClass =
     "min-h-screen bg-slate-50 text-slate-900"
+  const cardClass =
+    "rounded-2xl bg-white/90 px-8 py-10 shadow-[0_12px_28px_-22px_rgba(15,23,42,0.4)] ring-1 ring-slate-200/70"
 
   // 配置加载中
   if (configLoading) {
@@ -158,9 +170,11 @@ export default function LoginPage() {
       <div className={pageShellClass}>
         <div className="container max-w-[440px] min-h-screen flex flex-col justify-center py-16 px-4">
           <div className="rounded-2xl bg-white/90 px-8 py-10 text-center shadow-[0_10px_24px_-20px_rgba(15,23,42,0.35)] ring-1 ring-slate-200/60">
-            <h1 className="text-2xl font-semibold tracking-tight">暂时无法登录</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {t("暂时无法登录")}
+            </h1>
             <p className="mt-3 text-sm text-muted-foreground">
-              系统暂时关闭了所有登录方式，请稍后再试或联系管理员。
+              {t("系统暂时关闭了所有登录方式，请稍后再试或联系管理员。")}
             </p>
           </div>
         </div>
@@ -172,47 +186,110 @@ export default function LoginPage() {
     <>
       <div className={pageShellClass}>
         <div className="container max-w-[440px] min-h-screen flex flex-col justify-center py-16 px-4">
-          <div className="rounded-2xl bg-white/90 px-8 py-10 shadow-[0_12px_28px_-22px_rgba(15,23,42,0.4)] ring-1 ring-slate-200/70">
+          <div className={cardClass}>
+            <div className="mb-6 flex items-center justify-end">
+              <div className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 p-0.5 text-xs shadow-[inset_0_0_0_1px_rgba(15,23,42,0.03)]">
+                <button
+                  type="button"
+                  onClick={() => setLocale("zh")}
+                  className={`rounded-full px-3 py-1 font-medium transition ${
+                    locale === "zh"
+                      ? "bg-blue-600 text-white shadow-sm shadow-blue-500/30"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  中文
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLocale("en")}
+                  className={`rounded-full px-3 py-1 font-medium transition ${
+                    locale === "en"
+                      ? "bg-blue-600 text-white shadow-sm shadow-blue-500/30"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  EN
+                </button>
+              </div>
+            </div>
+
             <div className="mb-8 space-y-2 text-center">
               <p className="text-xs font-medium uppercase tracking-[0.28em] text-slate-400">
-                Account Login
+                {t("Account Login")}
               </p>
               <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-                登录 RAG Agent 智能平台
+                {t("登录 RAG Agent 智能平台")}
               </h1>
               <p className="text-sm text-muted-foreground">
-                👋 欢迎！请登录以开始使用。
+                {t("👋 欢迎！请登录以开始使用。")}
               </p>
             </div>
 
             <div className="space-y-6">
+              {showTestCredentials && (
+                <div className="rounded-lg border border-slate-200/70 bg-white px-4 py-3 text-xs text-slate-600 shadow-[0_4px_12px_-10px_rgba(15,23,42,0.35)]">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-sm bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-600">
+                        {t("测试账号")}
+                      </span>
+                      <span className="text-[11px] text-slate-400">Demo</span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handlePrefill}
+                      className="h-7 rounded-md px-2 text-[11px] font-medium text-blue-600 hover:bg-blue-50"
+                    >
+                      {t("一键填充")}
+                    </Button>
+                  </div>
+                  <div className="mt-3 grid gap-2 text-[12px] text-slate-700">
+                    <div className="flex items-center justify-between rounded-md border border-slate-100 bg-slate-50/60 px-3 py-2">
+                      <span className="text-slate-500">{t("账号")}</span>
+                      <span className="font-mono text-slate-900">
+                        {defaultAccount || "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-md border border-slate-100 bg-slate-50/60 px-3 py-2">
+                      <span className="text-slate-500">{t("密码")}</span>
+                      <span className="font-mono text-slate-900">
+                        {defaultPassword || "-"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
               {/* 普通登录表单 */}
               {hasNormalLogin && (
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="account" className="text-sm text-slate-600">
-                      账号 <span className="text-red-500">*</span>
+                      {t("账号")} <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="account"
                       name="account"
                       type="text"
-                      placeholder="请输入账号/邮箱/手机号"
+                      placeholder={t("请输入账号/邮箱/手机号")}
                       value={formData.account}
                       onChange={handleChange}
+                      autoFocus
                       required
                       className="h-11 border-slate-200 bg-slate-50/70 focus-visible:ring-blue-500/40"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password" className="text-sm text-slate-600">
-                      密码 <span className="text-red-500">*</span>
+                      {t("密码")} <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="password"
                       name="password"
                       type="password"
-                      placeholder="请输入密码"
+                      placeholder={t("请输入密码")}
                       value={formData.password}
                       onChange={handleChange}
                       required
@@ -224,7 +301,7 @@ export default function LoginPage() {
                     className="h-11 w-full bg-blue-600 text-white hover:bg-blue-700"
                     disabled={loading}
                   >
-                    {loading ? "登录中..." : "登录"}
+                    {loading ? t("登录中...") : t("登录")}
                   </Button>
                 </form>
               )}
@@ -237,7 +314,7 @@ export default function LoginPage() {
                 </div>
                 <div className="relative flex justify-center text-sm">
                   <span className="px-2 bg-background text-muted-foreground">
-                    或者
+                    {t("或者")}
                   </span>
                 </div>
               </div>
@@ -249,7 +326,7 @@ export default function LoginPage() {
                 {/* GitHub登录（暂时禁用） */}
                 <Button variant="outline" className="w-full" type="button">
                   <GitHubIcon className="mr-2 h-4 w-4" />
-                  使用 GitHub 登录
+                  {t("使用 GitHub 登录")}
                 </Button>
               </div>
             )}
@@ -259,9 +336,9 @@ export default function LoginPage() {
                 <div>
                   {authConfig?.registerEnabled && (
                     <>
-                      还没有账号？{" "}
+                      {t("还没有账号？")}{" "}
                       <Link href="/register" className="text-blue-600 hover:underline">
-                        立即注册
+                        {t("立即注册")}
                       </Link>
                     </>
                   )}
@@ -270,13 +347,13 @@ export default function LoginPage() {
                 {hasNormalLogin && (
                   <div>
                     <Link href="/reset-password" className="text-blue-600 hover:underline">
-                      忘记密码
+                      {t("忘记密码")}
                     </Link>
                   </div>
                 )}
               </div>
               <p className="pt-2 text-xs text-muted-foreground text-center">
-                使用即代表您同意我们的 使用协议 & 隐私政策
+                {t("使用即代表您同意我们的 使用协议 & 隐私政策")}
               </p>
             </div>
           </div>

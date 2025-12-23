@@ -13,9 +13,11 @@ import { loginApi, registerApi, sendEmailCodeApi, verifyEmailCodeApi, getCaptcha
 import { setCookie } from "@/lib/utils"
 import { getAuthConfigWithToast } from "@/lib/auth-config-service"
 import type { AuthConfig } from "@/lib/types/auth-config"
+import { useI18n } from "@/contexts/i18n-context"
 
 export default function RegisterPage() {
   const router = useRouter()
+  const { locale, setLocale, t } = useI18n()
   const [formData, setFormData] = useState({
     email: "",
     phone: "",
@@ -107,8 +109,8 @@ export default function RegisterPage() {
     if (!formData.email) {
       toast({
         variant: "destructive",
-        title: "错误",
-        description: "请输入邮箱",
+        title: t("错误"),
+        description: t("请输入邮箱"),
         className: "border-red-200 bg-red-50 text-red-900"
       })
       return
@@ -118,8 +120,8 @@ export default function RegisterPage() {
     if (!emailRegex.test(formData.email)) {
       toast({
         variant: "destructive",
-        title: "错误",
-        description: "请输入有效的邮箱地址",
+        title: t("错误"),
+        description: t("请输入有效的邮箱地址"),
         className: "border-red-200 bg-red-50 text-red-900"
       })
       return
@@ -128,8 +130,8 @@ export default function RegisterPage() {
     if (!formData.captchaCode) {
       toast({
         variant: "destructive",
-        title: "错误",
-        description: "请输入图形验证码",
+        title: t("错误"),
+        description: t("请输入图形验证码"),
         className: "border-red-200 bg-red-50 text-red-900"
       })
       return
@@ -147,23 +149,23 @@ export default function RegisterPage() {
         setCodeSent(true)
         setCountdown(60)
         toast({
-          title: "成功",
-          description: "验证码已发送，请查收邮件",
+          title: t("成功"),
+          description: t("验证码已发送，请查收邮件"),
           className: "border-emerald-200 bg-emerald-50 text-emerald-900"
         })
       } else {
         toast({
           variant: "destructive",
-          title: "发送失败",
-          description: res.message || "发送验证码失败",
+          title: t("发送失败"),
+          description: res.message || t("发送验证码失败"),
           className: "border-red-200 bg-red-50 text-red-900"
         })
       }
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "发送失败",
-        description: error?.message || "发送验证码时发生错误",
+        title: t("发送失败"),
+        description: error?.message || t("发送验证码时发生错误"),
         className: "border-red-200 bg-red-50 text-red-900"
       })
     } finally {
@@ -175,8 +177,8 @@ export default function RegisterPage() {
     if (!formData.code) {
       toast({
         variant: "destructive",
-        title: "错误",
-        description: "请输入验证码",
+        title: t("错误"),
+        description: t("请输入验证码"),
         className: "border-red-200 bg-red-50 text-red-900"
       })
       return
@@ -188,23 +190,23 @@ export default function RegisterPage() {
       if (res.code === 200 && res.data) {
         setCodeVerified(true)
         toast({
-          title: "成功",
-          description: "验证码验证成功",
+          title: t("成功"),
+          description: t("验证码验证成功"),
           className: "border-emerald-200 bg-emerald-50 text-emerald-900"
         })
       } else {
         toast({
           variant: "destructive",
-          title: "错误",
-          description: res.message || "验证码无效或已过期",
+          title: t("错误"),
+          description: res.message || t("验证码无效或已过期"),
           className: "border-red-200 bg-red-50 text-red-900"
         })
       }
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "验证失败",
-        description: error?.message || "验证验证码时发生错误",
+        title: t("验证失败"),
+        description: error?.message || t("验证验证码时发生错误"),
         className: "border-red-200 bg-red-50 text-red-900"
       })
     } finally {
@@ -217,8 +219,8 @@ export default function RegisterPage() {
     if (!formData.password) {
       toast({
         variant: "destructive",
-        title: "错误",
-        description: "请输入密码",
+        title: t("错误"),
+        description: t("请输入密码"),
         className: "border-red-200 bg-red-50 text-red-900"
       })
       return false
@@ -226,8 +228,8 @@ export default function RegisterPage() {
     if (formData.password !== formData.confirmPassword) {
       toast({
         variant: "destructive",
-        title: "错误",
-        description: "两次输入的密码不一致",
+        title: t("错误"),
+        description: t("两次输入的密码不一致"),
         className: "border-red-200 bg-red-50 text-red-900"
       })
       return false
@@ -236,8 +238,8 @@ export default function RegisterPage() {
     if (!formData.email && !formData.phone) {
       toast({
         variant: "destructive",
-        title: "错误",
-        description: "邮箱和手机号至少填写一个",
+        title: t("错误"),
+        description: t("邮箱和手机号至少填写一个"),
         className: "border-red-200 bg-red-50 text-red-900"
       })
       return false
@@ -247,8 +249,8 @@ export default function RegisterPage() {
       if (!formData.captchaCode) {
         toast({
           variant: "destructive",
-          title: "错误",
-          description: "请输入验证码",
+          title: t("错误"),
+          description: t("请输入验证码"),
           className: "border-red-200 bg-red-50 text-red-900"
         })
         return false
@@ -257,8 +259,8 @@ export default function RegisterPage() {
       if (!formData.code) {
       toast({
         variant: "destructive",
-        title: "错误",
-        description: "请先验证邮箱验证码",
+        title: t("错误"),
+        description: t("请先验证邮箱验证码"),
         className: "border-red-200 bg-red-50 text-red-900"
       })
         return false
@@ -287,8 +289,8 @@ export default function RegisterPage() {
 
       if (res.code === 200) {
         toast({
-          title: "注册成功",
-          description: "正在为你自动登录",
+          title: t("注册成功"),
+          description: t("正在为你自动登录"),
           className: "border-emerald-200 bg-emerald-50 text-emerald-900"
         })
         const account = email || phone || ""
@@ -300,8 +302,8 @@ export default function RegisterPage() {
         } else {
           toast({
             variant: "destructive",
-            title: "自动登录失败",
-            description: loginRes.message || "请手动登录",
+            title: t("自动登录失败"),
+            description: loginRes.message || t("请手动登录"),
             className: "border-red-200 bg-red-50 text-red-900"
           })
           router.push("/login?auto=false")
@@ -309,16 +311,16 @@ export default function RegisterPage() {
       } else {
         toast({
           variant: "destructive",
-          title: "注册失败",
-          description: res.message || "注册失败，请检查填写信息",
+          title: t("注册失败"),
+          description: res.message || t("注册失败，请检查填写信息"),
           className: "border-red-200 bg-red-50 text-red-900"
         })
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "注册失败",
-        description: error?.message || "注册时发生错误",
+        title: t("注册失败"),
+        description: error?.message || t("注册时发生错误"),
         className: "border-red-200 bg-red-50 text-red-900"
       })
     } finally {
@@ -353,14 +355,16 @@ export default function RegisterPage() {
       <div className={pageShellClass}>
         <div className="container max-w-[480px] min-h-screen flex flex-col justify-center py-16 px-4">
           <div className="rounded-2xl bg-white/90 px-8 py-10 text-center shadow-[0_10px_24px_-20px_rgba(15,23,42,0.35)] ring-1 ring-slate-200/60">
-            <h1 className="text-2xl font-semibold tracking-tight">暂停注册</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {t("暂停注册")}
+            </h1>
             <p className="mt-3 text-sm text-muted-foreground">
-              系统暂时关闭了用户注册功能，请稍后再试或联系管理员。
+              {t("系统暂时关闭了用户注册功能，请稍后再试或联系管理员。")}
             </p>
             <div className="pt-4">
               <Link href="/login">
                 <Button variant="outline" className="w-full">
-                  返回登录
+                  {t("返回登录")}
                 </Button>
               </Link>
             </div>
@@ -374,46 +378,79 @@ export default function RegisterPage() {
     <div className={pageShellClass}>
       <div className="container max-w-[480px] min-h-screen flex flex-col justify-center py-16 px-4">
         <div className="rounded-2xl bg-white/90 px-8 py-10 shadow-[0_12px_28px_-22px_rgba(15,23,42,0.4)] ring-1 ring-slate-200/70">
+          <div className="mb-6 flex items-center justify-end">
+            <div className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 p-0.5 text-xs shadow-[inset_0_0_0_1px_rgba(15,23,42,0.03)]">
+              <button
+                type="button"
+                onClick={() => setLocale("zh")}
+                className={`rounded-full px-3 py-1 font-medium transition ${
+                  locale === "zh"
+                    ? "bg-blue-600 text-white shadow-sm shadow-blue-500/30"
+                    : "text-slate-500 hover:text-slate-900"
+                }`}
+              >
+                中文
+              </button>
+              <button
+                type="button"
+                onClick={() => setLocale("en")}
+                className={`rounded-full px-3 py-1 font-medium transition ${
+                  locale === "en"
+                    ? "bg-blue-600 text-white shadow-sm shadow-blue-500/30"
+                    : "text-slate-500 hover:text-slate-900"
+                }`}
+              >
+                EN
+              </button>
+            </div>
+          </div>
+
           <div className="mb-8 space-y-2 text-center">
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-slate-400">
-              Create Account
+              {t("Create Account")}
             </p>
-            <h1 className="text-2xl font-semibold tracking-tight">注册 RAG Agent 智能平台</h1>
-            <p className="text-sm text-muted-foreground">👋 欢迎！创建账号以开始使用。</p>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {t("注册 RAG Agent 智能平台")}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {t("👋 欢迎！创建账号以开始使用。")}
+            </p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-4">
             <p className="text-xs text-muted-foreground">
-              带 <span className="text-red-500">*</span> 的字段为必填项
+              {t("带 * 的字段为必填项")}
             </p>
 
             <div className="space-y-2">
-              <Label htmlFor="email">电子邮件</Label>
+              <Label htmlFor="email">{t("电子邮件")}</Label>
               <div className="flex space-x-2">
                 <Input
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="请输入电子邮件"
+                    placeholder={t("请输入电子邮件")}
                     value={formData.email}
                     onChange={handleChange}
                     className="flex-1 border-slate-200 bg-slate-50/70 focus-visible:ring-blue-500/40"
                 />
               </div>
-              <p className="text-xs text-muted-foreground">邮箱和手机号至少填写一个</p>
+              <p className="text-xs text-muted-foreground">
+                {t("邮箱和手机号至少填写一个")}
+              </p>
             </div>
 
             {formData.email && (
                 <div className="space-y-2">
                   <Label htmlFor="captcha">
-                    图形验证码 <span className="text-red-500">*</span>
+                    {t("图形验证码")} <span className="text-red-500">*</span>
                   </Label>
                   <div className="flex space-x-2">
                     <Input
                         id="captchaCode"
                         name="captchaCode"
                         type="text"
-                        placeholder="请输入图形验证码"
+                        placeholder={t("请输入图形验证码")}
                         value={formData.captchaCode}
                         onChange={handleChange}
                         className="flex-1 border-slate-200 bg-slate-50/70 focus-visible:ring-blue-500/40"
@@ -421,23 +458,23 @@ export default function RegisterPage() {
                     <div
                         className="flex-shrink-0 w-[120px] h-[40px] relative cursor-pointer border rounded-md overflow-hidden"
                         onClick={fetchCaptcha}
-                        title="点击刷新验证码"
+                        title={t("点击刷新验证码")}
                     >
                       {captchaData.imageBase64 ? (
                           <div className="relative w-full h-full">
                             <Image
                                 src={captchaData.imageBase64}
-                                alt="验证码"
+                                alt={t("验证码")}
                                 fill
                                 className="object-cover"
                             />
                             <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-70 bg-black/20 transition-opacity text-white text-xs">
-                              点击刷新
+                              {t("点击刷新")}
                             </div>
                           </div>
                       ) : (
                           <div className="w-full h-full bg-gray-200 flex items-center justify-center text-sm">
-                            {loadingCaptcha ? "加载中..." : "点击获取"}
+                            {loadingCaptcha ? t("加载中...") : t("点击获取")}
                           </div>
                       )}
                     </div>
@@ -448,14 +485,14 @@ export default function RegisterPage() {
             {formData.email && (
                 <div className="space-y-2">
                   <Label htmlFor="code">
-                    邮箱验证码 <span className="text-red-500">*</span>
+                    {t("邮箱验证码")} <span className="text-red-500">*</span>
                   </Label>
                   <div className="flex space-x-2">
                     <Input
                         id="code"
                         name="code"
                         type="text"
-                        placeholder="请输入验证码"
+                        placeholder={t("请输入验证码")}
                         value={formData.code}
                         onChange={handleChange}
                         className="flex-1 border-slate-200 bg-slate-50/70 focus-visible:ring-blue-500/40"
@@ -467,19 +504,23 @@ export default function RegisterPage() {
                         onClick={handleSendCode}
                         disabled={countdown > 0 || sendingCode || !formData.email || !formData.captchaCode}
                     >
-                      {countdown > 0 ? `${countdown}s` : sendingCode ? "发送中..." : "发送验证码"}
+                      {countdown > 0
+                        ? `${countdown}s`
+                        : sendingCode
+                          ? t("发送中...")
+                          : t("发送验证码")}
                     </Button>
                   </div>
                 </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="phone">手机号</Label>
+              <Label htmlFor="phone">{t("手机号")}</Label>
               <Input
                   id="phone"
                   name="phone"
                   type="tel"
-                  placeholder="请输入手机号"
+                  placeholder={t("请输入手机号")}
                   value={formData.phone}
                   onChange={handleChange}
                   className="border-slate-200 bg-slate-50/70 focus-visible:ring-blue-500/40"
@@ -488,13 +529,13 @@ export default function RegisterPage() {
 
             <div className="space-y-2">
               <Label htmlFor="password">
-                密码 <span className="text-red-500">*</span>
+                {t("密码")} <span className="text-red-500">*</span>
               </Label>
               <Input
                   id="password"
                   name="password"
                   type="password"
-                  placeholder="请输入密码"
+                  placeholder={t("请输入密码")}
                   value={formData.password}
                   onChange={handleChange}
                   required
@@ -504,13 +545,13 @@ export default function RegisterPage() {
 
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">
-                确认密码 <span className="text-red-500">*</span>
+                {t("确认密码")} <span className="text-red-500">*</span>
               </Label>
               <Input
                   id="confirmPassword"
                   name="confirmPassword"
                   type="password"
-                  placeholder="请再次输入密码"
+                  placeholder={t("请再次输入密码")}
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
@@ -519,16 +560,16 @@ export default function RegisterPage() {
             </div>
 
             <Button type="submit" className="w-full bg-blue-600 text-white hover:bg-blue-700" disabled={loading}>
-              {loading ? "注册中..." : "注册"}
+              {loading ? t("注册中...") : t("注册")}
             </Button>
             <div className="text-sm text-center text-muted-foreground">
-              已有账号？{" "}
+              {t("已有账号？")}{" "}
               <Link href="/login" className="text-blue-600 hover:underline">
-                立即登录
+                {t("立即登录")}
               </Link>
             </div>
             <p className="text-xs text-muted-foreground text-center">
-              使用即代表您同意我们的 使用协议 & 隐私政策
+              {t("使用即代表您同意我们的 使用协议 & 隐私政策")}
             </p>
           </div>
         </form>

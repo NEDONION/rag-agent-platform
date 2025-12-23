@@ -1,28 +1,21 @@
 import type React from "react"
-import { cookies, headers } from "next/headers"
 import { Providers } from "./providers"
 import { ThemeProvider } from "@/components/theme-provider"
-import { LOCALE_STORAGE_KEY, normalizeLocale, translate } from "@/lib/i18n"
 import "@/styles/globals.css"
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-    const requestHeaders = await headers()
-    const acceptLanguage = requestHeaders.get("accept-language")
-    const localeCookie = (await cookies()).get(LOCALE_STORAGE_KEY)?.value
-    const locale = normalizeLocale(localeCookie || acceptLanguage)
-    const htmlLang = locale === "zh" ? "zh-CN" : "en"
-    return (
-        <html lang={htmlLang} suppressHydrationWarning>
-        <head>
-            <title>AgentX</title>
-            <meta name="description" content={translate(locale, "您的全方位 AI 代理平台")} />
-            <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        </head>
-        <body>
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="zh-CN" suppressHydrationWarning>
+      <head>
+        <title>AgentX</title>
+        <meta name="description" content="您的全方位 AI 代理平台" />
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+      </head>
+      <body>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-            <Providers initialLocale={locale}>{children}</Providers>
+          <Providers>{children}</Providers>
         </ThemeProvider>
-        </body>
-        </html>
-    )
+      </body>
+    </html>
+  )
 }

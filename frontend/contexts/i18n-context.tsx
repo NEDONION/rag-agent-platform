@@ -25,9 +25,11 @@ const I18nContext = createContext<I18nContextValue>({
 export function I18nProvider({
   children,
   initialLocale,
+  enableDomTranslation = true,
 }: {
   children: React.ReactNode
   initialLocale?: Locale
+  enableDomTranslation?: boolean
 }) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale || DEFAULT_LOCALE)
 
@@ -57,6 +59,9 @@ export function I18nProvider({
   }, [locale])
 
   useEffect(() => {
+    if (!enableDomTranslation) {
+      return
+    }
     const attributeKeys = ["placeholder", "title", "aria-label", "alt"]
 
     const translateTextNode = (node: Text) => {
@@ -96,7 +101,24 @@ export function I18nProvider({
       }
     }
 
-    walk(document.body)
+    const root = document.body
+    if (!root) {
+      return
+    }
+
+    const runInitialWalk = () => {
+      walk(root)
+    }
+
+    const requestIdleCallback =
+      (window as unknown as { requestIdleCallback?: (cb: () => void) => number })
+        .requestIdleCallback
+    const cancelIdleCallback =
+      (window as unknown as { cancelIdleCallback?: (id: number) => void })
+        .cancelIdleCallback
+    const idleId = requestIdleCallback
+      ? requestIdleCallback(runInitialWalk)
+      : window.setTimeout(runInitialWalk, 0)
 
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
@@ -107,14 +129,21 @@ export function I18nProvider({
       })
     })
 
-    observer.observe(document.body, {
+    observer.observe(root, {
       childList: true,
       subtree: true,
       attributes: true,
       attributeFilter: attributeKeys,
     })
 
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      if (requestIdleCallback && typeof idleId === "number") {
+        cancelIdleCallback?.(idleId)
+      } else {
+        window.clearTimeout(idleId)
+      }
+    }
   }, [locale])
 
   const setLocale = (nextLocale: Locale) => {
