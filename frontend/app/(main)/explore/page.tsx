@@ -19,6 +19,7 @@ import type { AgentVersion } from "@/types/agent"
 import type { RagDataset } from "@/types/rag-dataset"
 import { Sidebar } from "@/components/sidebar"
 import { useWorkspace } from "@/contexts/workspace-context"
+import { useI18n } from "@/contexts/i18n-context"
 import Link from "next/link"
 import {
   Sheet,
@@ -43,6 +44,7 @@ import { RagChatDialog } from "@/components/knowledge/RagChatDialog"
 export default function ExplorePage() {
   const router = useRouter()
   const { refreshWorkspace } = useWorkspace()
+  const { t } = useI18n()
   const [searchQuery, setSearchQuery] = useState("")
   const [debouncedQuery, setDebouncedQuery] = useState("")
   const [agents, setAgents] = useState<AgentVersion[]>([])
@@ -401,23 +403,27 @@ export default function ExplorePage() {
             </div>
           </Card>
 
-          <Card className="mb-6 bg-white p-6 rounded-2xl shadow-sm border border-blue-100">
+          <Card className="mb-6 bg-white p-6 rounded-2xl shadow-sm border border-blue-100 relative overflow-hidden">
+            <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-blue-100/50 blur-2xl" />
+            <div className="pointer-events-none absolute -left-8 -bottom-10 h-28 w-28 rounded-full bg-slate-200/50 blur-2xl" />
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="rounded-xl bg-teal-50 p-2 text-teal-600">
+                <div className="rounded-xl bg-slate-100 p-2 text-slate-600">
                   <Store className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-slate-800">推荐知识库</h2>
-                  <p className="text-sm text-muted-foreground">展示你已创建并可直接试用的知识库，点击卡片内按钮即可开始对话</p>
+                  <h2 className="text-xl font-semibold text-slate-800">{t("Recommended Knowledge Bases")}</h2>
+                  <p className="text-sm text-muted-foreground">
+                    {t("Shows knowledge bases you created and can try immediately. Click the card button to start chatting.")}
+                  </p>
                 </div>
-                <div className="ml-2 rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700">
-                  共 {knowledgeBases.length} 个
+                <div className="ml-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                  {t("Total {count}", { count: knowledgeBases.length })}
                 </div>
               </div>
               <Link href="/knowledge">
-                <Button size="sm" variant="outline" className="border-teal-200 text-teal-700 hover:bg-teal-50">
-                  管理知识库
+                <Button size="sm" variant="outline" className="border-slate-200 text-slate-700 hover:bg-slate-50">
+                  {t("Manage Knowledge Bases")}
                 </Button>
               </Link>
             </div>
@@ -441,17 +447,17 @@ export default function ExplorePage() {
             ) : kbError ? (
               <div className="mt-2 text-sm text-red-500">{kbError}</div>
             ) : knowledgeBases.length === 0 ? (
-              <div className="mt-2 text-sm text-slate-500">暂无可用知识库</div>
+              <div className="mt-2 text-sm text-slate-500">{t("No available knowledge base")}</div>
             ) : (
-              <div className="mt-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 border-t border-slate-100 pt-4">
+              <div className="mt-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 border-t border-slate-100 pt-4 relative">
                 {knowledgeBases.slice(0, 6).map((dataset) => (
                   <Card key={dataset.id} className="border border-slate-200 rounded-2xl p-0 bg-white hover:shadow-md transition-all overflow-hidden">
-                    <div className="relative p-4 bg-[linear-gradient(140deg,#ffffff_0%,#f1fbff_55%,#ffffff_100%)]">
-                      <div className="absolute -right-12 -top-12 h-24 w-24 rounded-full bg-teal-100/60 blur-2xl" />
+                    <div className="relative p-4 bg-[linear-gradient(140deg,#ffffff_0%,#f4f6fb_55%,#ffffff_100%)]">
+                      <div className="absolute -right-12 -top-12 h-24 w-24 rounded-full bg-slate-200/60 blur-2xl" />
                       <div className="relative">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 text-teal-600 overflow-hidden border border-teal-100">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-600 overflow-hidden border border-slate-200">
                               {dataset.icon ? (
                                 <img
                                   src={dataset.icon}
@@ -465,36 +471,36 @@ export default function ExplorePage() {
                             <div className="min-w-0">
                               <div className="font-semibold text-slate-800 line-clamp-1">{dataset.name}</div>
                               <div className="text-xs text-slate-500 line-clamp-2 mt-0.5">
-                                {dataset.description || "暂无描述"}
+                                {dataset.description || t("No description")}
                               </div>
                             </div>
                           </div>
-                          <Badge variant="secondary" className="text-xs bg-teal-50 text-teal-700 border border-teal-100">
-                            可用
+                          <Badge variant="secondary" className="text-xs bg-slate-100 text-slate-700 border border-slate-200">
+                            {t("Available")}
                           </Badge>
                         </div>
 
                         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-600">
                           <span className="inline-flex items-center gap-1 rounded-full bg-white/70 px-2 py-1 border border-slate-200">
                             <Database className="h-3.5 w-3.5" />
-                            {dataset.fileCount || 0} 文件
+                            {t("{count} files", { count: dataset.fileCount || 0 })}
                           </span>
                           <span className="inline-flex items-center gap-1 rounded-full bg-white/70 px-2 py-1 border border-slate-200">
                             <Calendar className="h-3.5 w-3.5" />
-                            更新 {dataset.updatedAt ? new Date(dataset.updatedAt).toLocaleDateString() : "未知"}
+                            {t("Updated")} {dataset.updatedAt ? new Date(dataset.updatedAt).toLocaleDateString() : t("Unknown")}
                           </span>
                         </div>
 
                         <div className="mt-4">
                           <Button
                             size="sm"
-                            className="w-full bg-teal-600 hover:bg-teal-700 text-white shadow-sm"
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                             onClick={() => {
                               setSelectedDataset(dataset)
                               setRagChatOpen(true)
                             }}
                           >
-                            立即试用
+                            {t("Try Now")}
                           </Button>
                         </div>
                       </div>

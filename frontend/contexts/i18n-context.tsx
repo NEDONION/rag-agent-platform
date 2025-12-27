@@ -39,7 +39,7 @@ export function I18nProvider({
       return
     }
     const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY)
-    const resolved = normalizeLocale(stored || window.navigator.language)
+    const resolved = stored ? normalizeLocale(stored) : DEFAULT_LOCALE
     setLocaleState(resolved)
     window.localStorage.setItem(LOCALE_STORAGE_KEY, resolved)
   }, [initialLocale])
