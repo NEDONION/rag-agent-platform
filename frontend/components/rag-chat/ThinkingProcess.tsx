@@ -35,11 +35,11 @@ export function ThinkingProcess({
       onOpenChange={onToggle}
       className="w-full"
     >
-      <Card className="px-4 py-2 bg-purple-50 dark:bg-purple-950/20">
+      <Card className="px-4 py-2 bg-amber-50 border border-amber-200 text-[11px]">
         <CollapsibleTrigger className="flex items-center justify-between w-full text-left">
           <div className="flex items-center gap-2">
-            <Brain className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-            <span className="text-sm font-medium">思考过程</span>
+            <Brain className="h-4 w-4 text-amber-600" />
+            <span className="text-[12px] font-medium">思考过程</span>
             {isThinkingComplete && (
               <Badge variant="secondary" className="text-xs">
                 已完成
@@ -54,7 +54,7 @@ export function ThinkingProcess({
         </CollapsibleTrigger>
         
         <CollapsibleContent className="mt-3">
-          <div className="prose prose-sm dark:prose-invert max-w-none pl-6 text-sm">
+          <div className="prose prose-sm prose-slate max-w-none pl-6 text-[11px]">
             {thinkingContent ? (
               <ReactMarkdown>
                 {thinkingContent}

@@ -257,6 +257,7 @@ export interface RagThinkingData {
     fileName: string;
     documentId: string;
     score: number;
+    snippet?: string;
   }>;
   content?: string; // 思考过程的内容
 }
@@ -269,6 +270,8 @@ export interface RetrievedFileInfo {
   fileName: string;
   documentId?: string;
   score?: number;
+  page?: number;
+  snippet?: string;
   filePath?: string;
   isInstalledRag?: boolean;
   userRagId?: string;

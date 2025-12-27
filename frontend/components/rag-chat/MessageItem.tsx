@@ -1,8 +1,9 @@
 "use client";
 
 import ReactMarkdown from "react-markdown";
-import { Bot, User, Loader2 } from "lucide-react";
+import { Bot, User, Loader2, Bookmark } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { RetrievalProcess } from "./RetrievalProcess";
 import { ThinkingProcess } from "./ThinkingProcess";
 import type { Message } from '@/hooks/rag-chat/useRagChatSession';
@@ -41,12 +42,12 @@ export function MessageItem({
         </div>
       )}
       
-      <div className={`flex flex-col gap-2 max-w-[85%] ${
+      <div className={`flex flex-col gap-2 max-w-[96%] ${
         message.role === 'user' ? 'items-end' : 'items-start'
       }`}>
         {/* 用户消息 */}
         {message.role === 'user' && (
-          <Card className="px-4 py-2 bg-primary text-primary-foreground">
+          <Card className="px-4 py-2 bg-blue-600 text-white shadow-sm rounded-2xl rounded-br-md">
             <div className="text-sm whitespace-pre-wrap">
               {message.content}
             </div>
@@ -76,24 +77,27 @@ export function MessageItem({
         
         {/* 助手消息：回答内容 */}
         {message.role === 'assistant' && message.content && (
-          <Card className="px-4 py-2 bg-muted" key={`${message.id}-content`}>
-            <div className="prose prose-sm dark:prose-invert max-w-none">
+          <Card
+            className="px-4 py-3 bg-white border border-slate-200 shadow-sm rounded-2xl rounded-bl-md"
+            key={`${message.id}-content`}
+          >
+            <div className="prose prose-slate max-w-none text-[11px] leading-relaxed">
               <ReactMarkdown
                 components={{
                   // 标题元素
-                  h1: ({ children }) => <h1 className="text-2xl font-bold my-4">{children}</h1>,
-                  h2: ({ children }) => <h2 className="text-xl font-semibold my-3">{children}</h2>,
-                  h3: ({ children }) => <h3 className="text-lg font-medium my-2">{children}</h3>,
-                  h4: ({ children }) => <h4 className="text-base font-medium my-2">{children}</h4>,
+                  h1: ({ children }) => <h1 className="text-2xl font-bold mt-4 mb-2">{children}</h1>,
+                  h2: ({ children }) => <h2 className="text-xl font-semibold mt-4 mb-2">{children}</h2>,
+                  h3: ({ children }) => <h3 className="text-lg font-medium mt-3 mb-2">{children}</h3>,
+                  h4: ({ children }) => <h4 className="text-base font-medium mt-2 mb-2">{children}</h4>,
                   h5: ({ children }) => <h5 className="text-sm font-medium my-1">{children}</h5>,
                   h6: ({ children }) => <h6 className="text-xs font-medium my-1">{children}</h6>,
 
                   // 段落和文本
-                  p: ({ children }) => <p className="my-2 leading-relaxed">{children}</p>,
+                  p: ({ children }) => <p className="my-2 leading-relaxed text-slate-700">{children}</p>,
 
                   // 列表
-                  ul: ({ children }) => <ul className="list-disc list-inside my-2 space-y-1">{children}</ul>,
-                  ol: ({ children }) => <ol className="list-decimal list-inside my-2 space-y-1">{children}</ol>,
+                  ul: ({ children }) => <ul className="list-disc list-inside my-2 space-y-1 text-slate-700">{children}</ul>,
+                  ol: ({ children }) => <ol className="list-decimal list-inside my-2 space-y-1 text-slate-700">{children}</ol>,
                   li: ({ children }) => <li className="leading-relaxed">{children}</li>,
 
                   // 文本样式
@@ -103,11 +107,11 @@ export function MessageItem({
                   // 代码块
                   code: ({ inline, children, ...props }: any) => {
                     return inline ? (
-                      <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
+                      <code className="bg-slate-100 px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
                         {children}
                       </code>
                     ) : (
-                      <code className="block bg-gray-100 dark:bg-gray-800 p-3 rounded text-sm font-mono overflow-x-auto my-2" {...props}>
+                      <code className="block bg-slate-100 p-3 rounded text-sm font-mono overflow-x-auto my-2" {...props}>
                         {children}
                       </code>
                     );
@@ -116,39 +120,39 @@ export function MessageItem({
 
                   // 引用
                   blockquote: ({ children }) => (
-                    <blockquote className="border-l-4 border-gray-300 dark:border-gray-700 pl-4 italic my-2">
+                    <blockquote className="border-l-4 border-slate-300 pl-4 italic my-2 text-slate-600">
                       {children}
                     </blockquote>
                   ),
 
                   // 链接
                   a: ({ children, href }) => (
-                    <a href={href} className="text-blue-600 dark:text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">
+                    <a href={href} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">
                       {children}
                     </a>
                   ),
 
                   // 分隔线
-                  hr: () => <hr className="my-4 border-gray-200 dark:border-gray-700" />,
+                  hr: () => <hr className="my-4 border-slate-200" />,
 
                   // 表格
                   table: ({ children }) => (
                     <div className="overflow-x-auto my-2">
-                      <table className="border-collapse border border-gray-300 dark:border-gray-700 w-full">
+                      <table className="border-collapse border border-slate-200 w-full">
                         {children}
                       </table>
                     </div>
                   ),
-                  thead: ({ children }) => <thead className="bg-gray-50 dark:bg-gray-800">{children}</thead>,
+                  thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,
                   tbody: ({ children }) => <tbody>{children}</tbody>,
-                  tr: ({ children }) => <tr className="border-b border-gray-200 dark:border-gray-700">{children}</tr>,
+                  tr: ({ children }) => <tr className="border-b border-slate-200">{children}</tr>,
                   th: ({ children }) => (
-                    <th className="border border-gray-300 dark:border-gray-700 px-3 py-2 text-left font-semibold">
+                    <th className="border border-slate-200 px-3 py-2 text-left font-semibold">
                       {children}
                     </th>
                   ),
                   td: ({ children }) => (
-                    <td className="border border-gray-300 dark:border-gray-700 px-3 py-2">
+                    <td className="border border-slate-200 px-3 py-2">
                       {children}
                     </td>
                   ),
@@ -162,6 +166,55 @@ export function MessageItem({
             </div>
           </Card>
         )}
+
+        {message.role === 'assistant' && message.content && message.retrieval?.documents?.length ? (
+          (() => {
+            const deduped = new Map<string, RetrievedFileInfo>();
+            message.retrieval.documents.forEach((doc) => {
+              const key = `${doc.fileId}-${doc.page ?? "na"}`;
+              const existing = deduped.get(key);
+              if (!existing || (doc.score ?? 0) > (existing.score ?? 0)) {
+                deduped.set(key, doc);
+              }
+            });
+            const citations = Array.from(deduped.values())
+              .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+              .slice(0, 6);
+
+            return (
+              <Card className="px-4 py-3 bg-indigo-50 border border-indigo-200 rounded-2xl text-[11px]">
+                <div className="flex items-center gap-2 text-[12px] font-medium text-slate-700">
+                  <Bookmark className="h-4 w-4" />
+                  引用来源
+                </div>
+                <div className="mt-3 grid gap-2">
+                  {citations.map((doc, index) => (
+                    <div
+                      key={`${doc.fileId}-${doc.page ?? index}`}
+                      className="rounded-xl border border-indigo-200 px-3 py-2 text-sm bg-white"
+                    >
+                      <div className="font-medium text-slate-800 truncate">{doc.fileName}</div>
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-600">
+                        <span>来源：知识库文档</span>
+                        {typeof doc.page === "number" && <span>页码：{doc.page}</span>}
+                        {typeof doc.score === "number" && (
+                          <Badge variant="outline" className="text-xs">
+                            相似度 {(doc.score * 100).toFixed(0)}%
+                          </Badge>
+                        )}
+                      </div>
+                      {doc.snippet && (
+                        <div className="mt-2 text-xs text-slate-600 line-clamp-3">
+                          {doc.snippet}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            );
+          })()
+        ) : null}
         
         {/* 正在生成回答的提示 */}
         {message.role === 'assistant' && 

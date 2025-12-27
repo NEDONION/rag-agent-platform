@@ -50,7 +50,7 @@ export function ChatMessageList({
     <div className={`relative flex-1 overflow-hidden ${className}`}>
       <ScrollArea 
         ref={scrollAreaRef} 
-        className="h-full px-6 py-4"
+        className="h-full px-6 py-6 bg-slate-50/70"
         onScrollCapture={checkScrollButton}
       >
         {messages.length === 0 ? (
@@ -64,7 +64,7 @@ export function ChatMessageList({
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 max-w-4xl mx-auto w-full">
             {messages.map((message) => (
               <MessageItem
                 key={message.id}

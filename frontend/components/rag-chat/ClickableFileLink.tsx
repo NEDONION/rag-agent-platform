@@ -46,9 +46,16 @@ export function ClickableFileLink({
             <ExternalLink className="h-3 w-3 text-muted-foreground flex-shrink-0" />
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs px-1 py-0">
-              {(file.score * 100).toFixed(0)}%
-            </Badge>
+            {typeof file.page === "number" && (
+              <Badge variant="outline" className="text-xs px-1 py-0">
+                页 {file.page}
+              </Badge>
+            )}
+            {typeof file.score === "number" && (
+              <Badge variant="outline" className="text-xs px-1 py-0">
+                {(file.score * 100).toFixed(0)}%
+              </Badge>
+            )}
             <span className="text-xs text-muted-foreground">
               点击查看详情
             </span>

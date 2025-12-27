@@ -24,18 +24,18 @@ export function RetrievalProcess({
   }
 
   return (
-    <Card className="px-4 py-2 bg-blue-50 dark:bg-blue-950/20">
-      <div className="space-y-2">
+    <Card className="px-4 py-2 bg-blue-50 border border-blue-200">
+      <div className="space-y-2 text-[11px]">
         <div className="flex items-center gap-2">
-          <FileSearch className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-          <span className="text-sm font-medium">Document Retrieval</span>
+          <FileSearch className="h-4 w-4 text-blue-700" />
+          <span className="text-[12px] font-medium">文档检索</span>
           {retrieval.status === 'end' && retrieval.documents && (
             <Badge variant="secondary" className="text-xs">
-              Found {(() => {
+              命中文档 {(() => {
                 // 计算唯一文件数量
                 const uniqueFileIds = new Set(retrieval.documents.map(doc => doc.fileId));
                 return uniqueFileIds.size;
-              })()} files.
+              })()} 个
             </Badge>
           )}
         </div>

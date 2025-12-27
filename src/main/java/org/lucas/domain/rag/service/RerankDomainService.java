@@ -37,18 +37,29 @@ public class RerankDomainService {
         rerankRequest.setQuery(question);
         rerankRequest.setDocuments(list);
 
-        // 使用Forest接口调用Rerank API
-        final RerankResponse rerankResponse = rerankForestApi.rerank(rerankProperties.getApiUrl(),
-                rerankProperties.getApiKey(), rerankRequest);
+        try {
+            // 使用Forest接口调用Rerank API
+            final RerankResponse rerankResponse = rerankForestApi.rerank(rerankProperties.getApiUrl(),
+                    rerankProperties.getApiKey(), rerankRequest);
 
-        final List<RerankResponse.SearchResult> results = rerankResponse.getResults();
+            final List<RerankResponse.SearchResult> results = rerankResponse != null ? rerankResponse.getResults() : null;
+            if (results == null || results.isEmpty()) {
+                return textSegmentEmbeddingSearchResult.matches();
+            }
 
-        results.forEach(result -> {
-            final Integer index = result.getIndex();
-            matches.add(textSegmentEmbeddingSearchResult.matches().get(index));
-        });
+            results.forEach(result -> {
+                final Integer index = result.getIndex();
+                if (index != null && index >= 0 && index < textSegmentEmbeddingSearchResult.matches().size()) {
+                    matches.add(textSegmentEmbeddingSearchResult.matches().get(index));
+                }
+            });
+            return matches.isEmpty() ? textSegmentEmbeddingSearchResult.matches() : matches;
+        } catch (Exception e) {
+            // Rerank失败时回退到向量检索结果，避免整体查询失败
+            return textSegmentEmbeddingSearchResult.matches();
+        }
 
-        return matches;
+        
 
     }
 

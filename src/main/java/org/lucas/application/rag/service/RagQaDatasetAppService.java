@@ -73,7 +73,7 @@ import org.lucas.infrastructure.rag.factory.EmbeddingModelFactory;
 public class RagQaDatasetAppService {
 
     private static final Logger log = LoggerFactory.getLogger(RagQaDatasetAppService.class);
-    private static final double RAG_RELEVANCE_THRESHOLD = 0.75;
+    private static final double RAG_RELEVANCE_THRESHOLD = 0.7;
     private static final double RAG_RELEVANCE_MIN_SCORE = 0.1;
     private static final int RAG_RELEVANCE_MAX_RESULTS = 5;
     private static final int REWRITE_CONTEXT_MAX_DOCS = 2;
@@ -926,10 +926,13 @@ public class RagQaDatasetAppService {
             RelevanceCheckResult relevance = checkRelevanceForDatasets(searchDatasetIds, request.getQuestion(),
                     embeddingConfig);
             String effectiveQuestion = request.getQuestion();
+            QueryExpansionResult expansion = QueryExpansionResult.empty();
             if (relevance.isRelevant) {
                 effectiveQuestion = rewriteQuestion(request.getQuestion(), relevance.documents, userId);
+                expansion = expandQueries(request.getQuestion(), relevance.documents, userId);
             }
-            sendIntentRewriteToClient(emitter, intentResult, request.getQuestion(), effectiveQuestion, relevance);
+            sendIntentRewriteToClient(emitter, intentResult, request.getQuestion(), effectiveQuestion, relevance,
+                    expansion);
 
             // 执行RAG检索
             List<DocumentUnitEntity> retrievedDocuments;
@@ -937,9 +940,9 @@ public class RagQaDatasetAppService {
                 retrievedDocuments = retrieveFromFile(request.getFileId(), effectiveQuestion,
                         request.getMaxResults(), embeddingConfig);
             } else {
-                retrievedDocuments = embeddingDomainService.ragDoc(searchDatasetIds, effectiveQuestion,
-                        request.getMaxResults(), request.getMinScore(), request.getEnableRerank(), 2, embeddingConfig,
-                        false); // 流式问答中暂时不启用查询扩展，保持现有行为
+                List<String> queries = buildQueryList(request.getQuestion(), effectiveQuestion, expansion);
+                retrievedDocuments = retrieveWithMultipleQueries(searchDatasetIds, queries, request.getMaxResults(),
+                        request.getMinScore(), request.getEnableRerank(), embeddingConfig);
             }
 
             // 构建检索结果
@@ -948,7 +951,8 @@ public class RagQaDatasetAppService {
                 FileDetailEntity fileDetail = fileDetailRepository.selectById(doc.getFileId());
                 double similarityScore = doc.getSimilarityScore() != null ? doc.getSimilarityScore() : 0.0;
                 retrievedDocs.add(new RetrievedDocument(doc.getFileId(),
-                        fileDetail != null ? fileDetail.getOriginalFilename() : "未知文件", doc.getId(), similarityScore));
+                        fileDetail != null ? fileDetail.getOriginalFilename() : "未知文件", doc.getId(),
+                        similarityScore, doc.getPage(), buildSnippet(doc.getContent())));
             }
 
             // 发送检索完成信号
@@ -972,7 +976,8 @@ public class RagQaDatasetAppService {
             String prompt = buildRagPrompt(effectiveQuestion, context);
 
             // 调用流式LLM - 使用同步等待确保流式处理完成
-            generateStreamAnswerAndWait(prompt, userId, emitter);
+            String fullAnswer = generateStreamAnswerAndWait(prompt, userId, emitter);
+            sendEvidenceCoverage(emitter, fullAnswer, retrievedDocuments, embeddingConfig);
 
             // 在LLM流式处理完成后发送完成信号
             sendSseData(emitter, AgentChatResponse.buildEndMessage("回答生成完成", MessageType.RAG_ANSWER_END));
@@ -1210,6 +1215,267 @@ JSON 示例：
         return new RelevanceCheckResult(relevant, maxScore, docs.size(), docs);
     }
 
+    private QueryExpansionResult expandQueries(String question, List<DocumentUnitEntity> documents, String userId) {
+        QueryExpansionResult fallback = QueryExpansionResult.empty();
+        try {
+            String userDefaultModelId = userSettingsDomainService.getUserDefaultModelId(userId);
+            if (userDefaultModelId == null) {
+                return fallback;
+            }
+
+            ModelEntity model = llmDomainService.getModelById(userDefaultModelId);
+            List<String> fallbackChain = userSettingsDomainService.getUserFallbackChain(userId);
+            HighAvailabilityResult result = highAvailabilityDomainService.selectBestProvider(model, userId,
+                    "rag-expand-" + userId, fallbackChain);
+            ProviderEntity provider = result.getProvider();
+            ModelEntity selectedModel = result.getModel();
+
+            ChatModel chatModel = llmServiceFactory.getStrandClient(provider, selectedModel);
+            String context = buildRewriteContext(documents);
+
+            SystemMessage systemMessage = new SystemMessage("""
+你是RAG检索查询扩展器，请基于用户问题与知识库片段生成查询扩展。
+请输出严格JSON，不要输出其它内容。
+
+要求：
+1. queries: 2-4条中文检索问句（不要包含原问题）
+2. keywords: 3-6个中文关键词/短语
+
+JSON 示例：
+{"queries":["如何设置默认模型配置？","模型服务商的默认模型怎么选？"],"keywords":["默认模型","模型服务商","配置"]}
+""");
+
+            UserMessage userMessage = new UserMessage("用户问题：\n" + question + "\n\n知识库片段：\n" + context);
+            ChatResponse response = chatModel.chat(Arrays.asList(systemMessage, userMessage));
+            String raw = response.aiMessage().text();
+
+            QueryExpansionResult parsed = parseQueryExpansion(raw);
+            return parsed != null ? parsed : fallback;
+        } catch (Exception e) {
+            log.warn("Query expansion failed: {}", e.getMessage());
+            return fallback;
+        }
+    }
+
+    private QueryExpansionResult parseQueryExpansion(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            return objectMapper.readValue(raw, QueryExpansionResult.class);
+        } catch (Exception ignored) {
+            String json = extractJsonObject(raw);
+            if (json == null) {
+                return null;
+            }
+            try {
+                return objectMapper.readValue(json, QueryExpansionResult.class);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+    }
+
+    private List<String> buildQueryList(String originalQuestion, String rewrittenQuestion,
+            QueryExpansionResult expansion) {
+        List<String> queries = new ArrayList<>();
+        if (originalQuestion != null && !originalQuestion.isBlank()) {
+            queries.add(originalQuestion);
+        }
+        if (rewrittenQuestion != null && !rewrittenQuestion.isBlank()
+                && !rewrittenQuestion.equals(originalQuestion)) {
+            queries.add(rewrittenQuestion);
+        }
+        if (expansion != null && expansion.queries != null) {
+            for (String query : expansion.queries) {
+                if (query != null && !query.isBlank() && !queries.contains(query)) {
+                    queries.add(query);
+                }
+            }
+        }
+        if (expansion != null && expansion.keywords != null && !expansion.keywords.isEmpty()) {
+            String keywordQuery = String.join(" ", expansion.keywords);
+            if (!keywordQuery.isBlank() && !queries.contains(keywordQuery)) {
+                queries.add(keywordQuery);
+            }
+        }
+        return queries;
+    }
+
+    private String buildQuerySummary(QueryExpansionResult expansion, String original, String rewritten,
+            String rewriteFlag) {
+        if (expansion == null || expansion.queries == null || expansion.queries.isEmpty()) {
+            return String.format("- 查询模式：单查询\n- 使用问题：%s", rewriteFlag.equals("是") ? rewritten : original);
+        }
+        List<String> parts = new ArrayList<>();
+        parts.add(String.format("- 查询模式：多路检索（%d 条）", expansion.queries.size() + 1));
+        parts.add(String.format("- 使用问题：%s", rewriteFlag.equals("是") ? rewritten : original));
+        parts.add(String.format("- 扩展查询：%s", String.join("；", expansion.queries)));
+        if (expansion.keywords != null && !expansion.keywords.isEmpty()) {
+            parts.add(String.format("- 关键词：%s", String.join(" / ", expansion.keywords)));
+        }
+        return String.join("\n", parts);
+    }
+
+    private List<DocumentUnitEntity> retrieveWithMultipleQueries(List<String> datasetIds, List<String> queries,
+            Integer maxResults, Double minScore, Boolean enableRerank,
+            EmbeddingModelFactory.EmbeddingConfig embeddingConfig) {
+        if (queries == null || queries.isEmpty()) {
+            return new ArrayList<>();
+        }
+        java.util.Map<String, DocumentUnitEntity> merged = new java.util.HashMap<>();
+        for (String query : queries) {
+            List<DocumentUnitEntity> docs = embeddingDomainService.ragDoc(datasetIds, query, maxResults, minScore,
+                    enableRerank, 2, embeddingConfig, false);
+            for (DocumentUnitEntity doc : docs) {
+                String id = doc.getId();
+                double score = doc.getSimilarityScore() != null ? doc.getSimilarityScore() : 0.0;
+                DocumentUnitEntity existing = merged.get(id);
+                if (existing == null) {
+                    merged.put(id, doc);
+                } else {
+                    double existingScore = existing.getSimilarityScore() != null ? existing.getSimilarityScore() : 0.0;
+                    if (score > existingScore) {
+                        existing.setSimilarityScore(score);
+                    }
+                }
+            }
+        }
+        List<DocumentUnitEntity> mergedList = new ArrayList<>(merged.values());
+        mergedList.sort((a, b) -> Double.compare(
+                b.getSimilarityScore() != null ? b.getSimilarityScore() : 0.0,
+                a.getSimilarityScore() != null ? a.getSimilarityScore() : 0.0));
+        return applyDiversityLimit(mergedList, maxResults);
+    }
+
+    private List<DocumentUnitEntity> applyDiversityLimit(List<DocumentUnitEntity> documents, Integer maxResults) {
+        if (documents == null || documents.isEmpty()) {
+            return new ArrayList<>();
+        }
+        java.util.Map<String, Integer> perFileCount = new java.util.HashMap<>();
+        List<DocumentUnitEntity> result = new ArrayList<>();
+        int limit = maxResults != null ? maxResults : documents.size();
+        for (DocumentUnitEntity doc : documents) {
+            if (result.size() >= limit) {
+                break;
+            }
+            String fileId = doc.getFileId();
+            int count = perFileCount.getOrDefault(fileId, 0);
+            if (count >= 2) {
+                continue;
+            }
+            result.add(doc);
+            perFileCount.put(fileId, count + 1);
+        }
+        return result;
+    }
+
+    private List<DocumentUnitEntity> filterAndRankSnapshotDocumentsMulti(List<DocumentUnitEntity> documents,
+            List<String> queries, Integer maxResults, EmbeddingModelFactory.EmbeddingConfig embeddingConfig) {
+        if (documents == null || documents.isEmpty() || queries == null || queries.isEmpty()) {
+            return new ArrayList<>();
+        }
+        try {
+            EmbeddingModel embeddingModel = embeddingModelFactory.createEmbeddingModel(embeddingConfig);
+            List<Embedding> queryEmbeddings = new ArrayList<>();
+            for (String query : queries) {
+                if (query == null || query.isBlank()) {
+                    continue;
+                }
+                queryEmbeddings.add(embeddingModel.embed(query).content());
+            }
+            if (queryEmbeddings.isEmpty()) {
+                return new ArrayList<>();
+            }
+
+            List<DocumentWithScore> documentsWithScores = new ArrayList<>();
+            for (DocumentUnitEntity doc : documents) {
+                try {
+                    Embedding docEmbedding = embeddingModel.embed(doc.getContent()).content();
+                    double best = 0.0;
+                    for (Embedding queryEmbedding : queryEmbeddings) {
+                        double similarity = cosineSimilarity(queryEmbedding.vectorAsList(),
+                                docEmbedding.vectorAsList());
+                        if (similarity > best) {
+                            best = similarity;
+                        }
+                    }
+                    doc.setSimilarityScore(best);
+                    documentsWithScores.add(new DocumentWithScore(doc, best));
+                } catch (Exception e) {
+                    log.warn("计算文档相似度失败: {}", e.getMessage());
+                    doc.setSimilarityScore(0.0);
+                    documentsWithScores.add(new DocumentWithScore(doc, 0.0));
+                }
+            }
+
+            documentsWithScores.sort((a, b) -> Double.compare(b.score, a.score));
+            int limit = maxResults != null
+                    ? Math.min(maxResults, documentsWithScores.size())
+                    : documentsWithScores.size();
+            List<DocumentUnitEntity> ranked = documentsWithScores.stream().limit(limit)
+                    .map(dws -> dws.document).collect(Collectors.toList());
+            return applyDiversityLimit(ranked, maxResults);
+        } catch (Exception e) {
+            log.error("快照文档相关性过滤失败", e);
+            int limit = maxResults != null ? Math.min(maxResults, documents.size()) : documents.size();
+            return documents.subList(0, limit);
+        }
+    }
+
+    private void sendEvidenceCoverage(SseEmitter emitter, String answer, List<DocumentUnitEntity> documents,
+            EmbeddingModelFactory.EmbeddingConfig embeddingConfig) {
+        if (answer == null || answer.isBlank() || documents == null || documents.isEmpty()) {
+            return;
+        }
+        try {
+            EmbeddingModel embeddingModel = embeddingModelFactory.createEmbeddingModel(embeddingConfig);
+            List<DocumentUnitEntity> topDocs = documents.stream().limit(5).collect(Collectors.toList());
+            List<Embedding> docEmbeddings = new ArrayList<>();
+            for (DocumentUnitEntity doc : topDocs) {
+                String content = doc.getContent();
+                if (content == null || content.isBlank()) {
+                    docEmbeddings.add(null);
+                    continue;
+                }
+                docEmbeddings.add(embeddingModel.embed(content).content());
+            }
+
+            String[] sentences = answer.split("[。！？!?\\n]");
+            int total = 0;
+            int covered = 0;
+            for (String sentence : sentences) {
+                String trimmed = sentence.trim();
+                if (trimmed.isBlank()) {
+                    continue;
+                }
+                total++;
+                Embedding sentEmbedding = embeddingModel.embed(trimmed).content();
+                double best = 0.0;
+                for (Embedding docEmbedding : docEmbeddings) {
+                    if (docEmbedding == null) {
+                        continue;
+                    }
+                    double sim = cosineSimilarity(sentEmbedding.vectorAsList(), docEmbedding.vectorAsList());
+                    if (sim > best) {
+                        best = sim;
+                    }
+                }
+                if (best >= 0.6) {
+                    covered++;
+                }
+            }
+            if (total == 0) {
+                return;
+            }
+            double ratio = (double) covered / total * 100.0;
+            String summary = String.format("### 证据覆盖\n- 句子数：%d\n- 覆盖率：%.0f%%", total, ratio);
+            sendSseData(emitter, AgentChatResponse.build("证据覆盖评估", MessageType.RAG_THINKING_PROGRESS));
+            sendSseData(emitter, AgentChatResponse.build(summary, MessageType.RAG_THINKING_PROGRESS));
+        } catch (Exception e) {
+            log.warn("Evidence coverage failed: {}", e.getMessage());
+        }
+    }
     private String extractJsonObject(String raw) {
         int start = raw.indexOf('{');
         int end = raw.lastIndexOf('}');
@@ -1220,7 +1486,7 @@ JSON 示例：
     }
 
     private void sendIntentRewriteToClient(SseEmitter emitter, IntentResult intent, String originalQuestion,
-            String rewrittenQuestion, RelevanceCheckResult relevance) {
+            String rewrittenQuestion, RelevanceCheckResult relevance, QueryExpansionResult expansion) {
         String original = (originalQuestion == null || originalQuestion.isBlank())
                 ? "未知"
                 : originalQuestion;
@@ -1235,10 +1501,11 @@ JSON 示例：
         int docCount = relevance != null ? relevance.docCount : 0;
 
         String rewriteFlag = relevance != null && relevance.isRelevant ? "是" : "否";
+        String queryLine = buildQuerySummary(expansion, original, rewritten, rewriteFlag);
         String summary = String.format(
-                "### 相关性判断\n- 结果：%s\n- 最高相似度：%.2f（阈值 %.2f）\n- 召回数量：%d\n\n### 意图识别\n- 意图：%s\n- 置信度：%.2f\n\n### 语义改写\n- 是否改写：%s\n- 原问题：%s\n- 改写：%s",
+                "### 相关性判断\n- 结果：%s\n- 最高相似度：%.2f（阈值 %.2f）\n- 召回数量：%d\n\n### 意图识别\n- 意图：%s\n- 置信度：%.2f\n\n### 语义改写\n- 是否改写：%s\n- 原问题：%s\n- 改写：%s\n\n### 检索策略\n%s",
                 relevanceText, maxScore, RAG_RELEVANCE_THRESHOLD, docCount,
-                intent.intent, intent.confidence, rewriteFlag, original, rewritten);
+                intent.intent, intent.confidence, rewriteFlag, original, rewritten, queryLine);
 
         sendSseData(emitter, AgentChatResponse.build("意图识别与语义改写", MessageType.RAG_THINKING_START));
         sendSseData(emitter, AgentChatResponse.build(summary, MessageType.RAG_THINKING_PROGRESS));
@@ -1276,11 +1543,23 @@ JSON 示例：
         }
     }
 
+    private static class QueryExpansionResult {
+        public List<String> queries;
+        public List<String> keywords;
+
+        static QueryExpansionResult empty() {
+            QueryExpansionResult result = new QueryExpansionResult();
+            result.queries = new ArrayList<>();
+            result.keywords = new ArrayList<>();
+            return result;
+        }
+    }
+
     /** 生成流式回答并等待完成
      * @param prompt RAG提示词
      * @param userId 用户ID
      * @param emitter SSE连接 */
-    private void generateStreamAnswerAndWait(String prompt, String userId, SseEmitter emitter) {
+    private String generateStreamAnswerAndWait(String prompt, String userId, SseEmitter emitter) {
         try {
             log.info("开始生成RAG回答，用户: {}, 提示词长度: {}", userId, prompt.length());
 
@@ -1289,7 +1568,7 @@ JSON 示例：
             if (userDefaultModelId == null) {
                 log.warn("用户 {} 未配置默认模型，使用临时简化响应", userId);
                 generateMockStreamAnswer(emitter);
-                return;
+                return null;
             }
 
             ModelEntity model = llmDomainService.getModelById(userDefaultModelId);
@@ -1313,6 +1592,7 @@ JSON 示例：
 
             // 使用CompletableFuture来等待流式处理完成
             CompletableFuture<Void> streamComplete = new CompletableFuture<>();
+            java.util.concurrent.atomic.AtomicReference<String> fullAnswerRef = new java.util.concurrent.atomic.AtomicReference<>();
 
             // 思维链状态跟踪
             final boolean[] thinkingStarted = {false};
@@ -1358,6 +1638,7 @@ JSON 示例：
                 String fullAnswer = chatResponse.aiMessage().text();
                 log.info("RAG回答生成完成，用户: {}, 响应长度: {}", userId, fullAnswer.length());
                 log.info("完整RAG回答内容:\n{}", fullAnswer);
+                fullAnswerRef.set(fullAnswer);
 
                 // 上报调用成功结果
                 long latency = System.currentTimeMillis() - startTime;
@@ -1388,10 +1669,12 @@ JSON 示例：
             } catch (Exception e) {
                 log.error("等待LLM流式响应时发生错误，用户: {}", userId, e);
             }
+            return fullAnswerRef.get();
 
         } catch (Exception e) {
             log.error("Error in RAG stream answer generation for user: {}", userId, e);
             sendSseData(emitter, createErrorResponse("回答生成失败: " + e.getMessage()));
+            return null;
         }
     }
 
@@ -1485,16 +1768,21 @@ JSON 示例：
         private String fileId;
         private String fileName;
         private String documentId;
+        private Integer page;
         private Double score;
+        private String snippet;
 
         public RetrievedDocument() {
         }
 
-        public RetrievedDocument(String fileId, String fileName, String documentId, Double score) {
+        public RetrievedDocument(String fileId, String fileName, String documentId, Double score, Integer page,
+                String snippet) {
             this.fileId = fileId;
             this.fileName = fileName;
             this.documentId = documentId;
             this.score = score;
+            this.page = page;
+            this.snippet = snippet;
         }
 
         public String getFileId() {
@@ -1528,6 +1816,33 @@ JSON 示例：
         public void setScore(Double score) {
             this.score = score;
         }
+
+        public Integer getPage() {
+            return page;
+        }
+
+        public void setPage(Integer page) {
+            this.page = page;
+        }
+
+        public String getSnippet() {
+            return snippet;
+        }
+
+        public void setSnippet(String snippet) {
+            this.snippet = snippet;
+        }
+    }
+
+    private String buildSnippet(String content) {
+        if (content == null) {
+            return null;
+        }
+        String cleaned = content.replaceAll("\\s+", " ").trim();
+        if (cleaned.length() > 160) {
+            return cleaned.substring(0, 160) + "...";
+        }
+        return cleaned;
     }
 
     /** 基于已安装知识库的RAG流式问答
@@ -1587,7 +1902,7 @@ JSON 示例：
 
             // 意图识别与语义改写
             // 第一阶段：检索文档
-            sendSseData(emitter, AgentChatResponse.build("Start retrieving for relevant documents...", MessageType.RAG_RETRIEVAL_START));
+            sendSseData(emitter, AgentChatResponse.build("开始检索相关文档...", MessageType.RAG_RETRIEVAL_START));
             Thread.sleep(500);
 
             // 获取用户的嵌入模型配置
@@ -1598,6 +1913,7 @@ JSON 示例：
             String effectiveQuestion = request.getQuestion();
             IntentResult intentResult = classifyIntent(request.getQuestion(), userId);
             RelevanceCheckResult relevance;
+            QueryExpansionResult expansion = QueryExpansionResult.empty();
 
             // 根据RAG类型选择不同的数据源
             if (dataSourceInfo.getIsRealTime()) {
@@ -1606,12 +1922,14 @@ JSON 示例：
                 relevance = checkRelevanceForDatasets(ragDatasetIds, request.getQuestion(), embeddingConfig);
                 if (relevance.isRelevant) {
                     effectiveQuestion = rewriteQuestion(request.getQuestion(), relevance.documents, userId);
+                    expansion = expandQueries(request.getQuestion(), relevance.documents, userId);
                 }
-                sendIntentRewriteToClient(emitter, intentResult, request.getQuestion(), effectiveQuestion, relevance);
+                sendIntentRewriteToClient(emitter, intentResult, request.getQuestion(), effectiveQuestion, relevance,
+                        expansion);
 
-                retrievedDocuments = embeddingDomainService.ragDoc(ragDatasetIds, effectiveQuestion,
-                        request.getMaxResults(), request.getMinScore(), request.getEnableRerank(), 2, embeddingConfig,
-                        false); // UserRag流式问答中暂时不启用查询扩展，保持现有行为
+                List<String> queries = buildQueryList(request.getQuestion(), effectiveQuestion, expansion);
+                retrievedDocuments = retrieveWithMultipleQueries(ragDatasetIds, queries, request.getMaxResults(),
+                        request.getMinScore(), request.getEnableRerank(), embeddingConfig);
             } else {
                 // SNAPSHOT类型：使用用户快照数据进行检索
                 retrievedDocuments = ragDataAccessService.getRagDocuments(userId, userRagId);
@@ -1621,16 +1939,18 @@ JSON 示例：
                     log.info("用户RAG [{}] 的快照数据为空，无法进行检索", userRagId);
                     relevance = new RelevanceCheckResult(false, 0.0, 0, new ArrayList<>());
                     sendIntentRewriteToClient(emitter, intentResult, request.getQuestion(), effectiveQuestion,
-                            relevance);
+                            relevance, expansion);
                 } else {
                     relevance = checkRelevanceForSnapshot(retrievedDocuments, request.getQuestion(), embeddingConfig);
                     if (relevance.isRelevant) {
                         effectiveQuestion = rewriteQuestion(request.getQuestion(), relevance.documents, userId);
+                        expansion = expandQueries(request.getQuestion(), relevance.documents, userId);
                     }
                     sendIntentRewriteToClient(emitter, intentResult, request.getQuestion(), effectiveQuestion,
-                            relevance);
+                            relevance, expansion);
                     // 对快照文档进行相关性过滤和排序
-                    retrievedDocuments = filterAndRankSnapshotDocuments(retrievedDocuments, effectiveQuestion,
+                    List<String> queries = buildQueryList(request.getQuestion(), effectiveQuestion, expansion);
+                    retrievedDocuments = filterAndRankSnapshotDocumentsMulti(retrievedDocuments, queries,
                             request.getMaxResults(), embeddingConfig);
                 }
             }
@@ -1645,7 +1965,7 @@ JSON 示例：
                     double similarityScore = doc.getSimilarityScore() != null ? doc.getSimilarityScore() : 0.0;
                     retrievedDocs.add(new RetrievedDocument(doc.getFileId(),
                             fileDetail != null ? fileDetail.getOriginalFilename() : "未知文件", doc.getId(),
-                            similarityScore));
+                            similarityScore, doc.getPage(), buildSnippet(doc.getContent())));
                 }
             } else {
                 // SNAPSHOT类型：使用快照文件信息
@@ -1654,12 +1974,13 @@ JSON 示例：
                     UserRagFileEntity userFile = userRagFileRepository.selectById(doc.getFileId());
                     double similarityScore = doc.getSimilarityScore() != null ? doc.getSimilarityScore() : 0.0;
                     retrievedDocs.add(new RetrievedDocument(doc.getFileId(),
-                            userFile != null ? userFile.getFileName() : "未知文件", doc.getId(), similarityScore));
+                            userFile != null ? userFile.getFileName() : "未知文件", doc.getId(), similarityScore,
+                            doc.getPage(), buildSnippet(doc.getContent())));
                 }
             }
 
             // 发送检索完成信号
-            String retrievalMessage = String.format("Retrieval completed, found %d documents", retrievedDocs.size());
+            String retrievalMessage = String.format("检索完成，找到 %d 个相关文档", retrievedDocs.size());
             AgentChatResponse retrievalEndResponse = AgentChatResponse.build(retrievalMessage,
                     MessageType.RAG_RETRIEVAL_END);
             try {
@@ -1672,7 +1993,7 @@ JSON 示例：
             Thread.sleep(500);
 
             // 第二阶段：生成回答
-            sendSseData(emitter, AgentChatResponse.build("Start generating answers...", MessageType.RAG_ANSWER_START));
+            sendSseData(emitter, AgentChatResponse.build("开始生成回答...", MessageType.RAG_ANSWER_START));
             Thread.sleep(500);
 
             // 构建LLM上下文
@@ -1680,14 +2001,15 @@ JSON 示例：
             String prompt = buildRagPrompt(effectiveQuestion, context);
 
             // 调用流式LLM - 使用同步等待确保流式处理完成
-            generateStreamAnswerAndWait(prompt, userId, emitter);
+            String fullAnswer = generateStreamAnswerAndWait(prompt, userId, emitter);
+            sendEvidenceCoverage(emitter, fullAnswer, retrievedDocuments, embeddingConfig);
 
             // 在LLM流式处理完成后发送完成信号
-            sendSseData(emitter, AgentChatResponse.buildEndMessage("Answer generation completed", MessageType.RAG_ANSWER_END));
+            sendSseData(emitter, AgentChatResponse.buildEndMessage("回答生成完成", MessageType.RAG_ANSWER_END));
 
         } catch (Exception e) {
             log.error("Error in processRagStreamChatByUserRag", e);
-            sendSseData(emitter, createErrorResponse("An error occurred during processing: " + e.getMessage()));
+            sendSseData(emitter, createErrorResponse("处理过程中发生错误: " + e.getMessage()));
         }
     }
 

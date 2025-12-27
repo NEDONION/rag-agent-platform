@@ -29,8 +29,8 @@ export function ResponsiveDialog({
         className={cn(
           "p-0 flex flex-col",
           layout === 'single'
-            ? "max-w-5xl h-[80vh]"
-            : "max-w-6xl h-[85vh]",
+            ? "max-w-6xl h-[88vh]"
+            : "max-w-7xl h-[90vh]",
           className
         )}
       >

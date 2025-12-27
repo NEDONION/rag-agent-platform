@@ -43,10 +43,10 @@ export function ChatInputArea({
   };
 
   return (
-    <div className={className}>
+    <div className={`bg-white border-t border-slate-200 ${className ?? ''}`}>
       <Separator />
       
-      <div className="px-6 py-4">
+      <div className="px-6 py-4 max-w-4xl mx-auto w-full">
         {/* 清空对话按钮 */}
         {hasMessages && (
           <div className="flex justify-end mb-4">
@@ -56,7 +56,7 @@ export function ChatInputArea({
               onClick={onClear}
               disabled={isLoading}
             >
-              Clear conversation
+              清空对话
             </Button>
           </div>
         )}
@@ -67,8 +67,8 @@ export function ChatInputArea({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Enter your question..."
-            className="flex-1 min-h-[60px] max-h-[120px] resize-none"
+            placeholder="请输入问题..."
+            className="flex-1 min-h-[60px] max-h-[140px] resize-none rounded-2xl border-slate-200 bg-white focus-visible:ring-blue-500"
             disabled={isLoading || disabled}
           />
           <div className="flex flex-col gap-2">
@@ -77,7 +77,7 @@ export function ChatInputArea({
                 variant="outline"
                 size="icon"
                 onClick={onStop}
-                className="h-[60px]"
+                className="h-[60px] rounded-2xl"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -86,7 +86,7 @@ export function ChatInputArea({
                 size="icon"
                 onClick={handleSend}
                 disabled={!input.trim()}
-                className="h-[60px]"
+                className="h-[60px] rounded-2xl"
               >
                 <Send className="h-4 w-4" />
               </Button>
@@ -95,7 +95,7 @@ export function ChatInputArea({
         </div>
         
         <p className="text-xs text-muted-foreground mt-2">
-          Press Enter to send, Shift + Enter to wrap
+          回车发送，Shift + 回车换行
         </p>
       </div>
     </div>
