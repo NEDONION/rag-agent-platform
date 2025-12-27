@@ -79,8 +79,8 @@ mail:
     username: ${MAIL_SMTP_USERNAME}
     password: ${MAIL_SMTP_PASSWORD}
   verification:
-    template: ${MAIL_VERIFICATION_TEMPLATE:您的验证码是:%s，有效期10分钟，请勿泄露给他人。}
-    subject: ${MAIL_VERIFICATION_SUBJECT:RAG 智能 Agent 平台 - 邮箱验证码}
+    template: ${MAIL_VERIFICATION_TEMPLATE:您好，\n\n您正在使用 RAG 智能 Agent 平台。\n\n邮箱验证码：%s\n有效期为 10 分钟，请勿泄露给他人。\n\n如非本人操作，请忽略本邮件。\n\n— RAG 智能 Agent 平台 团队}
+    subject: ${MAIL_VERIFICATION_SUBJECT:【RAG 智能 Agent 平台】邮箱验证码}
 
 embedding:
   name: OpenAI
