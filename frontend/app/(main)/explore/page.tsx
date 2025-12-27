@@ -328,13 +328,8 @@ export default function ExplorePage() {
   // 根据类型过滤助理
   const getFilteredAgents = (tab: string) => {
     if (tab === "推荐") return agents
-
-    // 简化过滤逻辑，所有助理都显示在"助手"标签下
-    return agents.filter((agent) => {
-      if (tab === "助手") return true
-      // 其他标签可以根据需要添加更多过滤条件
-      return false
-    })
+    if (tab === "Agent") return agents
+    return []
   }
 
   return (
@@ -520,9 +515,9 @@ export default function ExplorePage() {
                 <TabsTrigger value="Agent" className="whitespace-nowrap">
                   Agent
                 </TabsTrigger>
-                <TabsTrigger value="助手" className="whitespace-nowrap">
-                  助手
-                </TabsTrigger>
+                {/*<TabsTrigger value="助手" className="whitespace-nowrap">*/}
+                {/*  助手*/}
+                {/*</TabsTrigger>*/}
                 <TabsTrigger value="DeepSeek" className="whitespace-nowrap">
                   DeepSeek
                 </TabsTrigger>
@@ -549,7 +544,7 @@ export default function ExplorePage() {
               </div>
             </div>
 
-            {["推荐", "Agent", "助手", "DeepSeek", "媒体", "工作流", "写作"].map((tab) => (
+            {["推荐", "Agent", "DeepSeek", "媒体", "工作流", "写作"].map((tab) => (
               <TabsContent key={tab} value={tab} className="space-y-6">
                 {loading ? (
                   // 加载状态
@@ -581,7 +576,7 @@ export default function ExplorePage() {
                   <div className="text-center py-16 border rounded-lg bg-gray-50">
                     <Search className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                     <h3 className="text-lg font-medium mb-2">
-                      {searchQuery ? "未找到匹配的助理" : `暂无${tab}类型的助理`}
+                      {searchQuery ? "未找到匹配的 Agent" : `暂无${tab}类型的 Agent`}
                     </h3>
                     <p className="text-muted-foreground mb-6">
                       {searchQuery ? "尝试使用不同的搜索词" : "敬请期待更多内容"}

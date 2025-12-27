@@ -142,12 +142,12 @@ export default function StudioPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">工作区</h1>
-          <p className="text-muted-foreground">创建和管理您的 AI 助理</p>
+          <p className="text-muted-foreground">创建和管理您的 AI Agent</p>
         </div>
         <Button asChild>
           <Link href="/studio/new">
             <Plus className="mr-2 h-4 w-4" />
-            创建新助理
+            创建新 Agent
           </Link>
         </Button>
       </div>
@@ -216,15 +216,15 @@ export default function StudioPage() {
         // 空状态
         <div className="text-center py-16 border rounded-lg bg-gray-50">
           <Bot className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium mb-2">{searchQuery ? "未找到匹配的助理" : "还没有创建任何助理"}</h3>
+          <h3 className="text-lg font-medium mb-2">{searchQuery ? "未找到匹配的 Agent" : "还没有创建任何 Agent"}</h3>
           <p className="text-muted-foreground mb-6">
-            {searchQuery ? "尝试使用不同的搜索词" : "创建您的第一个AI助理，开始智能对话"}
+            {searchQuery ? "尝试使用不同的搜索词" : "创建您的第一个AI Agent，开始智能对话"}
           </p>
           {!searchQuery && (
             <Button asChild>
               <Link href="/studio/new">
                 <Plus className="mr-2 h-4 w-4" />
-                创建新助理
+                创建新 Agent
               </Link>
             </Button>
           )}

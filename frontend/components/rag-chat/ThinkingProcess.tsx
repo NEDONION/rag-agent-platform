@@ -39,10 +39,10 @@ export function ThinkingProcess({
         <CollapsibleTrigger className="flex items-center justify-between w-full text-left">
           <div className="flex items-center gap-2">
             <Brain className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-            <span className="text-sm font-medium">Thinking Process</span>
+            <span className="text-sm font-medium">思考过程</span>
             {isThinkingComplete && (
               <Badge variant="secondary" className="text-xs">
-                Completed
+                已完成
               </Badge>
             )}
           </div>
@@ -60,7 +60,7 @@ export function ThinkingProcess({
                 {thinkingContent}
               </ReactMarkdown>
             ) : (
-              <span className="text-muted-foreground">Thinking...</span>
+              <span className="text-muted-foreground">处理中...</span>
             )}
           </div>
           
@@ -68,7 +68,7 @@ export function ThinkingProcess({
           {!isThinkingComplete && isStreaming && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2 pl-6">
               <Loader2 className="h-3 w-3 animate-spin" />
-              <span>Thinking...</span>
+              <span>处理中...</span>
             </div>
           )}
         </CollapsibleContent>

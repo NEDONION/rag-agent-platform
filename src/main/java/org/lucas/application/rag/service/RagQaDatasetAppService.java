@@ -6,13 +6,17 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
+import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -69,6 +73,11 @@ import org.lucas.infrastructure.rag.factory.EmbeddingModelFactory;
 public class RagQaDatasetAppService {
 
     private static final Logger log = LoggerFactory.getLogger(RagQaDatasetAppService.class);
+    private static final double RAG_RELEVANCE_THRESHOLD = 0.75;
+    private static final double RAG_RELEVANCE_MIN_SCORE = 0.1;
+    private static final int RAG_RELEVANCE_MAX_RESULTS = 5;
+    private static final int REWRITE_CONTEXT_MAX_DOCS = 2;
+    private static final int REWRITE_CONTEXT_MAX_CHARS = 240;
 
     private final RagQaDatasetDomainService ragQaDatasetDomainService;
     private final FileDetailDomainService fileDetailDomainService;
@@ -907,17 +916,28 @@ public class RagQaDatasetAppService {
                 throw new IllegalArgumentException("必须指定文件ID或数据集ID");
             }
 
+            // 意图识别与语义改写
             // 获取用户的嵌入模型配置
             ModelConfig embeddingModelConfig = ragModelConfigService.getUserEmbeddingModelConfig(userId);
             EmbeddingModelFactory.EmbeddingConfig embeddingConfig = toEmbeddingConfig(embeddingModelConfig);
 
+            // 意图识别与语义改写（基于相关性判断）
+            IntentResult intentResult = classifyIntent(request.getQuestion(), userId);
+            RelevanceCheckResult relevance = checkRelevanceForDatasets(searchDatasetIds, request.getQuestion(),
+                    embeddingConfig);
+            String effectiveQuestion = request.getQuestion();
+            if (relevance.isRelevant) {
+                effectiveQuestion = rewriteQuestion(request.getQuestion(), relevance.documents, userId);
+            }
+            sendIntentRewriteToClient(emitter, intentResult, request.getQuestion(), effectiveQuestion, relevance);
+
             // 执行RAG检索
             List<DocumentUnitEntity> retrievedDocuments;
             if (request.getFileId() != null && !request.getFileId().trim().isEmpty()) {
-                retrievedDocuments = retrieveFromFile(request.getFileId(), request.getQuestion(),
+                retrievedDocuments = retrieveFromFile(request.getFileId(), effectiveQuestion,
                         request.getMaxResults(), embeddingConfig);
             } else {
-                retrievedDocuments = embeddingDomainService.ragDoc(searchDatasetIds, request.getQuestion(),
+                retrievedDocuments = embeddingDomainService.ragDoc(searchDatasetIds, effectiveQuestion,
                         request.getMaxResults(), request.getMinScore(), request.getEnableRerank(), 2, embeddingConfig,
                         false); // 流式问答中暂时不启用查询扩展，保持现有行为
             }
@@ -949,7 +969,7 @@ public class RagQaDatasetAppService {
 
             // 构建LLM上下文
             String context = buildContextFromDocuments(retrievedDocuments);
-            String prompt = buildRagPrompt(request.getQuestion(), context);
+            String prompt = buildRagPrompt(effectiveQuestion, context);
 
             // 调用流式LLM - 使用同步等待确保流式处理完成
             generateStreamAnswerAndWait(prompt, userId, emitter);
@@ -1011,6 +1031,249 @@ public class RagQaDatasetAppService {
         return String.format(
                 "请基于以下提供的文档内容回答用户的问题。如果文档中没有相关信息，请诚实地告知用户。\n\n" + "文档内容：\n%s\n\n" + "用户问题：%s\n\n" + "请提供准确、有帮助的回答：",
                 context, question);
+    }
+
+    private IntentResult classifyIntent(String question, String userId) {
+        IntentResult fallback = IntentResult.fallback();
+        try {
+            String userDefaultModelId = userSettingsDomainService.getUserDefaultModelId(userId);
+            if (userDefaultModelId == null) {
+                return fallback;
+            }
+
+            ModelEntity model = llmDomainService.getModelById(userDefaultModelId);
+            List<String> fallbackChain = userSettingsDomainService.getUserFallbackChain(userId);
+            HighAvailabilityResult result = highAvailabilityDomainService.selectBestProvider(model, userId,
+                    "rag-intent-" + userId, fallbackChain);
+            ProviderEntity provider = result.getProvider();
+            ModelEntity selectedModel = result.getModel();
+
+            ChatModel chatModel = llmServiceFactory.getStrandClient(provider, selectedModel);
+            SystemMessage systemMessage = new SystemMessage("""
+你是RAG问答的意图识别器。请基于用户问题输出严格的JSON，不要输出其它内容。
+
+可选意图枚举：
+definition, howto, comparison, troubleshooting, lookup, summary, metrics, citation, other
+
+JSON 示例：
+{"intent":"howto","confidence":0.78}
+""");
+            UserMessage userMessage = new UserMessage(question);
+            ChatResponse response = chatModel.chat(Arrays.asList(systemMessage, userMessage));
+            String raw = response.aiMessage().text();
+
+            IntentResult parsed = parseIntent(raw);
+            return parsed != null ? parsed : fallback;
+        } catch (Exception e) {
+            log.warn("Intent detection failed: {}", e.getMessage());
+            return fallback;
+        }
+    }
+
+    private IntentResult parseIntent(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            return objectMapper.readValue(raw, IntentResult.class);
+        } catch (Exception ignored) {
+            String json = extractJsonObject(raw);
+            if (json == null) {
+                return null;
+            }
+            try {
+                return objectMapper.readValue(json, IntentResult.class);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+    }
+
+    private String rewriteQuestion(String question, List<DocumentUnitEntity> documents, String userId) {
+        try {
+            String userDefaultModelId = userSettingsDomainService.getUserDefaultModelId(userId);
+            if (userDefaultModelId == null) {
+                return question;
+            }
+
+            ModelEntity model = llmDomainService.getModelById(userDefaultModelId);
+            List<String> fallbackChain = userSettingsDomainService.getUserFallbackChain(userId);
+            HighAvailabilityResult result = highAvailabilityDomainService.selectBestProvider(model, userId,
+                    "rag-rewrite-" + userId, fallbackChain);
+            ProviderEntity provider = result.getProvider();
+            ModelEntity selectedModel = result.getModel();
+
+            ChatModel chatModel = llmServiceFactory.getStrandClient(provider, selectedModel);
+            String context = buildRewriteContext(documents);
+
+            SystemMessage systemMessage = new SystemMessage("""
+你是RAG语义改写助手，请基于提供的知识库片段对问题进行改写，使其更利于检索，但不得改变原意。
+请输出严格的JSON，不要输出其它内容。
+
+要求：
+1. originalQuestion 必须等于用户原问题
+2. rewrittenQuestion 为改写后的问题，保持中文表达
+
+JSON 示例：
+{"originalQuestion":"如何配置默认模型？","rewrittenQuestion":"在当前系统中如何设置默认模型配置？"}
+""");
+
+            UserMessage userMessage = new UserMessage("用户问题：\n" + question + "\n\n知识库片段：\n" + context);
+            ChatResponse response = chatModel.chat(Arrays.asList(systemMessage, userMessage));
+            String raw = response.aiMessage().text();
+
+            RewriteResult parsed = parseRewrite(raw);
+            if (parsed == null || parsed.rewrittenQuestion == null || parsed.rewrittenQuestion.isBlank()) {
+                return question;
+            }
+            return parsed.rewrittenQuestion;
+        } catch (Exception e) {
+            log.warn("Rewrite failed: {}", e.getMessage());
+            return question;
+        }
+    }
+
+    private RewriteResult parseRewrite(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            return objectMapper.readValue(raw, RewriteResult.class);
+        } catch (Exception ignored) {
+            String json = extractJsonObject(raw);
+            if (json == null) {
+                return null;
+            }
+            try {
+                return objectMapper.readValue(json, RewriteResult.class);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+    }
+
+    private String buildRewriteContext(List<DocumentUnitEntity> documents) {
+        if (documents == null || documents.isEmpty()) {
+            return "无相关片段。";
+        }
+        StringBuilder context = new StringBuilder();
+        int count = Math.min(REWRITE_CONTEXT_MAX_DOCS, documents.size());
+        for (int i = 0; i < count; i++) {
+            String content = documents.get(i).getContent();
+            if (content == null) {
+                continue;
+            }
+            String snippet = content.length() > REWRITE_CONTEXT_MAX_CHARS
+                    ? content.substring(0, REWRITE_CONTEXT_MAX_CHARS) + "..."
+                    : content;
+            context.append("- ").append(snippet).append("\n");
+        }
+        return context.toString();
+    }
+
+    private RelevanceCheckResult checkRelevanceForDatasets(List<String> datasetIds, String question,
+            EmbeddingModelFactory.EmbeddingConfig embeddingConfig) {
+        try {
+            if (datasetIds == null || datasetIds.isEmpty()) {
+                return new RelevanceCheckResult(false, 0.0, 0, new ArrayList<>());
+            }
+            List<DocumentUnitEntity> docs = embeddingDomainService.ragDoc(datasetIds, question,
+                    RAG_RELEVANCE_MAX_RESULTS, RAG_RELEVANCE_MIN_SCORE, false, 1, embeddingConfig, false);
+            return toRelevanceResult(docs);
+        } catch (Exception e) {
+            log.warn("Relevance check failed: {}", e.getMessage());
+            return new RelevanceCheckResult(false, 0.0, 0, new ArrayList<>());
+        }
+    }
+
+    private RelevanceCheckResult checkRelevanceForSnapshot(List<DocumentUnitEntity> documents, String question,
+            EmbeddingModelFactory.EmbeddingConfig embeddingConfig) {
+        try {
+            List<DocumentUnitEntity> docs = filterAndRankSnapshotDocuments(documents, question,
+                    RAG_RELEVANCE_MAX_RESULTS, embeddingConfig);
+            return toRelevanceResult(docs);
+        } catch (Exception e) {
+            log.warn("Snapshot relevance check failed: {}", e.getMessage());
+            return new RelevanceCheckResult(false, 0.0, 0, new ArrayList<>());
+        }
+    }
+
+    private RelevanceCheckResult toRelevanceResult(List<DocumentUnitEntity> docs) {
+        double maxScore = 0.0;
+        for (DocumentUnitEntity doc : docs) {
+            double score = doc.getSimilarityScore() != null ? doc.getSimilarityScore() : 0.0;
+            if (score > maxScore) {
+                maxScore = score;
+            }
+        }
+        boolean relevant = !docs.isEmpty() && maxScore >= RAG_RELEVANCE_THRESHOLD;
+        return new RelevanceCheckResult(relevant, maxScore, docs.size(), docs);
+    }
+
+    private String extractJsonObject(String raw) {
+        int start = raw.indexOf('{');
+        int end = raw.lastIndexOf('}');
+        if (start >= 0 && end > start) {
+            return raw.substring(start, end + 1);
+        }
+        return null;
+    }
+
+    private void sendIntentRewriteToClient(SseEmitter emitter, IntentResult intent, String originalQuestion,
+            String rewrittenQuestion, RelevanceCheckResult relevance) {
+        String original = (originalQuestion == null || originalQuestion.isBlank())
+                ? "未知"
+                : originalQuestion;
+        String rewritten = (rewrittenQuestion == null || rewrittenQuestion.isBlank())
+                ? original
+                : rewrittenQuestion;
+
+        String relevanceText = relevance != null && relevance.isRelevant
+                ? "相关"
+                : "不相关";
+        double maxScore = relevance != null ? relevance.maxScore : 0.0;
+        int docCount = relevance != null ? relevance.docCount : 0;
+
+        String rewriteFlag = relevance != null && relevance.isRelevant ? "是" : "否";
+        String summary = String.format(
+                "### 相关性判断\n- 结果：%s\n- 最高相似度：%.2f（阈值 %.2f）\n- 召回数量：%d\n\n### 意图识别\n- 意图：%s\n- 置信度：%.2f\n\n### 语义改写\n- 是否改写：%s\n- 原问题：%s\n- 改写：%s",
+                relevanceText, maxScore, RAG_RELEVANCE_THRESHOLD, docCount,
+                intent.intent, intent.confidence, rewriteFlag, original, rewritten);
+
+        sendSseData(emitter, AgentChatResponse.build("意图识别与语义改写", MessageType.RAG_THINKING_START));
+        sendSseData(emitter, AgentChatResponse.build(summary, MessageType.RAG_THINKING_PROGRESS));
+        sendSseData(emitter, AgentChatResponse.build("完成", MessageType.RAG_THINKING_END));
+    }
+
+    private static class IntentResult {
+        public String intent;
+        public double confidence;
+
+        static IntentResult fallback() {
+            IntentResult result = new IntentResult();
+            result.intent = "other";
+            result.confidence = 0.0;
+            return result;
+        }
+    }
+
+    private static class RewriteResult {
+        public String originalQuestion;
+        public String rewrittenQuestion;
+    }
+
+    private static class RelevanceCheckResult {
+        public boolean isRelevant;
+        public double maxScore;
+        public int docCount;
+        public List<DocumentUnitEntity> documents;
+
+        RelevanceCheckResult(boolean isRelevant, double maxScore, int docCount, List<DocumentUnitEntity> documents) {
+            this.isRelevant = isRelevant;
+            this.maxScore = maxScore;
+            this.docCount = docCount;
+            this.documents = documents;
+        }
     }
 
     /** 生成流式回答并等待完成
@@ -1322,6 +1585,7 @@ public class RagQaDatasetAppService {
             log.info("Starting RAG stream chat by userRag: {}, user: {}, question: '{}', install type: {}", userRagId,
                     userId, request.getQuestion(), dataSourceInfo.getInstallType());
 
+            // 意图识别与语义改写
             // 第一阶段：检索文档
             sendSseData(emitter, AgentChatResponse.build("Start retrieving for relevant documents...", MessageType.RAG_RETRIEVAL_START));
             Thread.sleep(500);
@@ -1331,12 +1595,21 @@ public class RagQaDatasetAppService {
             EmbeddingModelFactory.EmbeddingConfig embeddingConfig = toEmbeddingConfig(embeddingModelConfig);
 
             List<DocumentUnitEntity> retrievedDocuments;
+            String effectiveQuestion = request.getQuestion();
+            IntentResult intentResult = classifyIntent(request.getQuestion(), userId);
+            RelevanceCheckResult relevance;
 
             // 根据RAG类型选择不同的数据源
             if (dataSourceInfo.getIsRealTime()) {
                 // REFERENCE类型：使用原始RAG的数据集进行向量搜索
                 List<String> ragDatasetIds = List.of(dataSourceInfo.getOriginalRagId());
-                retrievedDocuments = embeddingDomainService.ragDoc(ragDatasetIds, request.getQuestion(),
+                relevance = checkRelevanceForDatasets(ragDatasetIds, request.getQuestion(), embeddingConfig);
+                if (relevance.isRelevant) {
+                    effectiveQuestion = rewriteQuestion(request.getQuestion(), relevance.documents, userId);
+                }
+                sendIntentRewriteToClient(emitter, intentResult, request.getQuestion(), effectiveQuestion, relevance);
+
+                retrievedDocuments = embeddingDomainService.ragDoc(ragDatasetIds, effectiveQuestion,
                         request.getMaxResults(), request.getMinScore(), request.getEnableRerank(), 2, embeddingConfig,
                         false); // UserRag流式问答中暂时不启用查询扩展，保持现有行为
             } else {
@@ -1346,9 +1619,18 @@ public class RagQaDatasetAppService {
                 // 如果快照数据为空，返回空结果
                 if (retrievedDocuments.isEmpty()) {
                     log.info("用户RAG [{}] 的快照数据为空，无法进行检索", userRagId);
+                    relevance = new RelevanceCheckResult(false, 0.0, 0, new ArrayList<>());
+                    sendIntentRewriteToClient(emitter, intentResult, request.getQuestion(), effectiveQuestion,
+                            relevance);
                 } else {
+                    relevance = checkRelevanceForSnapshot(retrievedDocuments, request.getQuestion(), embeddingConfig);
+                    if (relevance.isRelevant) {
+                        effectiveQuestion = rewriteQuestion(request.getQuestion(), relevance.documents, userId);
+                    }
+                    sendIntentRewriteToClient(emitter, intentResult, request.getQuestion(), effectiveQuestion,
+                            relevance);
                     // 对快照文档进行相关性过滤和排序
-                    retrievedDocuments = filterAndRankSnapshotDocuments(retrievedDocuments, request.getQuestion(),
+                    retrievedDocuments = filterAndRankSnapshotDocuments(retrievedDocuments, effectiveQuestion,
                             request.getMaxResults(), embeddingConfig);
                 }
             }
@@ -1395,7 +1677,7 @@ public class RagQaDatasetAppService {
 
             // 构建LLM上下文
             String context = buildContextFromDocuments(retrievedDocuments);
-            String prompt = buildRagPrompt(request.getQuestion(), context);
+            String prompt = buildRagPrompt(effectiveQuestion, context);
 
             // 调用流式LLM - 使用同步等待确保流式处理完成
             generateStreamAnswerAndWait(prompt, userId, emitter);
