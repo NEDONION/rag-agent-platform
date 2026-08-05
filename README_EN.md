@@ -3,7 +3,7 @@
 <p align="center"><strong>Put knowledge bases, Agents, and MCP tools into one self-hosted workflow.</strong></p>
 
 <p align="center">
-  Built with Spring Boot, Next.js, and LangChain4j to bring retrieval, conversation, and tool use together while you keep control of the data, models, and infrastructure.
+  Built with Spring Boot, Next.js, and LangChain4j to bring retrieval, conversation, and tool use together while you keep control of your data, models, and infrastructure.
 </p>
 
 <p align="center"><a href="README.md">简体中文</a> · <strong>English</strong></p>
@@ -25,7 +25,7 @@
   <a href="#documentation">Documentation</a>
 </p>
 
-From document ingestion and vector retrieval to user-facing Agent conversations, this project brings the essential RAG application path into one console: create knowledge bases, configure models and Agents, then connect MCP tools. It is for teams that need control over their data and deployment boundary—not a hosted public demo service.
+From document ingestion and vector retrieval to user-facing Agent conversations, this project brings the core RAG workflow into one console: create knowledge bases, configure models and Agents, then connect them to already configured MCP tools. It is for teams that need control over their data and deployment—not a hosted public demo service.
 
 <img width="1405" alt="RAG Agent Platform home" src="https://raw.githubusercontent.com/NEDONION/my-pics-space/main/20251222050014.png" />
 
@@ -36,8 +36,8 @@ From document ingestion and vector retrieval to user-facing Agent conversations,
 | Capability | What you can do |
 | --- | --- |
 | **Knowledge bases and retrieval** | Upload and process documents, use PostgreSQL + PGVector for vector retrieval, and connect knowledge bases to RAG conversations. |
-| **Configurable Agents** | Configure model providers, manage and publish Agents, and receive streamed conversations through SSE. |
-| **MCP tool integration** | Import MCP tools from GitHub repositories or ZIP archives, then manage their container-based runtime. |
+| **Configurable Agents** | Configure model providers, manage and publish Agents, and stream conversation responses over SSE. |
+| **MCP tool integration** | Connect Agents to a configured MCP gateway and tool containers; the current UI does not provide a complete tool-import workflow, so configure the gateway and containers manually. |
 | **Self-hosted control** | Deploy your own workflow with Spring Boot, Next.js, RabbitMQ, S3-compatible object storage, and external model services. |
 
 ## Quick Start
@@ -158,7 +158,7 @@ The included Docker Compose configuration is an author deployment reference, not
 
 - This is a self-hosted project and currently provides no public demo environment.
 - Conversation streaming currently uses SSE.
-- MCP tool import supports GitHub repositories and ZIP archives; container execution needs Docker and MCP gateway configuration.
+- Agents can connect to a configured MCP gateway and tool containers; the current UI does not provide a complete tool-import workflow, so configure the gateway and containers manually.
 - Review the repository configuration and all infrastructure requirements before production use.
 
 ## Documentation

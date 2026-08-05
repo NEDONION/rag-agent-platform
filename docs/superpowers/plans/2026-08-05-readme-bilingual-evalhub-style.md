@@ -13,7 +13,8 @@
 - `README.md` is Chinese-first; `README_EN.md` is complete English.
 - Both files use a prominent centered `简体中文 · English` language switch.
 - Each file retains all six existing screenshot URLs exactly once.
-- Keep Spring Boot/Next.js/LangChain4j, SSE, GitHub/ZIP MCP, infrastructure, and deployment claims factual.
+- Keep Spring Boot/Next.js/LangChain4j, SSE, manually configured MCP gateway/tool container,
+  infrastructure, and deployment claims factual; do not claim a complete tool-import UI.
 - Add no dependencies, generated media, or runtime changes.
 
 ---

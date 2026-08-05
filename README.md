@@ -26,8 +26,8 @@
 </p>
 
 从文档入库、向量检索到面向用户的 Agent 对话，这个项目把一套 RAG 应用需要的核心路径放在同一控制台：
-创建知识库，配置模型与 Agent，再为 Agent 接入 MCP 工具。它适合需要掌握数据和部署边界的团队，而不是托管式
-公共演示服务。
+创建知识库，配置模型与 Agent，再让 Agent 使用已配置的 MCP 工具。它适合希望自主控制数据与部署方式的团队，
+而不是托管式公共演示服务。
 
 <img width="1405" alt="RAG Agent Platform 首页" src="https://raw.githubusercontent.com/NEDONION/my-pics-space/main/20251222050014.png" />
 
@@ -39,7 +39,7 @@
 | --- | --- |
 | **知识库与检索** | 上传和处理文档，以 PostgreSQL + PGVector 承载向量检索，并将知识库接入 RAG 问答。 |
 | **可配置 Agent** | 配置模型提供商、管理并发布 Agent，并通过 SSE 取得流式对话响应。 |
-| **MCP 工具接入** | 从 GitHub 仓库或 ZIP 压缩包导入 MCP 工具，并管理其容器化运行环境。 |
+| **MCP 工具接入** | 让 Agent 接入已配置的 MCP gateway 与工具容器；当前页面不提供完整工具导入流程，运行前需手动配置 gateway 与容器。 |
 | **自托管控制** | 使用 Spring Boot、Next.js、RabbitMQ、S3 兼容对象存储和外部模型服务部署自己的工作流。 |
 
 ## 快速开始
@@ -166,7 +166,7 @@ Agent 结合已配置的模型服务、知识检索与 MCP 工具，当前对话
 
 - 本项目为自托管项目，当前没有公共演示环境。
 - 对话流当前使用 SSE。
-- MCP 工具导入支持 GitHub 仓库与 ZIP 压缩包；容器运行需要 Docker 与 MCP 网关配置。
+- Agent 可以接入已配置的 MCP gateway 与工具容器；当前页面不提供完整工具导入流程，运行前需手动配置 gateway 与容器。
 - 在生产环境使用前，请先审阅仓库配置与全部基础设施要求。
 
 ## 文档

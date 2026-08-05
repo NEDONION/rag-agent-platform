@@ -28,8 +28,9 @@ Both versions follow the same section order:
 
 Chinese headline: `把知识库、Agent 与 MCP 工具放进一套可自托管工作流。`
 
-The copy must remain factual: Spring Boot + Next.js + LangChain4j, SSE streaming, GitHub/ZIP MCP
-imports, external infrastructure requirements, and no public demo or one-click public deployment.
+The copy must remain factual: Spring Boot + Next.js + LangChain4j, SSE streaming, connections to
+manually configured MCP gateways/tool containers, external infrastructure requirements, no complete
+tool-import workflow in the current UI, and no public demo or one-click public deployment.
 
 ## Media contract
 
