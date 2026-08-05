@@ -9,6 +9,10 @@
 <p align="center"><strong>简体中文</strong> · <a href="README_EN.md">English</a></p>
 
 <p align="center">
+  <a href="http://39.97.58.27/explore"><strong>在线演示：39.97.58.27/explore</strong></a>
+</p>
+
+<p align="center">
   <a href="https://openjdk.org/"><img alt="Java 17" src="https://img.shields.io/badge/Java-17-orange.svg" /></a>
   <a href="https://spring.io/projects/spring-boot"><img alt="Spring Boot 3.2.3" src="https://img.shields.io/badge/Spring%20Boot-3.2.3-brightgreen.svg" /></a>
   <a href="https://nextjs.org/"><img alt="Next.js 15" src="https://img.shields.io/badge/Next.js-15-black.svg" /></a>
@@ -27,7 +31,7 @@
 
 从文档入库、向量检索到面向用户的 Agent 对话，这个项目把一套 RAG 应用需要的核心路径放在同一控制台：
 创建知识库，配置模型与 Agent，再让 Agent 使用已配置的 MCP 工具。它适合希望自主控制数据与部署方式的团队，
-而不是托管式公共演示服务。
+并提供部署在阿里云的在线环境，方便直接体验主要流程。
 
 <img width="1405" alt="RAG Agent Platform 首页" src="https://raw.githubusercontent.com/NEDONION/my-pics-space/main/20251222050014.png" />
 
@@ -164,7 +168,7 @@ Agent 结合已配置的模型服务、知识检索与 MCP 工具，当前对话
 
 ## 项目范围
 
-- 本项目为自托管项目，当前没有公共演示环境。
+- 本项目以自托管为主，同时提供部署在阿里云的[在线演示](http://39.97.58.27/explore)供体验。
 - 对话流当前使用 SSE。
 - Agent 可以接入已配置的 MCP gateway 与工具容器；当前页面不提供完整工具导入流程，运行前需手动配置 gateway 与容器。
 - 在生产环境使用前，请先审阅仓库配置与全部基础设施要求。

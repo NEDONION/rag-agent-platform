@@ -9,6 +9,10 @@
 <p align="center"><a href="README.md">简体中文</a> · <strong>English</strong></p>
 
 <p align="center">
+  <a href="http://39.97.58.27/explore"><strong>Live Demo: 39.97.58.27/explore</strong></a>
+</p>
+
+<p align="center">
   <a href="https://openjdk.org/"><img alt="Java 17" src="https://img.shields.io/badge/Java-17-orange.svg" /></a>
   <a href="https://spring.io/projects/spring-boot"><img alt="Spring Boot 3.2.3" src="https://img.shields.io/badge/Spring%20Boot-3.2.3-brightgreen.svg" /></a>
   <a href="https://nextjs.org/"><img alt="Next.js 15" src="https://img.shields.io/badge/Next.js-15-black.svg" /></a>
@@ -25,7 +29,7 @@
   <a href="#documentation">Documentation</a>
 </p>
 
-From document ingestion and vector retrieval to user-facing Agent conversations, this project brings the core RAG workflow into one console: create knowledge bases, configure models and Agents, then connect them to already configured MCP tools. It is for teams that need control over their data and deployment—not a hosted public demo service.
+From document ingestion and vector retrieval to user-facing Agent conversations, this project brings the core RAG workflow into one console: create knowledge bases, configure models and Agents, then connect them to already configured MCP tools. It is designed for teams that need control over their data and deployment, with an Alibaba Cloud environment available for trying the main workflow.
 
 <img width="1405" alt="RAG Agent Platform home" src="https://raw.githubusercontent.com/NEDONION/my-pics-space/main/20251222050014.png" />
 
@@ -156,7 +160,7 @@ The included Docker Compose configuration is an author deployment reference, not
 
 ## Project Scope
 
-- This is a self-hosted project and currently provides no public demo environment.
+- This project is primarily self-hosted and also provides an [Alibaba Cloud live demo](http://39.97.58.27/explore) for evaluation.
 - Conversation streaming currently uses SSE.
 - Agents can connect to a configured MCP gateway and tool containers; the current UI does not provide a complete tool-import workflow, so configure the gateway and containers manually.
 - Review the repository configuration and all infrastructure requirements before production use.
