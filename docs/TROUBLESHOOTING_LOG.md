@@ -6,6 +6,9 @@
 
 **最后更新**：2026-08-12
 
+> 📖 **怎么读**：每一节开头都有一段 **「一句话人话」**，用大白话说清这节讲什么。
+> 只想知道发生了什么，看那一句就够；要动手修或深究原理，再往下看细节。
+
 ---
 
 ## 目录
@@ -25,6 +28,7 @@
   - 3.1 仓库名对不上 · 3.2 CI nginx 校验失败 · 3.3 不是 git 仓库
   - 3.4 docker 权限不足 · 3.5 令牌明文泄露 · 3.6 download.docker.com 不通
   - 3.7 apt 源太慢 · 3.8 no tracking information · 3.9 runner tarball 25 KB/s
+  - 3.10 部署 job checkout 失败
 - [附录：经验教训](#附录经验教训)
 
 ---
@@ -57,6 +61,9 @@
 
 ## 1.2 根因一：LLM 客户端超时是 1 小时
 
+> 💬 **一句话人话**：代码里写着「等模型回复最多等 1 小时」。1 小时约等于永远不超时——
+> 对面挂了，我们这边还在傻等，页面就一直转圈，连个错误都不报。
+
 **位置**：`src/main/java/org/lucas/infrastructure/llm/factory/LLMProviderFactory.java`
 
 四处模型构造全部写着：
@@ -86,6 +93,10 @@ private static final Duration STREAMING_TIMEOUT = timeoutFromEnv("LLM_STREAM_TIM
 ---
 
 ## 1.3 根因二：进度提示与实际执行不同步
+
+> 💬 **一句话人话**：页面显示「正在检索文档」，但这时候程序其实已经去干别的了——
+> 它要连着问大模型三四个问题（理解意图、改写问题…）才会更新提示。
+> 所以你看到「卡在检索」，其实压根不是检索慢，是卡在这几次提问上。
 
 **位置**：`src/main/java/org/lucas/application/rag/service/RagQaDatasetAppService.java`
 
@@ -124,6 +135,11 @@ effectiveQuestion = rewriteQuestion(...);
 ---
 
 ## 1.4 根因三：并发被串行化
+
+> 💬 **一句话人话**：Java 有个默认的「公共任务池」，这台机器只分到 1.2 个 CPU，
+> 算下来这个池子同时只能干 1 件事。而问答大部分时间是在干等模型返回（不占 CPU），
+> Java 却看不出来这是在等，不会多派人手。结果就是**两个人同时提问，第二个必须排队**——
+> 这就是「一开始卡死、过一会儿又好了」的真相。
 
 这是「一开始直接卡死，过一会儿又好了」的真正来源，也是最隐蔽的一个。
 
@@ -171,6 +187,10 @@ private final ExecutorService ragStreamExecutor = Executors.newFixedThreadPool(8
 
 ## 1.5 根因四：nginx 回源降级到 HTTP/1.0
 
+> 💬 **一句话人话**：nginx 转发请求给后端时用了老版协议（HTTP/1.0），
+> 而「一个字一个字往外吐」这种流式回复在老协议下传不可靠。
+> 配置文件里前端那段写对了，后端那段漏了一行。
+
 **位置**：`deploy/nginx.conf`
 
 ```nginx
@@ -209,6 +229,9 @@ location /api/ {
 
 ## 1.6 根因五：SSE 超时形同虚设
 
+> 💬 **一句话人话**：浏览器和服务器之间那根「长连接」也设了个近乎无限的超时。
+> 这是最后一道保险，保险设成永不触发，等于没装。
+
 | 位置 | 修改前 | 修改后 |
 |---|---|---|
 | `RagQaDatasetAppService`（两处） | `new SseEmitter(Long.MAX_VALUE)` | 10 分钟 |
@@ -221,6 +244,11 @@ location /api/ {
 # 第二部分：CI/CD 落地
 
 ## 2.1 为什么不用 SSH
+
+> 💬 **一句话人话**：SSH 部署等于「让 GitHub 主动敲你服务器的门」，
+> 那你就得把门（22 端口）对全世界开着，还得把钥匙（私钥）交给 GitHub 保管。
+> 公司里都反过来做：**让服务器主动去问 GitHub「有活儿吗」**，
+> 门一直关着，也不用把钥匙交出去。
 
 最初的方案是 GitHub Actions 通过 SSH 登录服务器执行部署。这是**推(push)模式**：CI 主动连进服务器，所以服务器必须开放入站端口，CI 里必须保存服务器私钥。
 
@@ -280,6 +308,9 @@ location /api/ {
 ---
 
 ## 2.3 实现中的三个坑
+
+> 💬 **一句话人话**：这三个坑都源于同一件事——干活的 runner 自己也是个容器，
+> 它「站在容器里操作容器」，所以自杀、路径、网络三方面都容易出岔子。
 
 ### 坑 1：runner 会把自己重启掉
 
@@ -413,6 +444,10 @@ read -s -p "粘贴令牌然后回车: " T && echo "GITHUB_PAT=$T" >> .env && uns
 
 ## 3.6 构建 runner 镜像卡在 download.docker.com
 
+> 💬 **一句话人话**：装 docker 命令行工具时要先从 docker 官网下个密钥，
+> 但那个网址国内连不上。好在同一时刻 Docker Hub 是通的——
+> 于是改成直接从官方镜像里把现成的程序拷过来，绕开那个网址。
+
 ```
 curl: (35) Recv failure: Connection reset by peer
 ------
@@ -440,6 +475,9 @@ COPY --from=dockercli /usr/local/libexec/docker/cli-plugins/docker-compose \
 > 顺带去掉了只为导入 GPG key 而安装的 `gnupg`。
 
 ## 3.7 apt 官方源太慢 → 换阿里云镜像
+
+> 💬 **一句话人话**：装系统软件时默认从国外服务器下载，只有 352 KB/s。
+> 服务器本来就在阿里云上，改成从阿里云自己的镜像站下载，快到几乎不用等。
 
 构建日志里：
 
@@ -497,6 +535,12 @@ git branch --set-upstream-to=origin/feat/cicd feat/cicd
 > 只是不知道该合并哪个分支。不是网络问题。
 
 ## 3.9 runner tarball 下载 25 KB/s —— 用镜像站 + 校验和
+
+> 💬 **一句话人话**：要下一个 215MB 的程序包，直连 GitHub 只有 25 KB/s，
+> 得下 2 个半小时。换成加速站 3 分钟搞定。
+> **但加速站是别人的服务器，怎么保证他没在包里塞东西？**
+> 办法是拿 GitHub 官方公布的「指纹」（SHA256）比对——
+> 文件哪怕改了一个字，指纹就对不上，构建当场失败。
 
 actions-runner 的 tarball 有 **215.5 MB**，从国内直连 github.com 实测：
 
@@ -582,6 +626,63 @@ echo 'RUNNER_DOWNLOAD_BASE=https://ghfast.top/https://github.com/actions/runner/
 代价是有先后顺序问题：需要 workflow 先合入 main 才能手动触发，而合并本身会触发
 部署、此时 runner 尚不存在。绕得开，但比镜像站这条路复杂。当前规模下镜像站够用。
 
+## 3.10 部署 job 在服务器上 checkout 失败
+
+> 💬 **一句话人话**：自动部署的最后一步要先把代码拉到服务器上，
+> 但服务器连 GitHub 拉代码就是不通（还是那个网速问题），重试三次全超时。
+> 解法是——**这一步根本不需要整个代码仓库**，只要两个配置文件。
+> 于是让云端先把这两个文件打包好，服务器直接取包，完全不碰 GitHub 的代码服务。
+
+首次自动部署时，两个镜像都构建推送成功，但部署这一步失败：
+
+```
+fatal: unable to access 'https://github.com/NEDONION/rag-agent-platform/':
+  GnuTLS recv error (-110): The TLS connection was non-properly terminated.
+...
+fatal: unable to access 'https://github.com/NEDONION/rag-agent-platform/':
+  Failed to connect to github.com port 443 after 130394 ms: Couldn't connect to server
+The process '/usr/bin/git' failed with exit code 128
+```
+
+**原因**：`actions/checkout` 会在 runner 所在机器上执行 `git clone github.com`，
+而服务器到 `github.com:443` 的连接正是 3.9 里那个 25 KB/s 的问题，三次重试全部超时。
+
+**关键观察**：runner 与 GitHub 的通信**完全正常**——它成功领到了这个任务。
+那条链路走的是 `*.actions.githubusercontent.com`，是通的；
+**不通的只有 `github.com:443` 这一个入口**。
+
+> 又一次印证了 3.6 的教训：把「网络不行」精确到「哪个域名不行」，解法就出来了。
+
+**修复**：部署这一步其实只需要 `docker-compose.yml` 和 `deploy/nginx.conf` 两个文件，
+根本不需要整个仓库。让云端 runner 打包成 artifact，自托管 runner 下载即可——
+artifact 走的正是那条已被证明可用的链路。
+
+```yaml
+  config:
+    runs-on: ubuntu-latest          # 云端，github.com 畅通
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deploy-config
+          path: |
+            docker-compose.yml
+            deploy/nginx.conf
+
+  deploy:
+    needs: [build, config]
+    runs-on: [self-hosted, deploy]   # 服务器，github.com 不通
+    steps:
+      - uses: actions/download-artifact@v4   # ← 不用 checkout
+        with:
+          name: deploy-config
+          path: deploy-config
+```
+
+> **一般化的经验**：自托管 runner 在受限网络里，要尽量把「需要访问外网」的活
+> 留在云端 job，只把「必须在本机执行」的活放到自托管 job。
+> 两者之间用 artifact 传递产物。
+
 ---
 
 # 附录：经验教训
@@ -647,6 +748,14 @@ Ubuntu 24.04 的 apt 源改成了 DEB822 格式，路径从 `/etc/apt/sources.li
 照抄会「执行成功但没有任何效果」—— 这比报错更难发现。
 
 **改完一定要验证结果**，而不是看命令有没有报错。
+
+### 12. 受限网络里，让云端干需要外网的活
+
+自托管 runner 所在的机器往往网络受限。把「要访问外网」的步骤留在云端 job，
+只把「必须在本机执行」的步骤放到自托管 job，中间用 artifact 传递产物。
+
+`actions/checkout` 是最容易忽略的一个——它看起来只是「取代码」，
+实际会在**执行它的那台机器上**发起 git 网络请求。
 
 ### 11. 引导时先看是不是自己埋的坑
 
