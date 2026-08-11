@@ -1,0 +1,136 @@
+# 构建镜像推送到阿里云 ACR，再由服务器上的自托管 runner 完成部署。
+#
+# 为什么不用 SSH：自托管 runner 主动向 GitHub 轮询任务（纯出站连接），
+# 服务器因此不需要开放任何入站端口，GitHub Secrets 里也不存放服务器凭据。
+#
+# ⚠️ 安全约束：本工作流只允许 push 到 main 触发，绝不能加 pull_request。
+# 这是公开仓库——一旦 fork 的 PR 能触发，任何人都能在你的服务器上执行任意代码。
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    # 只改文档不触发部署
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+  workflow_dispatch:
+
+# 同一时间只允许一个部署在跑；新的部署不打断正在进行的那个，排队等它结束。
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  REGISTRY: crpi-c6nc3ef4yktaqunc.cn-beijing.personal.cr.aliyuncs.com
+  NAMESPACE: lucas_acr
+  REPO: rag-agent-platform
+
+jobs:
+  build:
+    name: 构建 ${{ matrix.component }} 镜像
+    # 构建放在 GitHub 云端 runner：轻量服务器扛不住 Maven 和 Next.js 构建的资源开销
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - component: backend
+            context: .
+            dockerfile: ./Dockerfile
+          - component: frontend
+            context: ./frontend
+            dockerfile: ./frontend/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: 登录阿里云 ACR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: 构建并推送
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          # 同时打两个标签：commit SHA 用于精确部署和回滚，latest 用于人工排查。
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.REPO }}:${{ matrix.component }}-${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ env.REPO }}:${{ matrix.component }}-latest
+          # 复用上次构建的层（Maven 依赖、node_modules），否则每次都要重新下载。
+          cache-from: type=gha,scope=${{ matrix.component }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.component }}
+
+  deploy:
+    name: 部署到轻量服务器
+    needs: build
+    # 跑在服务器自己的 runner 上，所有命令都是本机执行
+    runs-on: [self-hosted, deploy]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 同步部署配置
+        # 只同步这两个文件。服务器上的 .env 存着密钥，绝不覆盖。
+        run: |
+          set -euo pipefail
+          mkdir -p "$DEPLOY_PATH/deploy"
+          cp docker-compose.yml "$DEPLOY_PATH/docker-compose.yml"
+          cp deploy/nginx.conf "$DEPLOY_PATH/deploy/nginx.conf"
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+
+      - name: 拉取镜像并重启服务
+        run: |
+          set -euo pipefail
+          cd "$DEPLOY_PATH"
+
+          # 把本次部署的 tag 固化进 .env，这样之后手动 docker compose up -d
+          # 起来的还是同一个版本，而不是漂移到 latest。
+          if grep -q '^IMAGE_TAG=' .env 2>/dev/null; then
+            sed -i "s|^IMAGE_TAG=.*|IMAGE_TAG=$GITHUB_SHA|" .env
+          else
+            echo "IMAGE_TAG=$GITHUB_SHA" >> .env
+          fi
+
+          # 注意：这里必须显式列出服务名。裸的 up -d 会把 runner 自己也重建，
+          # 当场杀掉正在执行的这个 job。
+          docker compose pull backend frontend
+          docker compose up -d backend frontend
+          # nginx.conf 是挂载进去的，改了要重启容器才生效
+          docker compose restart nginx
+
+          # 清理旧镜像，轻量服务器磁盘有限
+          docker image prune -f
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+
+      - name: 健康检查
+        # 部署不算完成，除非服务真的起来了。失败就让这次 workflow 红掉。
+        #
+        # 注意用服务名而不是 localhost：这段脚本跑在 runner 容器里，
+        # localhost 指向的是 runner 自己，不是宿主机。runner 与后端同在
+        # agentx-network 上，按服务名互通。
+        run: |
+          set -euo pipefail
+          cd "$DEPLOY_PATH"
+          for i in $(seq 1 30); do
+            if curl -fsS http://backend:8088/api/health > /dev/null \
+               && curl -fsS http://frontend:3000/api/health > /dev/null; then
+              echo "✅ 后端与前端健康检查通过（第 ${i} 次尝试）"
+              exit 0
+            fi
+            echo "等待服务就绪... (${i}/30)"
+            sleep 10
+          done
+          echo "❌ 健康检查超时，输出最近日志："
+          docker compose logs --tail=80 backend frontend
+          exit 1
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
