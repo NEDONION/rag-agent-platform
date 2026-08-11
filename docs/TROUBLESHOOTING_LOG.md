@@ -4,7 +4,7 @@
 >
 > **持续更新** —— 每遇到一个新问题就往后追加一节，保留错误原文，便于日后检索。
 
-**最后更新**：2026-08-11
+**最后更新**：2026-08-12
 
 ---
 
@@ -22,6 +22,9 @@
   - [2.2 最终架构](#22-最终架构)
   - [2.3 实现中的三个坑](#23-实现中的三个坑)
 - [第三部分：部署过程踩坑实录](#第三部分部署过程踩坑实录)
+  - 3.1 仓库名对不上 · 3.2 CI nginx 校验失败 · 3.3 不是 git 仓库
+  - 3.4 docker 权限不足 · 3.5 令牌明文泄露 · 3.6 download.docker.com 不通
+  - 3.7 apt 源太慢 · 3.8 no tracking information
 - [附录：经验教训](#附录经验教训)
 
 ---
@@ -408,6 +411,93 @@ sudo usermod -aG docker admin
 read -s -p "粘贴令牌然后回车: " T && echo "GITHUB_PAT=$T" >> .env && unset T && echo " 已写入"
 ```
 
+## 3.6 构建 runner 镜像卡在 download.docker.com
+
+```
+curl: (35) Recv failure: Connection reset by peer
+------
+failed to solve: process "/bin/sh -c apt-get update && apt-get install ...
+  && curl -fsSL https://download.docker.com/linux/ubuntu/gpg ..." 
+  did not complete successfully: exit code: 35
+```
+
+**原因**：国内服务器访问 `download.docker.com` 会被连接重置。原 Dockerfile 需要从那里拿 GPG key 才能添加 docker 的 apt 源。
+
+**关键观察**：同一次构建里 `ubuntu:24.04` 拉取是**正常**的 —— 说明 Docker Hub 通，只有 `download.docker.com` 这一个域名不通。这个区分决定了修复方向。
+
+**修复**：多阶段构建，直接从官方 `docker:28-cli` 镜像拷贝二进制，彻底不碰那个 apt 源。
+
+```dockerfile
+FROM docker:28-cli AS dockercli
+
+FROM ubuntu:24.04
+...
+COPY --from=dockercli /usr/local/bin/docker /usr/local/bin/docker
+COPY --from=dockercli /usr/local/libexec/docker/cli-plugins/docker-compose \
+                      /usr/local/libexec/docker/cli-plugins/docker-compose
+```
+
+> 顺带去掉了只为导入 GPG key 而安装的 `gnupg`。
+
+## 3.7 apt 官方源太慢 → 换阿里云镜像
+
+构建日志里：
+
+```
+Fetched 32.1 MB in 1min 31s (352 kB/s)
+```
+
+光拉软件包列表就花了 1 分半。服务器本身就在阿里云上，换成 `mirrors.aliyun.com` 后是秒级。
+
+**两个容易踩的细节**：
+
+**① Ubuntu 24.04 改用了 DEB822 格式**，源文件不再是 `/etc/apt/sources.list`，而是
+`/etc/apt/sources.list.d/ubuntu.sources`。网上大量教程针对老格式，照抄无效。
+
+**② 必须用 `http` 而不是 `https`。** 基础镜像里还没有 `ca-certificates`（它正是要装的包之一），
+https 源会因无法校验证书而失败 —— 典型的先有鸡还是先有蛋。apt 包自带 GPG 签名，
+完整性不依赖 TLS，用 http 是安全的。
+
+```dockerfile
+ARG APT_MIRROR=http://mirrors.aliyun.com
+
+RUN if [ -n "$APT_MIRROR" ]; then \
+      sed -i \
+        -e "s|https\?://archive.ubuntu.com/ubuntu|${APT_MIRROR}/ubuntu|g" \
+        -e "s|https\?://security.ubuntu.com/ubuntu|${APT_MIRROR}/ubuntu|g" \
+        -e "s|https\?://ports.ubuntu.com/ubuntu-ports|${APT_MIRROR}/ubuntu-ports|g" \
+        /etc/apt/sources.list.d/ubuntu.sources; \
+    fi
+```
+
+> amd64 用 `archive`/`security.ubuntu.com`，arm64 用 `ports.ubuntu.com`，路径也不同
+> （`/ubuntu` vs `/ubuntu-ports`），三条规则都要写。
+>
+> 做成 `APT_MIRROR` 构建参数，传空字符串即可退回官方源。
+
+**关于 runner 二进制**：actions-runner 的 tarball 从 github.com 下载，国内可能较慢。
+**不要为此换用第三方加速镜像** —— 这个二进制在服务器上拥有 root 级权限，
+必须来自官方源。慢就加 `--retry`，不要牺牲来源可信度。
+
+## 3.8 `git pull` 报 no tracking information
+
+```
+There is no tracking information for the current branch.
+Please specify which branch you want to merge with.
+```
+
+**原因**：3.3 里用 `git checkout -f -B feat/cicd FETCH_HEAD` 建的分支，
+**指向的是一个 commit 而非远程分支**，因此没有建立上游关联。
+
+**修复**（一次性）：
+
+```bash
+git branch --set-upstream-to=origin/feat/cicd feat/cicd
+```
+
+> 注意 `git pull` 其实已经 fetch 成功了（日志里能看到 `13e917c..6a93706`），
+> 只是不知道该合并哪个分支。不是网络问题。
+
 ---
 
 # 附录：经验教训
@@ -443,6 +533,38 @@ read -s -p "粘贴令牌然后回车: " T && echo "GITHUB_PAT=$T" >> .env && uns
 ### 7. 凭据永远不要用 echo 写入
 
 会进 shell history。用 `read -s`，或直接编辑器里粘贴。
+
+### 8. 网络故障要先缩小到具体域名
+
+`download.docker.com` 不通时，同一次构建里 Docker Hub 是通的。
+**「网络不行」不是一个可操作的结论，「这一个域名不通」才是** —— 前者让人想到挂代理，
+后者直接指向「绕开这个域名」这个更简单也更稳的解法。
+
+排查时先问：同一环境下，哪些能通、哪些不能通？
+
+### 9. 国内环境优先考虑换源，但要分清哪些能换
+
+| 类型 | 能否换源 | 理由 |
+|---|---|---|
+| 系统包（apt / yum） | ✅ 能 | 有 GPG 签名，镜像站不影响完整性 |
+| 语言包（npm / pip / maven） | ✅ 能 | 同上，有校验和 |
+| **可执行二进制**（如 actions-runner） | ❌ **不要** | 拿到 root 级权限，来源可信度不能牺牲 |
+
+慢可以靠重试解决，供应链被污染无法挽回。
+
+### 10. 抄教程前先确认版本
+
+Ubuntu 24.04 的 apt 源改成了 DEB822 格式，路径从 `/etc/apt/sources.list` 变成
+`/etc/apt/sources.list.d/ubuntu.sources`。网上绝大多数换源教程针对老格式，
+照抄会「执行成功但没有任何效果」—— 这比报错更难发现。
+
+**改完一定要验证结果**，而不是看命令有没有报错。
+
+### 11. 引导时先看是不是自己埋的坑
+
+`no tracking information` 这个报错，根源是前一步用 `git checkout -B <branch> FETCH_HEAD`
+建分支时没有建立上游关联。**排查一个报错时，先回顾前几步自己做了什么**，
+往往比搜索报错信息更快。
 
 ---
 
