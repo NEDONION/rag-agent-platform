@@ -42,8 +42,11 @@ import org.lucas.infrastructure.transport.MessageTransport;
 
 public abstract class AbstractMessageHandler {
 
-    /** 连接超时时间（毫秒） */
-    protected static final long CONNECTION_TIMEOUT = 3000000L;
+    /** 连接超时时间（毫秒）。
+     *
+     * 作为整条对话链路的兜底：LLM 客户端已有自己的超时，这里只需保证任何漏网的挂起最终会被切断，
+     * 并通过 onTimeout 回调告知前端，而不是让页面无限转圈。10 分钟对带工具调用的长任务仍然宽裕。 */
+    protected static final long CONNECTION_TIMEOUT = 10 * 60 * 1000L;
 
     protected final LLMServiceFactory llmServiceFactory;
     protected final MessageDomainService messageDomainService;
