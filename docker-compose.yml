@@ -49,7 +49,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: crpi-c6nc3ef4yktaqunc.cn-beijing.personal.cr.aliyuncs.com/lucas_acr/rag-agent-platform:backend-latest
+    # IMAGE_TAG 由 CI 部署时写入 .env（值为 commit SHA），本地/手动场景回落到 latest。
+    # 固化成 SHA 是为了让「服务器上正在跑的是哪个版本」可追溯，也方便回滚。
+    image: crpi-c6nc3ef4yktaqunc.cn-beijing.personal.cr.aliyuncs.com/lucas_acr/rag-agent-platform:backend-${IMAGE_TAG:-latest}
     container_name: agentx-backend
     restart: unless-stopped
     environment:
@@ -139,7 +141,7 @@ services:
   # 前端 Next.js 应用
   # ================================
   frontend:
-    image: crpi-c6nc3ef4yktaqunc.cn-beijing.personal.cr.aliyuncs.com/lucas_acr/rag-agent-platform:frontend-latest
+    image: crpi-c6nc3ef4yktaqunc.cn-beijing.personal.cr.aliyuncs.com/lucas_acr/rag-agent-platform:frontend-${IMAGE_TAG:-latest}
     container_name: agentx-frontend
     restart: unless-stopped
     environment:
