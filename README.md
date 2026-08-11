@@ -160,9 +160,95 @@ Agent 结合已配置的模型服务、知识检索与 MCP 工具，当前对话
 
 ## 部署说明
 
-仓库内的 Docker Compose 是作者部署参考，不是开箱即用的公共一键安装：它依赖外部配置的 PostgreSQL
-和对象存储，前端镜像使用私有镜像仓库，也没有提供 MCP 网关配置。请将它作为部署起点，并按自己的基础设施
-补齐配置。
+> 仓库内的 Docker Compose 是**作者的部署参考，不是开箱即用的一键安装**：它依赖外部的 PostgreSQL
+> 与对象存储，镜像来自私有仓库，MCP 网关也需自行配置。请把它当作起点，按自己的基础设施补齐。
+
+### 运行拓扑
+
+五个容器 + 一个外部数据库。nginx 按路径分流，`/api/` 走后端，其余走前端：
+
+```
+                        公网 :80
+                           │
+                    ┌──────▼──────┐
+                    │    nginx    │
+                    └──┬───────┬──┘
+                 /api/ │       │ /
+              ┌────────▼──┐ ┌──▼─────────┐
+              │  backend  │ │  frontend  │
+              │   :8088   │ │   :3000    │
+              │Spring Boot│ │  Next.js   │
+              └──┬─────┬──┘ └────────────┘
+                 │     │
+        ┌────────▼─┐ ┌─▼──────────────┐
+        │ RabbitMQ │ │  阿里云 RDS     │  ← 不在 compose 内
+        │          │ │ PG + PGVector  │
+        └──────────┘ └────────────────┘
+                 │
+        ┌────────▼──────────┐    ┌──────────────┐
+        │ docker.sock       │    │    runner    │
+        │ （MCP 工具容器）    │    │ 自托管 CI/CD  │
+        └───────────────────┘    └──────────────┘
+```
+
+资源配额：backend 1.2 CPU / 1536M，frontend 0.6 / 768M，RabbitMQ 0.3 / 512M。
+
+> ⚠️ backend 的 **1.2 CPU 会影响代码行为**——JVM 据此算出的
+> `ForkJoinPool.commonPool` 并行度只有 1。调整前请先读
+> [性能优化](docs/operations/performance.md#1-资源边界)。
+
+### 首次部署
+
+```bash
+curl -fsSL https://get.docker.com | sh
+git clone https://github.com/NEDONION/rag-agent-platform && cd rag-agent-platform
+cp .env.example .env && vim .env        # 填数据库、S3、模型服务商等
+docker login --username=<用户名> crpi-c6nc3ef4yktaqunc.cn-beijing.personal.cr.aliyuncs.com
+sudo docker compose up -d
+```
+
+验证：
+
+```bash
+curl -i http://localhost:8088/api/health
+curl -i http://localhost:3000/api/health
+```
+
+### 持续部署
+
+push 到 `main` 自动构建并上线，**无需登录服务器**：
+
+```
+push main
+   │
+   ├─ build   (GitHub 云端)   构建前后端镜像 → 推阿里云 ACR
+   ├─ config  (GitHub 云端)   打包 compose 与 nginx 配置为 artifact
+   │
+   └─ deploy  (服务器 runner) ─┐
+                               ├─ 下载 artifact
+                               ├─ 记录 IMAGE_TAG 到 .env
+                               ├─ docker compose pull backend frontend
+                               ├─ docker compose up -d backend frontend
+                               ├─ docker compose restart nginx
+                               └─ 健康检查（失败则 workflow 变红）
+```
+
+部署由服务器上的**自托管 runner 主动向 GitHub 轮询**领取，是纯出站连接。
+因此**服务器不需要开放 SSH 或任何入站端口**，GitHub Secrets 里也不存放服务器凭据
+（只需 `ACR_USERNAME`、`ACR_PASSWORD`、`DEPLOY_PATH` 三个）。
+
+### 回滚
+
+每次部署把 commit SHA 写进服务器 `.env`，镜像同时打了 `<sha>` 与 `latest` 两个标签：
+
+```bash
+sed -i 's|^IMAGE_TAG=.*|IMAGE_TAG=<目标commit-sha>|' .env
+docker compose up -d backend frontend
+```
+
+完整的环境变量清单、CI/CD 约束、国内网络实测数据与运维检查清单，
+见 **[部署指南](docs/operations/deployment.md)**；
+部署过程踩过的坑（含错误原文）见 **[排查记录](docs/operations/troubleshooting-log.md)**。
 
 <img width="1405" alt="部署参考" src="https://raw.githubusercontent.com/NEDONION/my-pics-space/main/20251222051116.png" />
 
@@ -175,14 +261,26 @@ Agent 结合已配置的模型服务、知识检索与 MCP 工具，当前对话
 
 ## 文档
 
+完整文档见 **[文档中心](docs/README.md)**，按架构 / 模块 / 参考 / 运维 / 开发分类。常用入口：
+
 | 文档 | 内容 |
 | --- | --- |
-| [文档索引](docs/README.md) | 所有技术文档的入口 |
-| [系统架构](docs/architecture/overview.md) | 技术栈、分层与数据流 |
+| [系统架构](docs/architecture/overview.md) | 技术栈、DDD 分层与数据流 |
+| [基础设施](docs/architecture/infrastructure.md) | MQ、存储、传输、加密等技术子包 |
 | [RAG 模块](docs/modules/rag.md) | 文档处理、向量检索与 RAG 链路 |
 | [Agent 模块](docs/modules/agent.md) | Agent 生命周期与工具集成 |
-| [API 参考](docs/reference/api.md) | REST、WebSocket 与 SSE 接口 |
-| [数据库初始化](docs/sql/01_init.sql) | PostgreSQL 与 PGVector 初始化脚本 |
+| [对话模块](docs/modules/conversation.md) | 会话、消息、SSE 与上下文管理 |
+| [MCP 工具模块](docs/modules/mcp-tool.md) | 工具上架状态机与容器隔离 |
+| [LLM 模块](docs/modules/llm.md) | 服务商、协议适配与高可用 |
+| [用户与认证](docs/modules/user-auth.md) | 登录、API Key 与用户设置 |
+| [执行追踪](docs/modules/trace.md) | 可观测性与执行链路记录 |
+| [任务与调度](docs/modules/task.md) | 工作流任务与定时任务 |
+| [API 参考](docs/reference/api.md) | REST 与 SSE 接口 |
+| [数据库设计](docs/reference/database.md) | 表结构、ER 图与索引 |
+| [部署指南](docs/operations/deployment.md) | 拓扑、CI/CD 与回滚 |
+| [本地开发](docs/development/local-setup.md) | 环境搭建与提交流程 |
+| [排查记录](docs/operations/troubleshooting-log.md) | 线上问题实录，持续更新 |
+| [数据库初始化](docs/sql/01_init.sql) | PostgreSQL 与 PGVector 完整建表脚本（35 张表） |
 
 ## 参与贡献
 
