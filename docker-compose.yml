@@ -198,6 +198,39 @@ services:
     networks:
       - agentx-network
 
+  # ================================
+  # GitHub Actions 自托管 Runner
+  # ================================
+  # 主动向 GitHub 轮询任务（纯出站），因此服务器不必开放 SSH 或任何入站端口，
+  # GitHub Secrets 里也不存放服务器凭据。
+  #
+  # ⚠️ 部署 job 绝不能执行裸的 `docker compose up -d`——那会连同这个 runner 一起重建，
+  # 把正在执行的部署任务当场杀掉。deploy.yml 里的命令都显式限定到 backend/frontend。
+  runner:
+    build:
+      context: ./deploy/runner
+    image: agentx-runner:local
+    container_name: agentx-runner
+    restart: unless-stopped
+    environment:
+      GITHUB_REPO: ${GITHUB_REPO:-NEDONION/rag-agent-platform}
+      GITHUB_PAT: ${GITHUB_PAT}
+      RUNNER_NAME: ${RUNNER_NAME:-aliyun-lightweight}
+      TZ: Asia/Shanghai
+    volumes:
+      # 操作宿主机 docker：部署 job 靠它执行 compose pull / up
+      - /var/run/docker.sock:/var/run/docker.sock
+      # 关键：必须挂载到与宿主机完全相同的绝对路径。
+      # compose 把 ./deploy/nginx.conf 这类相对路径解析成绝对路径后交给宿主机 docker 守护进程，
+      # 由守护进程按宿主机文件系统去找。容器内外路径不一致的话，挂载的就是错误的位置。
+      - ${DEPLOY_PATH:-/root/rag-agent-platform}:${DEPLOY_PATH:-/root/rag-agent-platform}
+      # runner 的工作目录持久化，避免每次重启都重新拉取仓库
+      - runner_work:/actions-runner/_work
+    networks:
+      - agentx-network
+    mem_limit: 512m
+    cpus: "0.3"
+
 # ================================
 # 数据卷
 # ================================
@@ -207,6 +240,8 @@ volumes:
   backend_logs:
     driver: local
   container_volumes:
+    driver: local
+  runner_work:
     driver: local
 
 # ================================
