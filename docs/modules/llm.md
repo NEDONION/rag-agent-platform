@@ -35,8 +35,8 @@
 | **调用结果上报** | 上报每次调用的成败与延迟，供网关做后续决策 |
 | **Token 溢出处理** | 对话历史超出模型上下文上限时，按策略裁剪或摘要 |
 
-**不负责**：具体的对话编排（见 [对话模块](./CONVERSATION_MODULE.md)）、
-向量化与检索（见 [RAG 模块](./RAG_MODULE.md)）。
+**不负责**：具体的对话编排（见 [对话模块](conversation.md)）、
+向量化与检索（见 [RAG 模块](rag.md)）。
 
 ---
 
@@ -167,7 +167,7 @@ private static final Duration STREAMING_TIMEOUT = timeoutFromEnv("LLM_STREAM_TIM
 | `LLM_STREAM_TIMEOUT_SECONDS` | 300s | 流式对话 |
 
 > 📌 这两个值曾经都是 `Duration.ofHours(1)`，等同于没有超时，导致线上「对话卡死」。
-> 完整过程见 [排查记录 1.2](./TROUBLESHOOTING_LOG.md#12-根因一llm-客户端超时是-1-小时)。
+> 完整过程见 [排查记录 1.2](../operations/troubleshooting-log.md#12-根因一llm-客户端超时是-1-小时)。
 
 ---
 
@@ -324,7 +324,7 @@ domain/llm/event/
 
 ### 相关表
 
-模型与服务商的表结构见 [数据库设计](./DATABASE.md)。
+模型与服务商的表结构见 [数据库设计](../reference/database.md)。
 
 ---
 
@@ -344,7 +344,7 @@ domain/llm/event/
 
 `getStrandClient` 拿到的是同步客户端。如果在两条 SSE 事件之间连续调用多次，
 用户会看到界面卡在上一条提示上。**每个耗时步骤前都应先发进度事件**，
-参见 [排查记录 1.3](./TROUBLESHOOTING_LOG.md#13-根因二进度提示与实际执行不同步)。
+参见 [排查记录 1.3](../operations/troubleshooting-log.md#13-根因二进度提示与实际执行不同步)。
 
 ### 上报不能省
 
@@ -355,8 +355,8 @@ domain/llm/event/
 
 ## 相关文档
 
-- [系统架构](./ARCHITECTURE.md)
-- [对话模块](./CONVERSATION_MODULE.md) —— 谁在使用这里的客户端
-- [RAG 模块](./RAG_MODULE.md) —— 嵌入模型的使用方
-- [性能优化](./PERFORMANCE.md) —— 超时与并发
-- [排查记录](./TROUBLESHOOTING_LOG.md) —— 超时问题的完整过程
+- [系统架构](../architecture/overview.md)
+- [对话模块](conversation.md) —— 谁在使用这里的客户端
+- [RAG 模块](rag.md) —— 嵌入模型的使用方
+- [性能优化](../operations/performance.md) —— 超时与并发
+- [排查记录](../operations/troubleshooting-log.md) —— 超时问题的完整过程

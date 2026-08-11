@@ -177,11 +177,11 @@ Agent 结合已配置的模型服务、知识检索与 MCP 工具，当前对话
 
 | 文档 | 内容 |
 | --- | --- |
-| [文档索引](docs/INDEX.md) | 所有技术文档的入口 |
-| [系统架构](docs/ARCHITECTURE.md) | 技术栈、分层与数据流 |
-| [RAG 模块](docs/RAG_MODULE.md) | 文档处理、向量检索与 RAG 链路 |
-| [Agent 模块](docs/AGENT_MODULE.md) | Agent 生命周期与工具集成 |
-| [API 参考](docs/API.md) | REST、WebSocket 与 SSE 接口 |
+| [文档索引](docs/README.md) | 所有技术文档的入口 |
+| [系统架构](docs/architecture/overview.md) | 技术栈、分层与数据流 |
+| [RAG 模块](docs/modules/rag.md) | 文档处理、向量检索与 RAG 链路 |
+| [Agent 模块](docs/modules/agent.md) | Agent 生命周期与工具集成 |
+| [API 参考](docs/reference/api.md) | REST、WebSocket 与 SSE 接口 |
 | [数据库初始化](docs/sql/01_init.sql) | PostgreSQL 与 PGVector 初始化脚本 |
 
 ## 参与贡献
