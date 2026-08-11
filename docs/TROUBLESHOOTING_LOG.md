@@ -24,7 +24,7 @@
 - [第三部分：部署过程踩坑实录](#第三部分部署过程踩坑实录)
   - 3.1 仓库名对不上 · 3.2 CI nginx 校验失败 · 3.3 不是 git 仓库
   - 3.4 docker 权限不足 · 3.5 令牌明文泄露 · 3.6 download.docker.com 不通
-  - 3.7 apt 源太慢 · 3.8 no tracking information
+  - 3.7 apt 源太慢 · 3.8 no tracking information · 3.9 runner tarball 25 KB/s
 - [附录：经验教训](#附录经验教训)
 
 ---
@@ -475,9 +475,7 @@ RUN if [ -n "$APT_MIRROR" ]; then \
 >
 > 做成 `APT_MIRROR` 构建参数，传空字符串即可退回官方源。
 
-**关于 runner 二进制**：actions-runner 的 tarball 从 github.com 下载，国内可能较慢。
-**不要为此换用第三方加速镜像** —— 这个二进制在服务器上拥有 root 级权限，
-必须来自官方源。慢就加 `--retry`，不要牺牲来源可信度。
+**关于 runner 二进制**：见 3.9 —— 它确实慢到不可用，但解法不是简单地换镜像。
 
 ## 3.8 `git pull` 报 no tracking information
 
@@ -497,6 +495,92 @@ git branch --set-upstream-to=origin/feat/cicd feat/cicd
 
 > 注意 `git pull` 其实已经 fetch 成功了（日志里能看到 `13e917c..6a93706`），
 > 只是不知道该合并哪个分支。不是网络问题。
+
+## 3.9 runner tarball 下载 25 KB/s —— 用镜像站 + 校验和
+
+actions-runner 的 tarball 有 **215.5 MB**，从国内直连 github.com 实测：
+
+```
+实测速度: 24734.000 B/s
+curl: (28) Operation timed out after 14640 milliseconds
+      with 371016 out of 226035903 bytes received
+```
+
+curl 自己算出的预计耗时：**2 小时 32 分**。不可用。
+
+### 先测速再决定
+
+用 `--max-time 8` 对几个候选源打分，不必下完整个文件：
+
+```bash
+for M in "https://ghfast.top/https://github.com" \
+         "https://gh-proxy.com/https://github.com" \
+         "https://ghproxy.net/https://github.com" \
+         "https://github.com"; do
+  printf '%-45s' "$M"
+  curl -o /dev/null -sL --max-time 8 -w '%{speed_download} B/s\n' \
+    "$M/actions/runner/releases/download/v2.336.0/actions-runner-linux-x64-2.336.0.tar.gz"
+done
+```
+
+实测结果（2026-08，阿里云北京轻量）：
+
+| 源 | 速度 | 215MB 预计耗时 |
+|---|---|---|
+| **ghfast.top** | **1.2 MB/s** | **~3 分钟** ✅ |
+| gh-proxy.com | 138 KB/s | ~26 分钟 |
+| github.com 直连 | 32 KB/s | ~1.9 小时 |
+| ghproxy.net | 22 KB/s | ~2.7 小时 |
+
+> 差异高达 55 倍，**不测就选等于抓阄**。镜像站的速度会随时间变化，
+> 下次遇到慢的时候重新测一遍，别照抄这张表。
+
+### 关键：换镜像的同时必须校验
+
+这个二进制在服务器上拥有 root 级权限。**单纯换用第三方镜像是不可接受的** ——
+但配合官方 SHA256 校验就是安全的：镜像站若返回被篡改的文件，校验失败、构建中止。
+
+```dockerfile
+ARG RUNNER_DOWNLOAD_BASE=https://github.com/actions/runner/releases/download
+ARG RUNNER_SHA256=04cf0be1aff4c3ec3554466c39124ca250e3effd8873bb7e8d68535aa9505d5d
+
+RUN curl -fL --retry 5 --retry-delay 3 -o runner.tar.gz \
+      "${RUNNER_DOWNLOAD_BASE}/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz" \
+    && echo "${RUNNER_SHA256}  runner.tar.gz" | sha256sum -c - \
+    && tar xzf runner.tar.gz
+```
+
+哈希从官方 release 页面获取：
+
+```bash
+curl -s https://api.github.com/repos/actions/runner/releases/tags/v2.336.0 \
+  | grep -o 'BEGIN SHA linux-x64 -->[0-9a-f]*'
+```
+
+构建时看到这行即为通过，说明拿到的文件与官方发布逐字节一致：
+
+```
+04cf0be1...05d5d  runner.tar.gz: OK
+```
+
+> **升级 runner 版本时，`RUNNER_SHA256` 必须同步更新**，否则校验必然失败。
+
+### 配置方式
+
+`APT_MIRROR` 和 `RUNNER_DOWNLOAD_BASE` 都提到了 `docker-compose.yml` 的
+`build.args`，直接写 `.env` 即可，不必每次记 `--build-arg`：
+
+```bash
+echo 'RUNNER_DOWNLOAD_BASE=https://ghfast.top/https://github.com/actions/runner/releases/download' >> .env
+```
+
+### 更彻底的方案（备选）
+
+把 runner 镜像也放进 CI 构建、推到自己的 ACR，服务器直接从 ACR 拉取（同区域，
+带宽充足），彻底不依赖服务器能否访问 github.com。
+
+代价是有先后顺序问题：需要 workflow 先合入 main 才能手动触发，而合并本身会触发
+部署、此时 runner 尚不存在。绕得开，但比镜像站这条路复杂。当前规模下镜像站够用。
 
 ---
 
@@ -548,9 +632,13 @@ git branch --set-upstream-to=origin/feat/cicd feat/cicd
 |---|---|---|
 | 系统包（apt / yum） | ✅ 能 | 有 GPG 签名，镜像站不影响完整性 |
 | 语言包（npm / pip / maven） | ✅ 能 | 同上，有校验和 |
-| **可执行二进制**（如 actions-runner） | ❌ **不要** | 拿到 root 级权限，来源可信度不能牺牲 |
+| **可执行二进制**（如 actions-runner） | ⚠️ **仅在校验哈希的前提下** | 拿到 root 级权限，无校验时来源可信度不能牺牲 |
 
-慢可以靠重试解决，供应链被污染无法挽回。
+关键区分：**反对的不是「用镜像站」，而是「无校验地信任镜像站」。**
+拿到官方发布的 SHA256 并强制校验后，镜像站给的文件只要有一个字节不对就会构建失败，
+此时用镜像站是安全的。见 [3.9](#39-runner-tarball-下载-25-kbs--用镜像站--校验和)。
+
+没有官方哈希可对照时，才回到「宁可慢也不换源」。
 
 ### 10. 抄教程前先确认版本
 
