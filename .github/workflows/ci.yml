@@ -61,7 +61,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: nginx -t
+        # nginx -t 在配置检查阶段就会解析 proxy_pass 里的 upstream 主机名，
+        # 而 CI 环境里没有 backend/frontend 这两个容器，解析不到就直接 emerg 退出。
+        # 用 --add-host 造两条 hosts 记录让名字可解析——这里校验的是配置语法，
+        # 解析到哪个地址无关紧要。
         run: |
           docker run --rm \
+            --add-host backend:127.0.0.1 \
+            --add-host frontend:127.0.0.1 \
             -v "$PWD/deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro" \
             nginx:1.27-alpine nginx -t
