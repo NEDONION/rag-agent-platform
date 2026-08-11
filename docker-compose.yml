@@ -209,6 +209,11 @@ services:
   runner:
     build:
       context: ./deploy/runner
+      args:
+        # 国内构建时可在 .env 里覆盖这两项加速。
+        # RUNNER_DOWNLOAD_BASE 换镜像站是安全的——Dockerfile 会校验官方 SHA256。
+        APT_MIRROR: ${APT_MIRROR-http://mirrors.aliyun.com}
+        RUNNER_DOWNLOAD_BASE: ${RUNNER_DOWNLOAD_BASE-https://github.com/actions/runner/releases/download}
     image: agentx-runner:local
     container_name: agentx-runner
     restart: unless-stopped

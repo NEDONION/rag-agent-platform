@@ -42,8 +42,20 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 WORKDIR /actions-runner
 
-RUN curl -fsSL --retry 5 --retry-delay 3 -o runner.tar.gz \
-      "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz" \
+# 下载并校验 runner。
+#
+# 这个二进制在服务器上拥有 root 级权限，来源必须可信。国内直连 github.com 实测只有
+# 约 25 KB/s（215MB 要下 2.5 小时），因此允许换用加速镜像——但**必须校验 SHA256**：
+# 哈希由 GitHub 官方发布，文件一旦被篡改校验就会失败，构建随之中止。
+# 无校验地信任第三方镜像是不可接受的，有官方哈希兜底则是安全的。
+#
+# 换镜像：--build-arg RUNNER_DOWNLOAD_BASE=<前缀>
+ARG RUNNER_DOWNLOAD_BASE=https://github.com/actions/runner/releases/download
+ARG RUNNER_SHA256=04cf0be1aff4c3ec3554466c39124ca250e3effd8873bb7e8d68535aa9505d5d
+
+RUN curl -fL --retry 5 --retry-delay 3 -o runner.tar.gz \
+      "${RUNNER_DOWNLOAD_BASE}/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz" \
+    && echo "${RUNNER_SHA256}  runner.tar.gz" | sha256sum -c - \
     && tar xzf runner.tar.gz \
     && rm runner.tar.gz
 
