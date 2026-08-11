@@ -68,21 +68,46 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.component }}
           cache-to: type=gha,mode=max,scope=${{ matrix.component }}
 
+  config:
+    name: 打包部署配置
+    # 在云端 runner 上取出部署所需的配置文件，作为 artifact 传给自托管 runner。
+    # 目的是让部署那一步完全不必访问 github.com——见下方 deploy job 的说明。
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deploy-config
+          path: |
+            docker-compose.yml
+            deploy/nginx.conf
+          retention-days: 1
+
   deploy:
     name: 部署到轻量服务器
-    needs: build
+    needs: [build, config]
     # 跑在服务器自己的 runner 上，所有命令都是本机执行
     runs-on: [self-hosted, deploy]
     steps:
-      - uses: actions/checkout@v4
+      # 这里**不能**用 actions/checkout：它会在服务器上执行 git clone github.com，
+      # 而国内服务器到 github.com:443 的 git 连接极不稳定，实测三次重试全部超时：
+      #   fatal: unable to access '...': Failed to connect to github.com port 443
+      #
+      # runner 与 GitHub 的通信走的是 *.actions.githubusercontent.com，那条链路是通的
+      # （它能正常领到任务）。artifact 下载同样走该链路，因此改用 artifact 传配置文件。
+      - uses: actions/download-artifact@v4
+        with:
+          name: deploy-config
+          path: deploy-config
 
       - name: 同步部署配置
         # 只同步这两个文件。服务器上的 .env 存着密钥，绝不覆盖。
         run: |
           set -euo pipefail
           mkdir -p "$DEPLOY_PATH/deploy"
-          cp docker-compose.yml "$DEPLOY_PATH/docker-compose.yml"
-          cp deploy/nginx.conf "$DEPLOY_PATH/deploy/nginx.conf"
+          cp deploy-config/docker-compose.yml "$DEPLOY_PATH/docker-compose.yml"
+          cp deploy-config/deploy/nginx.conf "$DEPLOY_PATH/deploy/nginx.conf"
         env:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
 
