@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import org.dromara.streamquery.stream.core.stream.Steam;
 import org.slf4j.Logger;
@@ -78,6 +80,22 @@ public class RagQaDatasetAppService {
     private static final int RAG_RELEVANCE_MAX_RESULTS = 5;
     private static final int REWRITE_CONTEXT_MAX_DOCS = 2;
     private static final int REWRITE_CONTEXT_MAX_CHARS = 240;
+
+    /** SSE 连接超时。整条流式问答链路的兜底：任何漏网的挂起最迟在这里被切断并告知前端，
+     * 而不是让页面无限转圈。 */
+    private static final long RAG_STREAM_TIMEOUT_MS = 10 * 60 * 1000L;
+
+    /** 流式问答专用线程池。
+     *
+     * 这里不能用 CompletableFuture.runAsync 的默认 ForkJoinPool.commonPool()：commonPool 的并行度是
+     * availableProcessors() - 1，而后端容器限了 1.2 CPU，算下来并行度为 1；链路里跑的又是纯阻塞 IO
+     * （ForkJoinPool 不会为普通阻塞调用做线程补偿），结果就是全站同一时刻只能有一个 RAG 问答在跑，
+     * 第二个用户的请求要排队等前一个彻底结束——表现就是"卡死，过一会儿又好了"。 */
+    private final ExecutorService ragStreamExecutor = Executors.newFixedThreadPool(8, runnable -> {
+        Thread thread = new Thread(runnable, "rag-stream-chat");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     private final RagQaDatasetDomainService ragQaDatasetDomainService;
     private final FileDetailDomainService fileDetailDomainService;
@@ -855,7 +873,7 @@ public class RagQaDatasetAppService {
      * @param userId 用户ID
      * @return SSE流式响应 */
     public SseEmitter ragStreamChat(RagStreamChatRequest request, String userId) {
-        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+        SseEmitter emitter = new SseEmitter(RAG_STREAM_TIMEOUT_MS);
 
         // 设置连接关闭回调
         emitter.onCompletion(() -> log.info("RAG stream chat completed for user: {}", userId));
@@ -882,7 +900,7 @@ public class RagQaDatasetAppService {
                     log.warn("Error completing SSE emitter", e);
                 }
             }
-        });
+        }, ragStreamExecutor);
 
         return emitter;
     }
@@ -922,12 +940,16 @@ public class RagQaDatasetAppService {
             EmbeddingModelFactory.EmbeddingConfig embeddingConfig = toEmbeddingConfig(embeddingModelConfig);
 
             // 意图识别与语义改写（基于相关性判断）
+            // 下面这几步都是同步的 LLM 调用，每步之间补发进度事件，否则前端会一直停在上一条
+            // "正在检索..." 上，看起来像卡死。
+            sendSseData(emitter, AgentChatResponse.build("正在理解问题意图...", MessageType.RAG_RETRIEVAL_PROGRESS));
             IntentResult intentResult = classifyIntent(request.getQuestion(), userId);
             RelevanceCheckResult relevance = checkRelevanceForDatasets(searchDatasetIds, request.getQuestion(),
                     embeddingConfig);
             String effectiveQuestion = request.getQuestion();
             QueryExpansionResult expansion = QueryExpansionResult.empty();
             if (relevance.isRelevant) {
+                sendSseData(emitter, AgentChatResponse.build("正在改写检索查询...", MessageType.RAG_RETRIEVAL_PROGRESS));
                 effectiveQuestion = rewriteQuestion(request.getQuestion(), relevance.documents, userId);
                 expansion = expandQueries(request.getQuestion(), relevance.documents, userId);
             }
@@ -1852,7 +1874,7 @@ JSON 示例：
      * @param userId 用户ID
      * @return SSE流式响应 */
     public SseEmitter ragStreamChatByUserRag(RagStreamChatRequest request, String userRagId, String userId) {
-        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+        SseEmitter emitter = new SseEmitter(RAG_STREAM_TIMEOUT_MS);
 
         // 设置连接关闭回调
         emitter.onCompletion(
@@ -1880,7 +1902,7 @@ JSON 示例：
                     log.warn("Error completing SSE emitter", e);
                 }
             }
-        });
+        }, ragStreamExecutor);
 
         return emitter;
     }
@@ -1911,6 +1933,8 @@ JSON 示例：
 
             List<DocumentUnitEntity> retrievedDocuments;
             String effectiveQuestion = request.getQuestion();
+            // 同上：意图识别是同步 LLM 调用，先发进度事件再调用
+            sendSseData(emitter, AgentChatResponse.build("正在理解问题意图...", MessageType.RAG_RETRIEVAL_PROGRESS));
             IntentResult intentResult = classifyIntent(request.getQuestion(), userId);
             RelevanceCheckResult relevance;
             QueryExpansionResult expansion = QueryExpansionResult.empty();
@@ -1921,6 +1945,8 @@ JSON 示例：
                 List<String> ragDatasetIds = List.of(dataSourceInfo.getOriginalRagId());
                 relevance = checkRelevanceForDatasets(ragDatasetIds, request.getQuestion(), embeddingConfig);
                 if (relevance.isRelevant) {
+                    sendSseData(emitter,
+                            AgentChatResponse.build("正在改写检索查询...", MessageType.RAG_RETRIEVAL_PROGRESS));
                     effectiveQuestion = rewriteQuestion(request.getQuestion(), relevance.documents, userId);
                     expansion = expandQueries(request.getQuestion(), relevance.documents, userId);
                 }
@@ -1943,6 +1969,8 @@ JSON 示例：
                 } else {
                     relevance = checkRelevanceForSnapshot(retrievedDocuments, request.getQuestion(), embeddingConfig);
                     if (relevance.isRelevant) {
+                        sendSseData(emitter,
+                                AgentChatResponse.build("正在改写检索查询...", MessageType.RAG_RETRIEVAL_PROGRESS));
                         effectiveQuestion = rewriteQuestion(request.getQuestion(), relevance.documents, userId);
                         expansion = expandQueries(request.getQuestion(), relevance.documents, userId);
                     }

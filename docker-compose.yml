@@ -89,6 +89,12 @@ services:
       SILICONFLOW_API_URL_RERANK: ${SILICONFLOW_API_URL_RERANK:-https://api.siliconflow.com/v1/rerank}
       SILICONFLOW_MODEL_RERANK_MODEL: ${SILICONFLOW_MODEL_RERANK_MODEL:-Qwen/Qwen3-Reranker-4B}
 
+      # LLM 调用超时（秒）
+      # 非流式：意图识别/语义改写/查询扩展等同步小请求，超时必须短
+      LLM_REQUEST_TIMEOUT_SECONDS: ${LLM_REQUEST_TIMEOUT_SECONDS:-60}
+      # 流式：对话补全
+      LLM_STREAM_TIMEOUT_SECONDS: ${LLM_STREAM_TIMEOUT_SECONDS:-300}
+
       # 邮件配置
       MAIL_SMTP_HOST: ${MAIL_SMTP_HOST:-smtp.qq.com}
       MAIL_SMTP_PORT: ${MAIL_SMTP_PORT:-587}
