@@ -769,4 +769,4 @@ Ubuntu 24.04 的 apt 源改成了 DEB822 格式，路径从 `/etc/apt/sources.li
 
 - [PR #1 修复 LLM 对话卡死与并发串行化](https://github.com/NEDONION/rag-agent-platform/pull/1)
 - [PR #2 接入 GitHub Actions 自动构建与部署](https://github.com/NEDONION/rag-agent-platform/pull/2)
-- [部署指南 DEPLOY.md](../DEPLOY.md)
+- [部署指南 DEPLOY.md](../../DEPLOY.md)

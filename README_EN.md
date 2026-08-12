@@ -169,11 +169,11 @@ The included Docker Compose configuration is an author deployment reference, not
 
 | Document | Contents |
 | --- | --- |
-| [Documentation index](docs/INDEX.md) | Entry point for the technical documentation |
-| [System architecture](docs/ARCHITECTURE.md) | Technology stack, layers, and data flow |
-| [RAG module](docs/RAG_MODULE.md) | Document processing, vector retrieval, and the RAG path |
-| [Agent module](docs/AGENT_MODULE.md) | Agent lifecycle and tool integration |
-| [API reference](docs/API.md) | REST, WebSocket, and SSE interfaces |
+| [Documentation index](docs/README.md) | Entry point for the technical documentation |
+| [System architecture](docs/architecture/overview.md) | Technology stack, layers, and data flow |
+| [RAG module](docs/modules/rag.md) | Document processing, vector retrieval, and the RAG path |
+| [Agent module](docs/modules/agent.md) | Agent lifecycle and tool integration |
+| [API reference](docs/reference/api.md) | REST, WebSocket, and SSE interfaces |
 | [Database initialization](docs/sql/01_init.sql) | PostgreSQL and PGVector initialization script |
 
 ## Contributing

@@ -1183,7 +1183,7 @@ RAG模块通过**异步处理流水线**、**混合检索引擎**、**双轨版�
 
 **相关文档**:
 
-- [系统架构设计](./ARCHITECTURE.md)
-- [Agent模块详解](./AGENT_MODULE.md)
-- [数据库设计](./DATABASE.md)
-- [API接口文档](./API.md)
+- [系统架构设计](../architecture/overview.md)
+- [Agent模块详解](agent.md)
+- [数据库设计](../reference/database.md)
+- [API接口文档](../reference/api.md)
