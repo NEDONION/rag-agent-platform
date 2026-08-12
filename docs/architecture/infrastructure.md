@@ -118,7 +118,7 @@ public interface MessageTransport<T> {
 | **`ProviderConfigConverter`** | **服务商配置——加密存储** |
 
 `ProviderConfigConverter` 与众不同：它在写库前加密、读库后解密，
-是唯一涉及加密的转换器。**但其加密实现有严重问题，见[第 9 节](#9-已知坑与注意事项)。**
+是唯一涉及加密的转换器，实现见 `ConfigCrypto`。
 
 ---
 
@@ -126,17 +126,13 @@ public interface MessageTransport<T> {
 
 ```
 utils/
-├── ConfigEncryptor           AES 加密（★ 死代码，全仓库零调用）
+├── ConfigCrypto              敏感配置加解密（AES/GCM，密钥来自环境变量）
 ├── JwtUtils                  JWT 签发与校验
 ├── JsonUtils                 JSON 序列化
 ├── PasswordUtils             密码哈希
-├── ValidationUtils           校验 + 内嵌 EncryptUtils（★ 实际在用）
+├── ValidationUtils           参数校验
 └── ModelResponseToJsonUtils  模型响应解析
 ```
-
-> ⚠️ 仓库里存在**两套 AES 实现**：`ConfigEncryptor` 和 `ValidationUtils.EncryptUtils`。
-> 前者无人调用，后者才是真正用于服务商密钥落库的那个。
-> 两者都**硬编码了密钥**，详见[第 9 节](#9-已知坑与注意事项)。
 
 ---
 
@@ -178,69 +174,39 @@ BusinessException              通用业务异常
 
 ## 9. 已知坑与注意事项
 
-### 9.1 🔴 服务商 API Key 的加密密钥硬编码在公开仓库中
+### 9.1 ✅ 服务商 API Key 的加密（已重写）
 
-**这是当前代码库最严重的安全问题。**
+历史上这里有一个严重问题：`ValidationUtils.EncryptUtils` 用硬编码密钥
+`"1234567890123456"` 加 ECB 模式加密服务商配置，而仓库是公开的——加密形同虚设。
 
-`ProviderConfigConverter` 负责把 `ProviderConfig`（**内含用户填写的 LLM 服务商 API Key**）
-加密后落库：
-
-```java
-public void setNonNullParameter(PreparedStatement ps, int i, ProviderConfig parameter, ...) {
-    String jsonStr = JsonUtils.toJsonString(parameter);
-    String encryptedStr = ValidationUtils.EncryptUtils.encrypt(jsonStr);   // ← 加密
-    ps.setString(i, encryptedStr);
-}
-```
-
-而 `ValidationUtils.EncryptUtils` 的密钥是：
+现已替换为 `ConfigCrypto`：
 
 ```java
-private static final String ALGORITHM = "AES";
-private static final String SECRET_KEY = "1234567890123456";   // 16位密钥
-...
-Cipher cipher = Cipher.getInstance(ALGORITHM);   // 无模式 → 默认 AES/ECB/PKCS5Padding
+public static final String KEY_ENV = "CONFIG_ENCRYPTION_KEY";   // 环境变量注入，无默认值
+private static final String TRANSFORMATION = "AES/GCM/NoPadding";
+private static final int IV_LENGTH = 12;          // 每条记录随机 IV
+private static final int TAG_LENGTH_BITS = 128;   // 认证标签
 ```
 
-三个问题叠加：
+密文格式为 `v2:` + Base64(IV ‖ 密文+标签)。不带前缀的旧密文仍可解密，
+写入时一律转为新格式，因此存量数据会随使用逐步迁移；
+也可用 `CONFIG_CRYPTO_MIGRATE=true` 一次性迁移。
 
-| 问题 | 说明 |
-| --- | --- |
-| **密钥硬编码** | 写死在源码里，无法轮换 |
-| **仓库公开** | 密钥等同于公开信息，加密形同虚设 |
-| **ECB 模式** | `Cipher.getInstance("AES")` 默认 ECB，相同明文产生相同密文，可做模式分析 |
+`ValidationUtils.EncryptUtils` 与 `ConfigEncryptor` 均已删除。
 
-**影响**：任何拿到数据库内容的人（备份泄露、SQL 注入、运维越权、云厂商快照）
-都能直接解出**全部用户的模型服务商 API Key**。
+> ⚠️ **加密方式修好了，不等于旧密钥安全了**。存量 API Key 应视为已泄露，
+> 需通知用户轮换。详见[安全实践](../operations/security.md#-已修复p0服务商-api-key-的加密密钥硬编码在公开仓库中)。
 
-**建议修复方向**：
+### 9.2 ✅ 两套 AES 实现已清理
 
-1. 密钥改从环境变量注入（如 `CONFIG_ENCRYPTION_KEY`），随部署配置提供
-2. 改用 `AES/GCM/NoPadding`，每条记录随机 IV，密文与 IV 一同存储
-3. 提供一次性迁移任务，用旧密钥解密、新密钥重新加密存量数据
-4. 修复后**所有已存的服务商密钥应视为已泄露**，通知用户轮换
+`ConfigEncryptor`（零调用死代码，硬编码 `"AgentX-Config-Key"`）与
+`ValidationUtils.EncryptUtils` 都已删除，现在只保留 `ConfigCrypto` 一套实现。
 
-### 9.2 存在两套 AES 实现，其一为死代码
+### 9.3 ✅ `getNullableResult(ResultSet, int)` 已实现
 
-`ConfigEncryptor` 全仓库零调用，但同样硬编码密钥（`"AgentX-Config-Key"`）。
-
-死代码本身无害，风险在于**将来有人误以为它是"正确的那个"而开始使用**。
-建议直接删除，只保留一套经过修复的加密工具。
-
-### 9.3 `getNullableResult(ResultSet, int)` 直接返回 null
-
-```java
-@Override
-public ProviderConfig getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
-    return null;    // ← 未实现
-}
-```
-
-三个重载中，按**列索引**取值的那个没有实现，另外两个（按列名、按
-CallableStatement）都正常解密。
-
-如果某条查询走到按索引取值的路径，会静默拿到 `null` 而非配置，
-表现为「服务商配置突然为空」，且不报错。改动查询写法时需留意。
+此前三个重载中按**列索引**取值的那个直接 `return null`，
+导致该路径静默拿到空配置而非报错，表现为「服务商配置突然为空」且无异常。
+现已与按列名取值行为保持一致。
 
 ### 9.4 验证码仅内存实现，阻塞水平扩容
 

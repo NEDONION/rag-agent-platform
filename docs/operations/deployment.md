@@ -97,6 +97,16 @@ SILICONFLOW_API_KEY=
 MAIL_SMTP_USERNAME= MAIL_SMTP_PASSWORD=
 ```
 
+### 加密密钥（必填）
+
+```bash
+CONFIG_ENCRYPTION_KEY=      # 生成：openssl rand -base64 32
+CONFIG_CRYPTO_MIGRATE=false # 仅迁移存量数据时临时设为 true
+```
+
+> ⚠️ **缺失会导致后端启动失败**，这是有意为之——回落到默认密钥等于没有加密。
+> 首次升级到含此改动的版本前，**必须先在服务器 `.env` 中配好**，否则部署后服务起不来。
+
 ### 超时配置
 
 ```bash

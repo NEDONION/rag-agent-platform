@@ -21,38 +21,46 @@
 
 ## 1. 待修复问题
 
-### 🔴 P0：服务商 API Key 的加密密钥硬编码在公开仓库中
+### ✅ 已修复（P0）：服务商 API Key 的加密密钥硬编码在公开仓库中
 
-**影响**：任何拿到数据库内容的人都能解出**全部用户的模型服务商 API Key**。
+**原问题**：`ValidationUtils.EncryptUtils` 用硬编码密钥 `"1234567890123456"` 与
+默认 ECB 模式加密服务商配置。仓库公开 ⇒ 密钥公开 ⇒ **加密形同虚设**，
+任何拿到数据库内容的人都能解出全部用户的模型服务商 API Key。
 
-`ProviderConfigConverter` 把含 API Key 的 `ProviderConfig` 加密后落库，
-调用的是 `ValidationUtils.EncryptUtils`：
+**现在的实现**（`ConfigCrypto`）：
 
-```java
-private static final String ALGORITHM = "AES";
-private static final String SECRET_KEY = "1234567890123456";   // ← 硬编码
-...
-Cipher cipher = Cipher.getInstance(ALGORITHM);   // ← 默认 AES/ECB/PKCS5Padding
+| 项 | 修复后 |
+| --- | --- |
+| 密钥来源 | 环境变量 `CONFIG_ENCRYPTION_KEY`，**缺失即启动失败**，无默认值 |
+| 加密算法 | `AES/GCM/NoPadding`，每条记录随机 12 字节 IV |
+| 完整性 | GCM 认证标签，密文被篡改则解密失败而非返回垃圾数据 |
+| 密文格式 | `v2:` + Base64(IV ‖ 密文+标签) |
+| 存量兼容 | 无前缀的旧密文仍可读取，写入时自动转新格式 |
+| 防误用 | 若把 `CONFIG_ENCRYPTION_KEY` 设为旧的泄露密钥，启动直接报错 |
+
+启动时由 `ConfigCryptoInitializer` 主动校验，让配置缺失在启动阶段暴露，
+而不是等到用户第一次读写服务商配置时才报错。
+
+**回归保护**：`ConfigCryptoTest` 9 个用例锁定上述安全属性，CI 每次 PR 都跑。
+
+#### ⚠️ 仍需人工处理的两件事
+
+**① 存量密钥必须视为已泄露。**
+加密方式的修复**不会**让此前已存的 API Key 重新变安全——旧密钥早已随公开仓库外泄。
+**必须通知用户轮换其模型服务商 API Key。**
+
+**② 存量数据需要迁移。**
+读取时兼容旧格式，写入时才转新格式，所以不活跃的记录会长期以旧格式留存。
+一次性迁移：
+
+```bash
+# 在服务器上临时开启，重启后自动执行一次
+CONFIG_CRYPTO_MIGRATE=true docker compose up -d backend
+# 确认日志中「配置加密格式迁移完成」后，改回 false
 ```
 
-三重问题：
-
-| 问题 | 后果 |
-| --- | --- |
-| 密钥硬编码 | 无法轮换 |
-| **仓库公开** | 密钥等同公开信息，**加密形同虚设** |
-| ECB 模式 | 相同明文产生相同密文，可做模式分析 |
-
-**泄露途径**：数据库备份、SQL 注入、云厂商快照、运维越权——任一发生即全量泄露。
-
-**修复方向**：
-
-1. 密钥从环境变量注入（如 `CONFIG_ENCRYPTION_KEY`），缺失时**启动失败**而非回落默认值
-2. 改用 `AES/GCM/NoPadding`，每条记录随机 IV，IV 与密文一同存储
-3. 提供一次性迁移：旧密钥解密 → 新密钥重新加密
-4. 修复后**所有存量服务商密钥应视为已泄露，需通知用户轮换**
-
-详见 [基础设施 9.1](../architecture/infrastructure.md#91--服务商-api-key-的加密密钥硬编码在公开仓库中)。
+迁移全部完成后，应删除 `ConfigCrypto.decryptLegacy()` 及相关常量，
+彻底移除对旧密钥的依赖。
 
 ### 🟠 P1：docker.sock 挂载等同于宿主机 root
 

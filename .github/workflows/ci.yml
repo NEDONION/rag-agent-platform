@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   backend:
-    name: 后端编译
+    name: 后端编译与测试
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,6 +26,11 @@ jobs:
 
       - name: mvn compile
         run: mvn -B compile -DskipTests
+
+      # 单元测试。注意不要退回 -DskipTests——加密相关的行为约束靠这些用例守着，
+      # 跳过测试等于把安全属性的回归保护关掉。
+      - name: mvn test
+        run: mvn -B test
 
   frontend:
     name: 前端构建
