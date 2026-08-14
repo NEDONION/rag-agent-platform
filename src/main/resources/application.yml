@@ -6,7 +6,13 @@ server:
   tomcat:
     threads:
       max: 200 # 最大工作线程数
-    connection-timeout: 2000000 # 连接超时毫秒
+    # 连接建立后等待请求行的时间，兼作 keep-alive 空闲超时（Tomcat 默认 20s）。
+    #
+    # 注意：它**不控制响应时长**，因此与 SSE 流式对话无关——SSE 的存活时间由
+    # AbstractMessageHandler.CONNECTION_TIMEOUT（10 分钟）设在 SseEmitter 上决定。
+    # 这里曾被设成 2000000（33 分钟），对流式毫无帮助，却让空闲和半开连接被长期持有；
+    # 配合下面 10000 的 max-connections，慢连接很容易把连接器占满。
+    connection-timeout: 20000 # 连接超时毫秒
     max-connections: 10000 # 最大连接数
     accept-count: 100 # 等待队列长度
 
@@ -44,9 +50,9 @@ spring:
         size: 25 # 添加通道缓存大小
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:agentx}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
@@ -74,36 +80,54 @@ logging:
     name: logs/agent-x.log
 mail:
   smtp:
-    host: ${MAIL_SMTP_HOST}
+    host: ${MAIL_SMTP_HOST:smtp.gmail.com}
     port: ${MAIL_SMTP_PORT:587}
     username: ${MAIL_SMTP_USERNAME}
     password: ${MAIL_SMTP_PASSWORD}
   verification:
     template: |
       您好，
-  
+
       您正在使用 RAG 智能 Agent 平台。
-  
+
       邮箱验证码：%s
       有效期为 10 分钟，请勿泄露给他人。
-  
+
       如非本人操作，请忽略本邮件。
-  
+
       — RAG 智能 Agent 平台 团队
     subject: ${MAIL_VERIFICATION_SUBJECT:【RAG 智能 Agent 平台】邮箱验证码}
+
+oss:
+  endpoint: ${OSS_ENDPOINT:${S3_ENDPOINT}}
+  bucket-name: ${OSS_BUCKET_NAME:${S3_BUCKET_NAME}}
+  access-key: ${OSS_ACCESS_KEY:${S3_SECRET_ID}}
+  secret-key: ${OSS_SECRET_KEY:${S3_SECRET_KEY}}
 
 embedding:
   name: OpenAI
   vector-store:
-    host: ${VECTOR_DB_HOST:${DB_HOST}}
-    port: ${VECTOR_DB_PORT:${DB_PORT}}
-    user: ${VECTOR_DB_USER:${DB_USER}}
-    password: ${VECTOR_DB_PASSWORD:${DB_PASSWORD}}
-    database: ${VECTOR_DB_NAME:${DB_NAME}}
+    host: ${VECTOR_DB_HOST:${DB_HOST:localhost}}
+    port: ${VECTOR_DB_PORT:${DB_PORT:5432}}
+    user: ${VECTOR_DB_USER:${DB_USER:postgres}}
+    password: ${VECTOR_DB_PASSWORD:${DB_PASSWORD:postgres}}
+    database: ${VECTOR_DB_NAME:${DB_NAME:agentx}}
     table: ${VECTOR_DB_TABLE:public.vector_store}
     dimension: ${VECTOR_DB_DIMENSION:1024}
     drop-table-first: ${VECTOR_DB_DROP_TABLE_FIRST:false}
     create-table: ${VECTOR_DB_CREATE_TABLE:true}
+
+cors:
+  # 允许的前端来源，逗号分隔，支持端口通配（Spring origin pattern）。
+  # 默认放开本机任意端口，方便 dev server 换端口时不被 CORS 拦成空响应体的 403。
+  # 生产环境务必显式配置为真实域名，例如 CORS_ALLOWED_ORIGINS=https://app.example.com
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:[*],http://127.0.0.1:[*],http://localhost,http://127.0.0.1}
+
+config:
+  # 服务商 API Key 落库时的加密密钥（AES/GCM）。无默认值，缺失时启动失败。
+  # 生成：openssl rand -base64 32
+  encryption:
+    key: ${CONFIG_ENCRYPTION_KEY:}
 
 rerank:
   name: OpenAI
@@ -122,8 +146,8 @@ dromara:
         enable-storage: true # 启用存储
         access-key: ${S3_SECRET_ID}
         secret-key: ${S3_SECRET_KEY}
-        region: ${S3_REGION} # 与 end-point 参数至少填一个
-        end-point: ${S3_ENDPOINT} # 与 region 参数至少填一个
-        bucket-name: ${S3_BUCKET_NAME}
-        domain: ${S3_DOMAIN} # 访问域名，注意“/”结尾，例如：https://abc.hn-bkt.clouddn.com/
+        region: ${S3_REGION:cn-south-1} # 与 end-point 参数至少填一个
+        end-point: ${S3_ENDPOINT:https://s3.cn-south-1.qiniucs.com} # 与 region 参数至少填一个
+        bucket-name: ${S3_BUCKET_NAME:agentx-test-lucas}
+        domain: ${S3_DOMAIN:https://agentx-test-lucas.s3.cn-south-1.qiniucs.com/} # 访问域名，注意“/”结尾
         base-path: s3/ # 基础路径
