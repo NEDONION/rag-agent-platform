@@ -13,186 +13,30 @@ body {
     text-wrap: balance;
   }
 }
+/* ============================================================
+ * Markdown / 富文本排版
+ *
+ * 分工：**本文件只负责结构与节奏，颜色一律交给组件与设计令牌。**
+ *
+ * 这里原本是一组不断升级的 `!important` 规则——注释一路写着「更激进的紧凑间距」
+ * 「强制覆盖」「最终的通用行间距覆盖」，最终把 `.prose *` 的行高压到 1.2，
+ * 并且同样的规则在文件里出现了两遍。后果有两个：
+ *   1. 长回答几乎无法阅读（1.2 对中英混排过于拥挤）；
+ *   2. 任何组件都无法局部覆盖，只能继续加更强的 !important，问题越滚越大。
+ *
+ * 同时这里曾硬编码 #ddd / #666 / #0077cc / #f2f2f2 等颜色，
+ * 在暗色模式下全部失效。现改为 hsl(var(--token))，随主题自动适配。
+ * ============================================================ */
 
-/* Markdown 样式，添加自动换行配置 */
 .react-markdown {
   max-width: 100%;
+  line-height: 1.7;
   overflow-wrap: break-word;
-  word-wrap: break-word;
   word-break: break-word;
-  white-space: normal;
   hyphens: auto;
 }
 
-.react-markdown p, 
-.react-markdown li, 
-.react-markdown h1, 
-.react-markdown h2, 
-.react-markdown h3, 
-.react-markdown h4, 
-.react-markdown h5, 
-.react-markdown h6, 
-.react-markdown blockquote {
-  max-width: 100%;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-  word-break: break-word;
-  white-space: pre-wrap;
-}
-
-/* 优化Markdown内容间距 - 使用更紧凑的间距 */
-.react-markdown {
-  line-height: 1.2 !important; /* 进一步缩短行间距 */
-}
-
-.react-markdown p {
-  margin-top: 0.25rem !important;
-  margin-bottom: 0.25rem !important; /* 大幅缩短段落间距 */
-  line-height: 1.2 !important;
-}
-
-.react-markdown h1, 
-.react-markdown h2, 
-.react-markdown h3, 
-.react-markdown h4, 
-.react-markdown h5, 
-.react-markdown h6 {
-  margin-top: 0.5rem !important;   /* 进一步缩短标题上方间距 */
-  margin-bottom: 0.25rem !important; /* 进一步缩短标题下方间距 */
-  line-height: 1.1 !important;      /* 标题使用最紧凑的行间距 */
-}
-
-/* 代码块间距优化 */
-.react-markdown pre {
-  margin-top: 0.25rem !important;
-  margin-bottom: 0.25rem !important;
-  line-height: 1.2 !important;
-}
-
-/* 整体容器的行高优化 - 使用最紧凑设置 */
-.prose, .prose-sm, .react-markdown {
-  line-height: 1.2 !important;
-}
-
-.prose *, .prose-sm *, .react-markdown * {
-  line-height: 1.2 !important;
-}
-
-/* 代码块容器样式 */
-.code-block-container {
-  max-width: 100%;
-  position: relative;
-}
-
-/* 增强代码块内容换行规则 */
-.code-block-container pre {
-  white-space: pre-wrap; /* 改为pre-wrap以支持自动换行 */
-  word-wrap: break-word;
-  word-break: break-all; /* 使用break-all处理非空格处的断行 */
-  overflow-x: auto;
-}
-
-/* 处理长字符串如路径、URL等 */
-.react-markdown pre span,
-.react-markdown code span,
-.react-markdown :not(pre) > code {
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-  word-break: break-all; /* 使用break-all处理长路径等 */
-  max-width: 100%;
-}
-
-/* 表格样式 */
-.react-markdown table {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-  display: block;
-  border-collapse: collapse;
-  margin: 1rem 0;
-}
-
-.react-markdown table th,
-.react-markdown table td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: left;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-  word-break: break-word;
-  max-width: 300px; /* 限制单元格最大宽度 */
-}
-
-.react-markdown table th {
-  background-color: #f2f2f2;
-  font-weight: bold;
-}
-
-/* 列表样式 */
-.react-markdown ul,
-.react-markdown ol {
-  padding-left: 2rem;
-  margin-bottom: 0.5rem; /* 缩短列表间距 */
-}
-
-.react-markdown li {
-  margin-bottom: 0.25rem; /* 缩短列表项间距 */
-}
-
-/* 优化Prose样式的间距 - 使用更激进的紧凑间距 */
-.prose, .prose-sm {
-  --tw-prose-body: theme('colors.gray.700');
-  --tw-prose-headings: theme('colors.gray.900');
-  line-height: 1.2 !important;
-}
-
-.prose p, .prose-sm p {
-  margin-top: 0.25rem !important;
-  margin-bottom: 0.25rem !important;
-  line-height: 1.2 !important;
-}
-
-.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6,
-.prose-sm h1, .prose-sm h2, .prose-sm h3, .prose-sm h4, .prose-sm h5, .prose-sm h6 {
-  margin-top: 0.5rem !important;
-  margin-bottom: 0.25rem !important;
-  line-height: 1.1 !important;
-}
-
-.prose ul, .prose ol, .prose-sm ul, .prose-sm ol {
-  margin-top: 0.25rem !important;
-  margin-bottom: 0.25rem !important;
-  line-height: 1.2 !important;
-}
-
-.prose li, .prose-sm li {
-  margin-top: 0.1rem !important;
-  margin-bottom: 0.1rem !important;
-  line-height: 1.2 !important;
-}
-
-.prose blockquote, .prose-sm blockquote {
-  margin-top: 0.25rem !important;
-  margin-bottom: 0.25rem !important;
-  line-height: 1.2 !important;
-}
-
-/* 强制覆盖所有 prose 元素的行间距 */
-.prose > *, .prose-sm > * {
-  line-height: 1.2 !important;
-}
-
-/* 最终的通用行间距覆盖 - 确保所有文本都使用紧凑间距 */
-.prose p, .prose-sm p,
-.prose li, .prose-sm li,
-.prose h1, .prose-sm h1,
-.prose h2, .prose-sm h2,
-.prose h3, .prose-sm h3,
-.prose h4, .prose-sm h4,
-.prose h5, .prose-sm h5,
-.prose h6, .prose-sm h6,
-.prose blockquote, .prose-sm blockquote,
-.prose pre, .prose-sm pre,
+/* 中文与长 URL 的断行处理 */
 .react-markdown p,
 .react-markdown li,
 .react-markdown h1,
@@ -201,121 +45,251 @@ body {
 .react-markdown h4,
 .react-markdown h5,
 .react-markdown h6,
-.react-markdown blockquote,
-.react-markdown pre {
-  line-height: 1.2 !important;
-}
-
-/* 确保段落和其他块级元素的紧凑间距 */
-.prose p + p, .prose-sm p + p,
-.react-markdown p + p {
-  margin-top: 0.25rem !important;
-}
-
-/* 引用块样式 */
-.react-markdown blockquote,
-.prose blockquote, .prose-sm blockquote {
-  border-left: 4px solid #ddd;
-  padding-left: 1rem;
-  margin-left: 0;
-  margin-top: 0.5rem !important;
-  margin-bottom: 0.5rem !important;
-  color: #666;
-  line-height: 1.4 !important;
-}
-
-/* 链接样式 */
-.react-markdown a {
-  color: #0077cc;
-  text-decoration: underline;
+.react-markdown blockquote {
+  max-width: 100%;
   overflow-wrap: break-word;
-  word-wrap: break-word;
-  word-break: break-all; /* 为长URL添加断行 */
+  word-break: break-word;
 }
 
-/* 图片样式 */
+/* 垂直节奏：用 em 让间距随字号缩放；首尾元素不产生外边距，
+   以免在气泡或卡片内部顶出多余空白 */
+.react-markdown p {
+  margin: 0.75em 0;
+}
+
+.react-markdown h1,
+.react-markdown h2,
+.react-markdown h3,
+.react-markdown h4,
+.react-markdown h5,
+.react-markdown h6 {
+  line-height: 1.3;
+  margin: 1.6em 0 0.6em;
+}
+
+.react-markdown ul,
+.react-markdown ol {
+  margin: 0.75em 0;
+  padding-left: 1.5em;
+}
+
+.react-markdown li {
+  margin: 0.25em 0;
+}
+
+.react-markdown blockquote {
+  margin: 1em 0;
+}
+
+.react-markdown pre {
+  margin: 1em 0;
+  line-height: 1.6;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.react-markdown > *:first-child {
+  margin-top: 0;
+}
+
+.react-markdown > *:last-child {
+  margin-bottom: 0;
+}
+
+/* 长路径、长 token 的兜底断行 */
+.react-markdown pre span,
+.react-markdown code span,
+.react-markdown :not(pre) > code {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+
 .react-markdown img {
   max-width: 100%;
   height: auto;
 }
 
-/* 行内代码样式 */
+.react-markdown table {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+
+.react-markdown th,
+.react-markdown td {
+  padding: 0.5em 0.75em;
+  text-align: left;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* --- 以下是「裸用 .react-markdown」时的默认外观。
+   组件若通过 ReactMarkdown components 传入了自己的类名，会覆盖这里。 --- */
+
 .react-markdown :not(pre) > code {
-  background-color: #f5f5f5;
-  padding: 2px 4px;
-  border-radius: 3px;
-  font-family: monospace;
-  white-space: normal; /* 确保行内代码可以换行 */
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: 4px;
+  padding: 0.15em 0.3em;
+  font-size: 0.85em;
+}
+
+.react-markdown pre > code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+.react-markdown blockquote {
+  border-left: 2px solid hsl(var(--border));
+  padding-left: 1em;
+  color: hsl(var(--muted-foreground));
+}
+
+.react-markdown a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: hsl(var(--primary) / 0.35);
+}
+
+.react-markdown a:hover {
+  text-decoration-color: hsl(var(--primary));
+}
+
+.react-markdown th,
+.react-markdown td {
+  border: 1px solid hsl(var(--border));
+}
+
+.react-markdown th {
+  background-color: hsl(var(--muted) / 0.5);
+  font-weight: 500;
+}
+
+.react-markdown hr {
+  border: 0;
+  border-top: 1px solid hsl(var(--border));
+  margin: 1.5em 0;
+}
+
+/* 代码块容器 */
+.code-block-container {
+  max-width: 100%;
+  position: relative;
+}
+
+.code-block-container pre {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  overflow-x: auto;
 }
 
 @layer base {
   :root {
+    /* 蓝白配色：中性色**带蓝调**（而非零饱和的纯灰），底色为白。
+       这样整体氛围是蓝白的，而不是黑白灰——纯灰中性色会让界面显得冷硬。
+       色相统一在 214~221 之间，与品牌蓝同源。 */
     --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
+    --popover-foreground: 222 47% 11%;
+    /* 品牌蓝。**满饱和的蓝只用于主操作**（主按钮、当前步骤），
+       标题、图标、导航、徽章一律用中性色——一屏里同时出现五处同权重的蓝，
+       等于没有重点。需要弱一级的蓝（链接、信息态）时用 --info。 */
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    /* 次级表面：淡蓝灰，不是纯灰 */
+    --muted: 210 40% 96.5%;
+    --muted-foreground: 215 16% 47%;
+    /* 交互态（hover / 选中）用**淡蓝底 + 蓝字**，这是全站蓝色氛围的主要来源。
+       它出现频率远高于主按钮，所以决定了界面「是蓝白还是黑白」。 */
+    --accent: 214 95% 94%;
+    --accent-foreground: 221 83% 45%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
+    /* 语义色：只用于表达状态，不用于装饰。
+       -subtle 是同色系的浅底，供徽章、提示条使用，暗色下会自动换成深底。 */
+    --success: 142 71% 35%;
+    --success-foreground: 0 0% 98%;
+    --success-subtle: 142 60% 96%;
+    --warning: 38 92% 45%;
+    --warning-foreground: 0 0% 98%;
+    --warning-subtle: 38 92% 96%;
+    --info: 217 91% 55%;
+    --info-foreground: 0 0% 98%;
+    --info-subtle: 217 91% 96%;
+    /* 描边同样带蓝调；焦点环用品牌蓝而非近黑 */
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
+    --sidebar-background: 210 40% 98%;
+    --sidebar-foreground: 215 25% 27%;
+    --sidebar-primary: 221 83% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 214 95% 94%;
+    --sidebar-accent-foreground: 221 83% 45%;
+    --sidebar-border: 214 32% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    /* 暗色同样保持蓝调中性色，色相与浅色一致（222 系），避免切换主题时色感断裂 */
+    --background: 222 47% 7%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 98%;
+    /* 暗色下提高明度，否则 53% 的蓝压在近黑上对比不足 */
+    --primary: 217 91% 62%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 60% 20%;
+    --accent-foreground: 213 94% 78%;
+    --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    /* 暗色下语义色提高亮度以保证对比度，-subtle 换成低亮度深底 */
+    --success: 142 65% 45%;
+    --success-foreground: 0 0% 9%;
+    --success-subtle: 142 40% 14%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 0 0% 9%;
+    --warning-subtle: 38 50% 15%;
+    --info: 217 91% 62%;
+    --info-foreground: 0 0% 9%;
+    --info-subtle: 217 50% 17%;
+    --border: 217 33% 20%;
+    --input: 217 33% 20%;
+    --ring: 217 91% 62%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-background: 222 47% 9%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 217 91% 62%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-accent: 217 60% 20%;
+    --sidebar-accent-foreground: 213 94% 78%;
+    --sidebar-border: 217 33% 20%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
