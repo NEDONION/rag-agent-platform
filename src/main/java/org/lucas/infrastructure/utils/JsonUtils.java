@@ -40,11 +40,11 @@ public class JsonUtils {
             return "{}";
         }
 
+        // 注意：不要在这里打印 obj 或序列化结果。本方法被 ProviderConfigConverter 用于
+        // 序列化含用户 API Key 的 ProviderConfig，任何无条件打印都会把明文密钥写进
+        // stdout 与 logs/agent-x.log，使落库加密（AES/GCM）失去意义。
         try {
-            System.out.println("JsonUtils Debug - toJsonString input: " + obj + " (type: " + obj.getClass() + ")");
-            String result = objectMapper.writeValueAsString(obj);
-            System.out.println("JsonUtils Debug - toJsonString result: " + result);
-            return result;
+            return objectMapper.writeValueAsString(obj);
         } catch (Exception e) {
             log.error("JSON序列化失败: {}, 错误: {}", obj.getClass().getSimpleName(), e.getMessage(), e);
             return "{}";
@@ -96,19 +96,15 @@ public class JsonUtils {
      * @return 转换后的Map，失败返回null */
     public static Map<String, Object> parseMap(String json) {
         if (json == null || json.isEmpty()) {
-            System.out.println("JsonUtils Debug - parseMap input is null or empty");
             return null;
         }
 
+        // 同 toJsonString：入参可能是解密后的服务商配置，不打印内容本身。
         try {
-            System.out.println("JsonUtils Debug - parseMap input: " + json);
-            Map<String, Object> result = objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {
+            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {
             });
-            System.out.println("JsonUtils Debug - parseMap result: " + result);
-            return result;
         } catch (Exception e) {
             log.error("JSON Map反序列化失败: {}", e.getMessage(), e);
-            System.out.println("JsonUtils Debug - parseMap failed for input: " + json + ", error: " + e.getMessage());
             return null;
         }
     }

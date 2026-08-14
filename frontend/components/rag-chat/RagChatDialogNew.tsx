@@ -46,7 +46,6 @@ export function RagChatDialog({ open, onOpenChange, dataset }: RagChatDialogProp
 
   // 处理文件点击
   const handleFileClick = (file: RetrievedFileInfo) => {
-    console.log('[RagChatDialog] File clicked:', file);
     selectFile(file);
   };
 

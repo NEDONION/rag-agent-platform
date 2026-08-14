@@ -1,6 +1,8 @@
 package org.lucas.infrastructure.transport;
 
 import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.lucas.application.conversation.dto.AgentChatResponse;
@@ -8,6 +10,8 @@ import org.lucas.application.conversation.dto.AgentChatResponse;
 /** SSE消息传输实现 */
 @Component
 public class SseMessageTransport implements MessageTransport<SseEmitter> {
+
+    private static final Logger logger = LoggerFactory.getLogger(SseMessageTransport.class);
 
     /** 系统超时消息 */
     private static final String TIMEOUT_MESSAGE = "\n\n[系统提示：响应超时，请重试]";
@@ -28,7 +32,8 @@ public class SseMessageTransport implements MessageTransport<SseEmitter> {
                 emitter.send(response);
                 emitter.complete();
             } catch (IOException e) {
-                e.printStackTrace();
+                // 连接多半已断开，属于预期情况，记 debug 避免刷屏
+                logger.debug("SSE 超时回调发送提示失败，连接可能已关闭: {}", e.getMessage());
             }
         });
 
@@ -41,7 +46,7 @@ public class SseMessageTransport implements MessageTransport<SseEmitter> {
                 emitter.send(response);
                 emitter.complete();
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.debug("SSE 错误回调发送提示失败，连接可能已关闭: {}", e.getMessage());
             }
         });
 

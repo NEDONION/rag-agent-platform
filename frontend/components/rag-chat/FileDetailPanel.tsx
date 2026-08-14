@@ -72,13 +72,10 @@ export function FileDetailPanel({ selectedFile, onDataLoad }: FileDetailPanelPro
 
   // 加载文件信息和文档单元
   useEffect(() => {
-    console.log('[FileDetailPanel] selectedFile changed:', selectedFile);
     if (selectedFile) {
-      console.log('[FileDetailPanel] Loading file info and documents for:', selectedFile);
       loadFileInfo();
       loadDocumentUnits(1, debouncedQuery);
     } else {
-      console.log('[FileDetailPanel] No selected file, clearing state');
       setFileInfo(null);
       setDocumentUnits([]);
       setError(null);
@@ -89,11 +86,9 @@ export function FileDetailPanel({ selectedFile, onDataLoad }: FileDetailPanelPro
   const loadFileInfo = async () => {
     if (!selectedFile) return;
     
-    console.log('[FileDetailPanel] Loading file info for:', selectedFile);
     
     // 对于已安装RAG的文件，调用专门的API获取文件信息
     if (selectedFile.isInstalledRag && selectedFile.userRagId) {
-      console.log('[FileDetailPanel] Processing as installed RAG file, loading from API');
       
       try {
         const response = await getInstalledRagFileInfoWithToast(selectedFile.userRagId, selectedFile.fileId);
@@ -176,12 +171,10 @@ export function FileDetailPanel({ selectedFile, onDataLoad }: FileDetailPanelPro
       
       if (selectedFile.isInstalledRag && selectedFile.userRagId) {
         // 已安装RAG：使用快照感知API
-        console.log('[FileDetailPanel] Loading documents for installed RAG:', { userRagId: selectedFile.userRagId, fileId: selectedFile.fileId });
         const documentsResponse = await getInstalledRagFileDocumentsWithToast(
           selectedFile.userRagId, 
           selectedFile.fileId
         );
-        console.log('[FileDetailPanel] Documents response:', documentsResponse);
         
         if (documentsResponse.code === 200) {
           let documents = documentsResponse.data || [];

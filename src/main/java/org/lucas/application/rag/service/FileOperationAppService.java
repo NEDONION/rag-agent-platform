@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.util.List;
 import org.dromara.x.file.storage.core.FileStorageService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,8 @@ import org.lucas.infrastructure.mq.events.RagDocSyncStorageEvent;
  * @author shilong.zang */
 @Service
 public class FileOperationAppService {
+
+    private static final Logger logger = LoggerFactory.getLogger(FileOperationAppService.class);
 
     private final FileDetailDomainService fileDetailDomainService;
     private final DocumentUnitDomainService documentUnitDomainService;
@@ -118,7 +122,7 @@ public class FileOperationAppService {
                 fileStorageService.delete(fileUrl);
             } catch (Exception e) {
                 // 记录日志但继续删除其他文件
-                System.err.println("删除文件失败: " + fileUrl + ", 错误: " + e.getMessage());
+                logger.error("删除文件失败，跳过并继续处理其余文件: {}", fileUrl, e);
             }
         }
     }
@@ -149,9 +153,8 @@ public class FileOperationAppService {
             applicationEventPublisher.publishEvent(storageEvent);
 
         } catch (Exception e) {
-            // 记录日志但不影响主流程
-            // 可以考虑使用日志框架记录错误
-            System.err.println("触发重新向量化失败: " + e.getMessage());
+            // 记录日志但不影响主流程：内容已保存，向量化失败不应回滚用户的修改
+            logger.error("触发重新向量化失败，文档单元 {} 的向量可能与内容不一致", documentUnit.getId(), e);
         }
     }
 }
