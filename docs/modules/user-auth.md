@@ -192,8 +192,9 @@ Token 消耗统计由 [LLM 模块的 token 部分](llm.md#7-token-溢出处理)�
 | 位置 | 线程池 |
 | --- | --- |
 | `RagQaDatasetAppService` | `ragStreamExecutor` |
-| `PortalAgentSessionController` | `newCachedThreadPool()` |
+| `AbstractMessageHandler.smartRenameSession` | 裸 `new Thread(...)` |
 | `ToolStateStateMachineAppService` | `app-tool-state-processor-thread` |
+| `DelayedTaskQueueManager` | `scheduled-task-executor` |
 
 **现有代码的正确做法**是在控制器线程里先取出 userId，再作为参数传进异步任务：
 

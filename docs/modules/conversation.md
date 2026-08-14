@@ -143,8 +143,8 @@ public interface MessageTransport<T> {
 ```
 POST /agents/sessions/chat
         ↓
-PortalAgentSessionController
-        ↓ 提交到 Executors.newCachedThreadPool()
+PortalAgentSessionController        ← 直接返回 SseEmitter，本身不开线程
+        ↓
 MessageHandlerFactory.getHandler(agent)
         ↓
 AbstractMessageHandler.chat(ctx, transport)
@@ -286,19 +286,29 @@ protected static final long CONNECTION_TIMEOUT = 10 * 60 * 1000L;
 曾经它是 50 分钟，配合 1 小时的 LLM 超时，导致故障被隐藏，见
 [排查记录 1.6](../operations/troubleshooting-log.md#16-根因五sse-超时形同虚设)。
 
-### 9.4 控制器用的是无界线程池
+### 9.4 会话智能重命名用的是裸 `new Thread(...)`
+
+Agent 对话主链路**没有应用层线程池**：请求线程一路同步执行到
+`handler.chat(...)` 返回 `SseEmitter`，随后的流式输出由 LangChain4j 的
+streaming 回调在 HTTP 客户端自己的线程上驱动。因此它天然**避开了
+`ForkJoinPool.commonPool()` 的串行化陷阱**——RAG 那条链路当初就栽在这上面，见
+[排查记录 1.4](../operations/troubleshooting-log.md#14-根因三并发被串行化)。
+
+需要注意的是 `AbstractMessageHandler.smartRenameSession()`：
 
 ```java
-private final ExecutorService executorService = Executors.newCachedThreadPool();
+Thread thread = new Thread(() -> { ... });   // 未命名、无上限
 ```
 
-`newCachedThreadPool()` 无上限。并发暴涨时会创建大量线程，
-在 1.2 CPU / 1.5GB 内存的容器里可能先 OOM。
+每次首轮对话都会新建一个**未命名**线程做会话重命名。量不大（仅首轮触发），
+但线程无名会让 thread dump 难以定位，且没有上限与拒绝策略。
+建议并入统一的有界线程池，并给出可辨识的线程名——参考
+`RagQaDatasetAppService` 的 `rag-stream-chat` 或 `DelayedTaskQueueManager` 的
+`scheduled-task-executor`。
 
-> 好的一面是它**避开了 `ForkJoinPool.commonPool()` 的串行化陷阱**——
-> RAG 那条链路当初就栽在这上面，见
-> [排查记录 1.4](../operations/troubleshooting-log.md#14-根因三并发被串行化)。
-> 但「无界」本身仍是隐患，建议改为有界线程池 + 拒绝策略。
+> ⚠️ 2026-08-12 更正：本节原描述为「控制器用的是无界线程池
+> `PortalAgentSessionController.executorService`」。该字段**从未被提交过任务**，
+> 已作为死代码删除；控制器只是直接返回 `SseEmitter`，不开线程。
 
 ---
 

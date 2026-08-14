@@ -9,7 +9,7 @@
 
 ## 目录
 
-- [1. 待修复问题](#1-待修复问题)
+- [1. 问题台账](#1-问题台账)
 - [2. 认证与授权](#2-认证与授权)
 - [3. 多租户隔离](#3-多租户隔离)
 - [4. 不可信代码执行](#4-不可信代码执行)
@@ -19,40 +19,82 @@
 
 ---
 
-## 1. 待修复问题
+## 1. 问题台账
 
-### 🔴 P0：服务商 API Key 的加密密钥硬编码在公开仓库中
+> 已修复项保留在此处而非删除——安全问题的处置过程本身是需要留痕的，
+> 且「已换算法」不等于「已消除影响」（见 P0 的遗留处置）。
 
-**影响**：任何拿到数据库内容的人都能解出**全部用户的模型服务商 API Key**。
+| 级别 | 问题 | 状态 |
+| --- | --- | --- |
+| 🔴 P0 | 服务商 API Key 加密密钥硬编码 | ✅ 算法已修复；**存量密钥轮换未完成** |
+| 🔴 P0 | 服务商 API Key 明文打印到 stdout | ✅ 已修复（2026-08-12），有回归测试 |
+| 🟠 P1 | docker.sock 挂载等同宿主机 root | ❌ 未修复 |
+| 🟡 P2 | 测试覆盖极低 | ⚠️ 仅加解密有测试（16 用例），其余无 |
+| 🟡 P2 | 死代码中的第二套硬编码密钥 | ✅ 已删除 |
+
+### ✅ 已修复（2026-08-12）：服务商 API Key 的加密密钥硬编码在公开仓库中
+
+> **原 P0**。加密实现已重写，密钥改为环境变量注入。**但历史泄露不可撤销**——见下方遗留处置。
 
 `ProviderConfigConverter` 把含 API Key 的 `ProviderConfig` 加密后落库，
-调用的是 `ValidationUtils.EncryptUtils`：
+原先调用的 `ValidationUtils.EncryptUtils` 存在三重问题：密钥硬编码在公开仓库、
+使用 ECB 模式（相同明文产生相同密文）、无法轮换。
 
-```java
-private static final String ALGORITHM = "AES";
-private static final String SECRET_KEY = "1234567890123456";   // ← 硬编码
-...
-Cipher cipher = Cipher.getInstance(ALGORITHM);   // ← 默认 AES/ECB/PKCS5Padding
-```
+**当前实现**（`ValidationUtils.EncryptUtils`）：
 
-三重问题：
-
-| 问题 | 后果 |
+| 项 | 现状 |
 | --- | --- |
-| 密钥硬编码 | 无法轮换 |
-| **仓库公开** | 密钥等同公开信息，**加密形同虚设** |
-| ECB 模式 | 相同明文产生相同密文，可做模式分析 |
+| 算法 | `AES/GCM/NoPadding`，128-bit tag，每次加密随机 12 字节 IV |
+| 密钥来源 | 环境变量 `CONFIG_ENCRYPTION_KEY`（接受 Base64 或 16/24/32 字节原始串） |
+| 缺失行为 | `EncryptionKeyValidator` 在 `@PostConstruct` 校验，**启动即失败**，无默认值回落 |
+| 密文格式 | `v2:` + Base64(IV ‖ 密文 ‖ Tag) |
+| 存量数据 | `decrypt()` 自动识别无前缀的 v1 密文并用旧密钥解开，**无需数据迁移**；任何一次写回自动升级为 v2 |
 
-**泄露途径**：数据库备份、SQL 注入、云厂商快照、运维越权——任一发生即全量泄露。
+**验证**（手工，9/9 通过）：v2 往返、相同明文产生不同密文、v1 遗留密文可读、
+null 边界、篡改密文被 GCM 拒绝、密钥缺失/长度非法时抛出明确异常。
 
-**修复方向**：
+**遗留处置（尚未完成）**：
 
-1. 密钥从环境变量注入（如 `CONFIG_ENCRYPTION_KEY`），缺失时**启动失败**而非回落默认值
-2. 改用 `AES/GCM/NoPadding`，每条记录随机 IV，IV 与密文一同存储
-3. 提供一次性迁移：旧密钥解密 → 新密钥重新加密
-4. 修复后**所有存量服务商密钥应视为已泄露，需通知用户轮换**
+- [ ] 旧密钥 `1234567890123456` 已随公开仓库泄露。**所有仍为 v1 格式的服务商密钥必须视为已泄露**，
+      需通知用户轮换——重写加密算法并不能挽回已经泄露的明文。
+- [ ] 可选：写一次性任务把存量 v1 记录批量重加密为 v2，以便最终移除 `decryptLegacy` 路径。
 
 详见 [基础设施 9.1](../architecture/infrastructure.md#91--服务商-api-key-的加密密钥硬编码在公开仓库中)。
+
+### ✅ 已修复（2026-08-12）：服务商 API Key 明文打印到 stdout
+
+> **原 P0**，与上一条是同一条数据链上的两个洞：一个把密钥**加密存进库**，另一个把同一份密钥
+> **明文写进日志**。只修前者等于没修。
+
+`JsonUtils.toJsonString()` 里有一组无条件执行的调试语句：
+
+```java
+System.out.println("JsonUtils Debug - toJsonString input: " + obj + ...);
+String result = objectMapper.writeValueAsString(obj);
+System.out.println("JsonUtils Debug - toJsonString result: " + result);   // ← 完整 JSON
+```
+
+而 `ProviderConfigConverter.setNonNullParameter()` 正是用它序列化含 API Key 的
+`ProviderConfig`。因此**每次保存服务商配置，明文密钥都会被打进 stdout**，
+落到容器日志与 `logs/agent-x.log`。`parseMap()` 中另有 4 处同类语句。
+
+**影响面比加密那条更广**：日志通常比数据库更容易被读到——运维、日志采集平台、
+排查问题时随手贴出的片段，都不设防。
+
+**实测确认**（修复前）：
+
+```
+JsonUtils Debug - toJsonString result: {"apiKey":"sk-SECRET-...","baseUrl":"https://api.example.com"}
+```
+
+**修复**：删除全部 6 处调试打印，并在方法上留注释说明为什么不能加回来。
+错误分支原本就走 `log.error`，不受影响。
+
+**回归保护**：`JsonUtilsTest.NoStdoutLeak` 断言这两个方法的 stdout/stderr **必须为空**
+（而非「不含某几行」）。已验证该测试能抓住回归——把 `println` 加回去后测试变红。
+
+> 📌 **同类风险的通用规则**：不要打印整个对象或序列化结果。
+> 详见 [AGENTS.md](../../AGENTS.md) 的「代码风格」与「安全红线」。
 
 ### 🟠 P1：docker.sock 挂载等同于宿主机 root
 
@@ -68,14 +110,27 @@ volumes:
 **缓解方向**：Docker API over TLS（限制可用命令）、rootless 模式、
 或把容器管理拆成独立的最小权限服务。
 
-### 🟡 P2：无自动化测试
+### 🟡 P2：测试覆盖极低（已开头，远未完成）
 
-无 `src/test` 目录，前端无 test 脚本。**任何安全修复都缺乏回归保护**。
+后端此前无 `src/test` 目录。目前有**两个测试类、23 个用例**，都围绕上面两条 P0：
 
-### 🟡 P2：死代码中的第二套硬编码密钥
+| 测试类 | 用例 | 锁住的不变量 |
+| --- | --- | --- |
+| `EncryptUtilsTest` | 16 | v2 往返、随机 IV、**v1 遗留密文仍可解密**、密钥缺失即失败 |
+| `JsonUtilsTest` | 7 | 序列化路径**不得向 stdout/stderr 输出任何内容** |
 
-`ConfigEncryptor` 全仓库零调用，但硬编码了 `"AgentX-Config-Key"`。
-风险在于将来有人误以为它是「正确的那个」而启用。建议直接删除。
+```bash
+mvn test
+```
+
+**仍然缺失**：570 个 Java 文件中其余全部无测试；前端无 test 脚本；无 CI 执行入口
+（`.github/` 不存在，`Dockerfile` 构建用 `-DskipTests`）。除加解密外的任何改动
+**依旧没有回归保护**。
+
+### ✅ 已修复（2026-08-12）：死代码中的第二套硬编码密钥
+
+> **原 P2**。`ConfigEncryptor`（硬编码 `"AgentX-Config-Key"`）全仓库零调用，已删除，
+> 消除了将来有人误以为它是「正确的那个」而启用的风险。
 
 ---
 

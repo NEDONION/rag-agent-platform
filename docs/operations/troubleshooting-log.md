@@ -165,7 +165,13 @@ commonPool 并行度 = availableProcessors - 1 = 1
 
 **结果：全站同一时刻只能有一个 RAG 问答在跑**，第二个用户的请求必须排队等第一个彻底结束。
 
-> 对比：Agent 链路在 `PortalAgentSessionController` 里用的是 `Executors.newCachedThreadPool()`，不受此问题影响。只有 RAG 这条路踩了坑。
+> 对比：Agent 链路不走 `ForkJoinPool`，因此不受此问题影响——只有 RAG 这条路踩了坑。
+>
+> ⚠️ 2026-08-12 更正：此处原写作「Agent 链路用的是 `PortalAgentSessionController` 里的
+> `newCachedThreadPool()`」，**不准确**。该字段声明后从未被提交过任务，已作为死代码删除。
+> Agent 会话实际是控制器直接返回 `SseEmitter`，主链路没有应用层线程池——
+> 流式输出由 LangChain4j 的 streaming 回调在 HTTP 客户端线程上驱动，
+> 所以同样不经过 `ForkJoinPool`。
 
 ### 修复
 

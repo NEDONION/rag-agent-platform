@@ -93,9 +93,18 @@ S3_SECRET_ID= S3_SECRET_KEY= S3_BUCKET_NAME= S3_ENDPOINT= S3_DOMAIN=
 # 模型服务
 SILICONFLOW_API_KEY=
 
+# 服务商配置加密密钥，用 `openssl rand -base64 32` 生成
+CONFIG_ENCRYPTION_KEY=
+
 # 邮件
 MAIL_SMTP_USERNAME= MAIL_SMTP_PASSWORD=
 ```
+
+> ⚠️ `CONFIG_ENCRYPTION_KEY` 缺失或长度非法时**后端启动即失败**（`EncryptionKeyValidator`），
+> 这是刻意设计——它用于加密用户填写的模型服务商 API Key，静默回落默认值比启动失败危险得多。
+>
+> **更换该密钥会使已存的服务商配置无法解密**，用户需重新填写 API Key。首次部署生成一次后
+> 请妥善保存，勿随部署重新生成。
 
 ### 超时配置
 
@@ -154,6 +163,30 @@ curl -i http://localhost:3000/api/health
 ---
 
 ## 5. CI/CD 自动部署
+
+工作流分两条，**职责与触发条件严格分离**：
+
+| 工作流 | 文件 | 触发 | 是否接触服务器 |
+| --- | --- | --- | --- |
+| CI（校验） | `.github/workflows/ci.yml` | PR → main、手动 | ❌ 否 |
+| Deploy（部署） | `.github/workflows/deploy.yml` | **仅** push main、手动 | ✅ 是 |
+
+### 5.0 CI 校验（不碰服务器）
+
+三个并行 job，不需要任何服务器凭据：
+
+| Job | 命令 | 守住什么 |
+| --- | --- | --- |
+| 后端编译与测试 | `mvn -B test` | 编译通过；`EncryptUtilsTest` 锁住「v1 遗留密文仍可解密」——该不变量一旦回归，线上全部存量服务商配置立刻读不出来 |
+| 前端构建 | `pnpm install` + `pnpm build` | Next.js 构建通过 |
+| Nginx 配置校验 | 挂进 `conf.d/` 跑 `nginx -t` | 配置语法错误。用 `--add-host` 让 `proxy_pass` 里的 `backend`/`frontend` 可解析，否则 nginx 在配置检查阶段就会 emerg 退出 |
+
+> CI 刻意**不设置** `CONFIG_ENCRYPTION_KEY`：测试自带密钥，而缺少该变量时
+> 「密钥缺失应启动失败」的两个用例才会真正执行（配了则自动跳过）。
+
+本地提交前跑一遍相同命令，见[本地开发指南](../development/local-setup.md)。
+
+### 5.1 部署流程
 
 push 到 `main` 后自动完成构建与部署。
 

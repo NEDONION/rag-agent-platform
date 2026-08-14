@@ -160,3 +160,6 @@ application-local.yml
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Claude Code 本地个人设置（不入库）
+.claude/settings.local.json
