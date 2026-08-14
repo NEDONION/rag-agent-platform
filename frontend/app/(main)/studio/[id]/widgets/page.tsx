@@ -298,8 +298,8 @@ export default function AgentWidgetsPage() {
       </div>
 
       {widgets.length === 0 ? (
-        <div className="text-center py-16 border rounded-lg bg-gray-50">
-          <Settings className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+        <div className="text-center py-16 border rounded-lg bg-muted/40">
+          <Settings className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium mb-2">还没有创建任何嵌入组件</h3>
           <p className="text-muted-foreground mb-6">
             创建嵌入组件，让其他网站可以集成您的AI助理
@@ -337,7 +337,7 @@ export default function AgentWidgetsPage() {
               <CardContent className="space-y-3">
                 <div className="text-sm">
                   <strong>公开ID:</strong> 
-                  <code className="ml-2 px-2 py-1 bg-gray-100 rounded text-xs">
+                  <code className="ml-2 px-2 py-1 bg-muted rounded text-xs">
                     {widget.publicId}
                   </code>
                 </div>
@@ -351,7 +351,7 @@ export default function AgentWidgetsPage() {
                 <div className="text-sm">
                   <strong>访问地址:</strong>
                   <div className="flex items-center gap-2 mt-1">
-                    <code className="flex-1 px-2 py-1 bg-gray-100 rounded text-xs break-all">
+                    <code className="flex-1 px-2 py-1 bg-muted rounded text-xs break-all">
                       {window.location.origin}/widget/{widget.publicId}
                     </code>
                     <Button
@@ -392,7 +392,7 @@ export default function AgentWidgetsPage() {
                       <div>
                         <Label className="text-sm font-semibold">固定iframe嵌入模式</Label>
                         <div className="mt-2 relative">
-                          <pre className="bg-gray-100 p-4 rounded-md text-xs overflow-x-auto max-h-48 overflow-y-auto">
+                          <pre className="bg-muted p-4 rounded-md text-xs overflow-x-auto max-h-48 overflow-y-auto">
 {`<!-- AgentX 智能助手小组件嵌入代码 -->
 <iframe 
   src="${window.location.origin}/widget/${widget.publicId}"
@@ -425,7 +425,7 @@ export default function AgentWidgetsPage() {
                       <div>
                         <Label className="text-sm font-semibold">悬浮窗嵌入模式</Label>
                         <div className="mt-2 relative">
-                          <pre className="bg-gray-100 p-4 rounded-md text-xs overflow-x-auto max-h-64 overflow-y-auto">
+                          <pre className="bg-muted p-4 rounded-md text-xs overflow-x-auto max-h-64 overflow-y-auto">
 {`<!-- 悬浮窗模式嵌入代码 -->
 <script>
   (function() {

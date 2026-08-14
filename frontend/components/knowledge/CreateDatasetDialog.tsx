@@ -131,7 +131,7 @@ export function CreateDatasetDialog({ onSuccess, trigger }: CreateDatasetDialogP
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="name">
-                {t("数据集名称")} <span className="text-red-500">*</span>
+                {t("数据集名称")} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="name"

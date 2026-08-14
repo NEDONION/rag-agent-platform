@@ -239,7 +239,7 @@ export default function ResetPasswordPage() {
           <>
             <div className="space-y-2">
               <Label htmlFor="email">
-                邮箱 <span className="text-red-500">*</span>
+                邮箱 <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="email"
@@ -254,7 +254,7 @@ export default function ResetPasswordPage() {
             
             <div className="space-y-2">
               <Label htmlFor="captcha">
-                图形验证码 <span className="text-red-500">*</span>
+                图形验证码 <span className="text-destructive">*</span>
               </Label>
               <div className="flex space-x-2">
                 <Input
@@ -285,7 +285,7 @@ export default function ResetPasswordPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="w-full h-full bg-gray-200 flex items-center justify-center text-sm">
+                    <div className="w-full h-full bg-muted flex items-center justify-center text-sm">
                       {loadingCaptcha ? "加载中..." : "点击获取"}
                     </div>
                   )}
@@ -313,7 +313,7 @@ export default function ResetPasswordPage() {
             
             <div className="space-y-2">
               <Label htmlFor="code">
-                验证码 <span className="text-red-500">*</span>
+                验证码 <span className="text-destructive">*</span>
               </Label>
               <div className="flex space-x-2">
                 <Input
@@ -339,7 +339,7 @@ export default function ResetPasswordPage() {
             
             <div className="space-y-2">
               <Label htmlFor="newPassword">
-                新密码 <span className="text-red-500">*</span>
+                新密码 <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="newPassword"
@@ -355,7 +355,7 @@ export default function ResetPasswordPage() {
             
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">
-                确认密码 <span className="text-red-500">*</span>
+                确认密码 <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="confirmPassword"
@@ -448,7 +448,7 @@ export default function ResetPasswordPage() {
       </div>
       
       <div className="space-y-4">
-        <p className="text-xs text-muted-foreground">带 <span className="text-red-500">*</span> 的字段为必填项</p>
+        <p className="text-xs text-muted-foreground">带 <span className="text-destructive">*</span> 的字段为必填项</p>
         {renderCurrentStep()}
       </div>
       

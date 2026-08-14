@@ -12,7 +12,7 @@ const templates = [
     description: "快速回答客户问题，提供产品信息和解决方案",
     category: "聊天助手",
     icon: MessageCircle,
-    color: "bg-blue-100 text-blue-600",
+    color: "bg-accent text-primary",
   },
   {
     id: "2",
@@ -20,7 +20,7 @@ const templates = [
     description: "帮助创作者生成文章、博客、社交媒体内容等",
     category: "文本生成",
     icon: FileText,
-    color: "bg-emerald-100 text-emerald-600",
+    color: "bg-success-subtle text-success",
   },
   {
     id: "3",
@@ -28,7 +28,7 @@ const templates = [
     description: "帮助用户进行深度研究，提供信息汇总和分析",
     category: "Agent",
     icon: Bot,
-    color: "bg-purple-100 text-purple-600",
+    color: "bg-accent text-primary",
   },
   {
     id: "4",
@@ -36,7 +36,7 @@ const templates = [
     description: "根据用户需求推荐合适的产品和服务",
     category: "聊天助手",
     icon: MessageCircle,
-    color: "bg-blue-100 text-blue-600",
+    color: "bg-accent text-primary",
   },
   {
     id: "5",
@@ -44,7 +44,7 @@ const templates = [
     description: "帮助学生解答问题，提供学习资料和指导",
     category: "Agent",
     icon: Bot,
-    color: "bg-purple-100 text-purple-600",
+    color: "bg-accent text-primary",
   },
   {
     id: "6",
@@ -52,7 +52,7 @@ const templates = [
     description: "生成各种营销场景的专业文案",
     category: "文本生成",
     icon: FileText,
-    color: "bg-emerald-100 text-emerald-600",
+    color: "bg-success-subtle text-success",
   },
 ]
 

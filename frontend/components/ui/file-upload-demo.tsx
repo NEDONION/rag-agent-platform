@@ -26,7 +26,7 @@ export default function FileUploadDemo() {
               size="lg"
               value={avatarUrl}
               onChange={setAvatarUrl}
-              placeholder={<Bot className="h-6 w-6 text-blue-600" />}
+              placeholder={<Bot className="h-6 w-6 text-primary" />}
               uploadText="上传头像"
               changeText="更换头像"
               removeText="移除头像"
@@ -100,7 +100,7 @@ export default function FileUploadDemo() {
                       size={size}
                       value={avatarUrl}
                       onChange={setAvatarUrl}
-                      placeholder={<Bot className="h-4 w-4 text-blue-600" />}
+                      placeholder={<Bot className="h-4 w-4 text-primary" />}
                     />
                     <p className="text-xs text-muted-foreground mt-2">{size}</p>
                   </div>

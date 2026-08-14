@@ -131,7 +131,7 @@ const AgentToolsForm: React.FC<AgentToolsFormProps> = ({
                   <div
                     key={tool.id}
                     className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                      isSelected ? "border-blue-500 bg-blue-50" : "hover:border-gray-300"
+                      isSelected ? "border-primary bg-accent/60" : "hover:border-border"
                     }`}
                     onClick={() => onToolClick(tool)}
                   >
@@ -176,8 +176,8 @@ const AgentToolsForm: React.FC<AgentToolsFormProps> = ({
                   key={kb.id}
                   className={`border rounded-lg p-4 cursor-pointer transition-all ${
                     formData.knowledgeBaseIds.includes(kb.id)
-                      ? "border-blue-500 bg-blue-50"
-                      : "hover:border-gray-300"
+                      ? "border-primary bg-accent/60"
+                      : "hover:border-border"
                   }`}
                   onClick={() => onKnowledgeBaseClick(kb)}
                 >

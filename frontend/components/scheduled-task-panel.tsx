@@ -47,12 +47,12 @@ export function ScheduledTaskPanel({
   if (!isOpen) return null
 
   return (
-    <div className="w-[400px] h-full border-l bg-white flex flex-col">
+    <div className="w-[400px] h-full border-l bg-background flex flex-col">
       {/* 头部 */}
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
-          <Clock className="h-5 w-5 text-gray-600" />
-          <h2 className="font-semibold text-gray-900">定时任务</h2>
+          <Clock className="h-5 w-5 text-muted-foreground" />
+          <h2 className="font-semibold text-foreground">定时任务</h2>
         </div>
         <div className="flex items-center gap-2">
           <Button

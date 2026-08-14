@@ -97,6 +97,9 @@ services:
       # 流式：对话补全
       LLM_STREAM_TIMEOUT_SECONDS: ${LLM_STREAM_TIMEOUT_SECONDS:-300}
 
+      # 服务商配置加密密钥（必填，缺失则后端启动失败）
+      CONFIG_ENCRYPTION_KEY: ${CONFIG_ENCRYPTION_KEY}
+
       # 邮件配置
       MAIL_SMTP_HOST: ${MAIL_SMTP_HOST:-smtp.qq.com}
       MAIL_SMTP_PORT: ${MAIL_SMTP_PORT:-587}

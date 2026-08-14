@@ -111,8 +111,8 @@ export function NavigationBar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200/70 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70">
-      <div className="container flex h-16 items-center px-4">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
+      <div className="container flex h-14 items-center px-4">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="mr-2 md:hidden">
@@ -123,8 +123,8 @@ export function NavigationBar() {
           <SheetContent side="left" className="pr-0">
             <div className="px-7">
               <Link href="/" className="flex items-center" onClick={() => setOpen(false)}>
-                <Home className="mr-2 h-5 w-5 text-blue-600" />
-                <span className="font-bold">{t("AgentX Plus")}</span>
+                <Home className="mr-2 h-5 w-5 text-primary" />
+                <span className="font-semibold">{t("AgentX Plus")}</span>
               </Link>
             </div>
             <nav className="mt-6 flex flex-col gap-4 px-2">
@@ -145,24 +145,28 @@ export function NavigationBar() {
             </nav>
           </SheetContent>
         </Sheet>
-        <Link href="/" className="mr-6 flex items-center space-x-2">
-          <Home className="h-6 w-6 text-blue-600" />
-          <span className="hidden font-semibold tracking-tight sm:inline-block text-slate-900">{t("RAG Agent Platform")}</span>
+        <Link href="/" className="mr-6 flex items-center gap-2">
+          <Home className="h-5 w-5 text-primary" />
+          <span className="hidden text-sm font-semibold tracking-tight sm:inline-block">
+            {t("RAG Agent Platform")}
+          </span>
         </Link>
         <div className="flex flex-1 items-center justify-between">
-          <nav className="hidden items-center space-x-2 md:flex">
+          {/* 选中态用「前景色 + 极浅底」表达，不用色块 + 描边 + 阴影三件套：
+              导航项是常驻元素，装饰越少，页面内容越清楚 */}
+          <nav className="hidden items-center gap-1 md:flex">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900",
+                  "flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm transition-colors",
                   isActiveRoute(item.href)
-                    ? "bg-blue-100 text-blue-900 ring-1 ring-blue-200 shadow-sm"
-                    : "text-slate-600",
+                    ? "bg-accent font-medium text-accent-foreground"
+                    : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground",
                 )}
               >
-                <item.icon className="h-5 w-5" />
+                <item.icon className="h-4 w-4" />
                 {t(item.name)}
               </Link>
             ))}
@@ -170,7 +174,7 @@ export function NavigationBar() {
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="rounded-full border border-slate-200 bg-white/80 px-3 text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+                <Button variant="ghost" size="sm" className="h-8 rounded-md px-2 text-muted-foreground hover:text-foreground">
                   <Languages className="mr-1 h-4 w-4" />
                   <span className="text-xs font-medium">{locale === "zh" ? "中文" : "EN"}</span>
                   <span className="sr-only">{t("Language")}</span>
@@ -181,7 +185,7 @@ export function NavigationBar() {
                   onSelect={() => setLocale("zh")}
                   className={cn(
                     "flex items-center justify-between",
-                    locale === "zh" && "bg-blue-50 text-blue-900 font-medium"
+                    locale === "zh" && "font-medium"
                   )}
                 >
                   <span>中文</span>
@@ -191,7 +195,7 @@ export function NavigationBar() {
                   onSelect={() => setLocale("en")}
                   className={cn(
                     "flex items-center justify-between",
-                    locale === "en" && "bg-blue-50 text-blue-900 font-medium"
+                    locale === "en" && "font-medium"
                   )}
                 >
                   <span>English</span>
@@ -201,8 +205,8 @@ export function NavigationBar() {
             </DropdownMenu>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2 rounded-full px-2 py-1.5 text-slate-700 hover:bg-slate-100">
-                  <Avatar className="h-8 w-8 ring-1 ring-slate-200">
+                <Button variant="ghost" className="flex h-8 items-center gap-2 rounded-md px-1.5">
+                  <Avatar className="h-6 w-6 border border-border">
                     <AvatarImage src={userInfo?.avatarUrl || "/avatar-male.svg"} alt={t("User")} />
                     <AvatarFallback>
                       {loading ? "..." : getUserAvatarFallback()}
@@ -215,14 +219,14 @@ export function NavigationBar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-64">
                 <DropdownMenuLabel className="flex items-center gap-3">
-                  <Avatar className="h-9 w-9 ring-1 ring-slate-200">
+                  <Avatar className="h-9 w-9 border border-border">
                     <AvatarImage src={userInfo?.avatarUrl || "/avatar-male.svg"} alt={t("User")} />
                     <AvatarFallback>
                       {loading ? "..." : getUserAvatarFallback()}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <div className="font-medium text-slate-900">
+                    <div className="font-medium text-foreground">
                       {loading ? t("Loading...") : (userInfo?.nickname || t("Unknown user"))}
                     </div>
                     {userInfo?.email && (
@@ -237,7 +241,7 @@ export function NavigationBar() {
                   <Wallet className="mr-2 h-4 w-4" />
                   <div className="flex items-center justify-between w-full">
                     <span>{t("Account balance")}</span>
-                    <span className="font-medium text-green-600">{formatAmount(balance)}</span>
+                    <span className="font-medium tabular-nums">{formatAmount(balance)}</span>
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

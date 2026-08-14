@@ -43,9 +43,11 @@ ForkJoinPool.commonPool 并行度 = 2 - 1 = 1
 | 位置 | 线程池 | 评价 |
 | --- | --- | --- |
 | `RagQaDatasetAppService` | `newFixedThreadPool(8)` | ✅ 已修复 |
-| `PortalAgentSessionController` | `newCachedThreadPool()` | ⚠️ 无界 |
 | `ToolStateStateMachineAppService` | 专用池 | ✅ |
 | `DelayedTaskQueueManager` | `newFixedThreadPool(5)` | ✅ |
+| `MemoryCodeStorage` | `newSingleThreadScheduledExecutor()` | ✅ 仅用于过期清理 |
+
+现存线程池全部有界。
 
 ### 已修复：RAG 问答串行化
 
@@ -75,18 +77,22 @@ private final ExecutorService ragStreamExecutor = Executors.newFixedThreadPool(8
 > **验证方式**：这个问题**单人测试复现不出来**。
 > 必须两个人同时发起 RAG 问答，观察是否互相排队。
 
-### 待改进：无界线程池
+### 已修复：`PortalAgentSessionController` 的无界线程池
 
 ```java
-// PortalAgentSessionController
+// 已删除
 private final ExecutorService executorService = Executors.newCachedThreadPool();
 ```
 
-`newCachedThreadPool()` 没有上限。并发暴涨时会持续创建线程，
-在 1.5GB 内存的容器里可能先 OOM 而非降级。
+**该字段声明后从未被使用**——整个控制器里没有任何 `submit` / `execute` 调用。
+由于 `newCachedThreadPool()` 是懒创建线程的，未提交任务就不会产生线程，
+因此它**没有造成过实际的线程膨胀**，属于死代码而非性能故障。已连同两个
+无用 import 一并删除。
 
-建议改为有界线程池 + 明确的拒绝策略（快速失败并返回「系统繁忙」，
-好过 OOM 拖垮整个进程）。
+> 📌 教训：`newCachedThreadPool()` 出现在代码里确实值得警惕，但判断风险前
+> 要先确认它**是否真的被提交过任务**。仅凭声明就断定「并发暴涨会 OOM」是错的。
+> 若将来确需在此处异步执行，用有界线程池 + 明确拒绝策略（快速失败返回「系统繁忙」，
+> 好过 OOM 拖垮整个进程）。
 
 ### 规则
 
@@ -105,7 +111,23 @@ private final ExecutorService executorService = Executors.newCachedThreadPool();
 | 流式 LLM | `LLM_STREAM_TIMEOUT_SECONDS` | 300s | 允许长，但不能形同虚设 |
 | RAG SSE 连接 | 代码常量 | 10min | 兜底 |
 | Agent SSE 连接 | `CONNECTION_TIMEOUT` | 10min | 兜底 |
+| Tomcat 连接 | `server.tomcat.connection-timeout` | 20s | 见下方说明，**与 SSE 无关** |
 | nginx 回源 | `proxy_read_timeout` | 3600s | 不能早于应用层切断 |
+
+### `connection-timeout` 不是给 SSE 用的（2026-08-12 修正）
+
+这个值曾被设成 `2000000`（33 分钟），推测是想「让流式连接活久一点」。但它管的是
+**连接建立后等待请求行的时间**，兼作 keep-alive 空闲超时，**不控制响应时长**：
+
+- SSE 的存活时间由 `AbstractMessageHandler.CONNECTION_TIMEOUT`（10 分钟）设在
+  `SseEmitter` 上决定，与 Tomcat 这个参数无关；
+- 调大它对流式毫无帮助，却让空闲和半开连接被持有 33 分钟。配合
+  `max-connections: 10000`，慢连接可以轻易占满连接器。
+
+已改回 Tomcat 默认的 `20000`。已建立的 SSE 响应流处于异步请求中，不受该空闲超时影响。
+
+> **想延长流式时间，应该改 `SseEmitter` 的超时或 `spring.mvc.async.request-timeout`
+> （当前未配置，因此以 `SseEmitter` 自带值为准），不要动 `connection-timeout`。**
 
 ### 历史教训
 

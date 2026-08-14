@@ -83,7 +83,7 @@ export function ApiKeyList({
   // 获取状态徽章
   const getStatusBadge = (status: boolean) => {
     return status ? (
-      <Badge variant="default" className="bg-green-500">
+      <Badge variant="default" className="bg-success">
         Enabled
       </Badge>
     ) : (
@@ -206,7 +206,7 @@ export function ApiKeyList({
                       <DropdownMenuItem
                         onClick={() => onDeleteKey(apiKey)}
                         disabled={isOperating}
-                        className="text-red-600"
+                        className="text-destructive"
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
                         Delete

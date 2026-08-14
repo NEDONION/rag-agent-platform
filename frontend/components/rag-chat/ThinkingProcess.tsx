@@ -1,11 +1,10 @@
 "use client";
 
 import ReactMarkdown from "react-markdown";
-import { Brain, ChevronDown, ChevronRight, Loader2 } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import remarkGfm from "remark-gfm";
+import { ChevronRight, Loader2 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import type { RagThinkingData } from '@/types/rag-dataset';
+import type { RagThinkingData } from "@/types/rag-dataset";
 
 interface ThinkingProcessProps {
   thinking?: RagThinkingData;
@@ -16,63 +15,54 @@ interface ThinkingProcessProps {
   onToggle?: () => void;
 }
 
-export function ThinkingProcess({ 
-  thinking, 
-  thinkingContent, 
-  isThinkingComplete, 
-  isStreaming, 
+/** 思维链（CoT）展示。
+ *
+ * 设计取向：思考过程是**次要信息**，不该和答案抢视觉权重。因此不用卡片、不用强调色，
+ * 只用一条左侧竖线 + 降级的文字颜色把它压到答案之下的层级；展开后内容与触发器对齐，
+ * 靠缩进而非边框来表达从属关系。 */
+export function ThinkingProcess({
+  thinking,
+  thinkingContent,
+  isThinkingComplete,
+  isStreaming,
   expanded = true,
-  onToggle 
+  onToggle,
 }: ThinkingProcessProps) {
-  // 只要有thinking状态就显示，无论是否有实际内容
   if (!thinking && !thinkingContent) {
     return null;
   }
 
+  const inProgress = !isThinkingComplete && isStreaming;
+
   return (
-    <Collapsible 
-      open={expanded}
-      onOpenChange={onToggle}
-      className="w-full"
-    >
-      <Card className="px-4 py-2 bg-amber-50 border border-amber-200 text-[11px]">
-        <CollapsibleTrigger className="flex items-center justify-between w-full text-left">
-          <div className="flex items-center gap-2">
-            <Brain className="h-4 w-4 text-amber-600" />
-            <span className="text-[12px] font-medium">思考过程</span>
-            {isThinkingComplete && (
-              <Badge variant="secondary" className="text-xs">
-                已完成
-              </Badge>
-            )}
-          </div>
-          {expanded ? (
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-          ) : (
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-          )}
-        </CollapsibleTrigger>
-        
-        <CollapsibleContent className="mt-3">
-          <div className="prose prose-sm prose-slate max-w-none pl-6 text-[11px]">
-            {thinkingContent ? (
-              <ReactMarkdown>
-                {thinkingContent}
-              </ReactMarkdown>
-            ) : (
-              <span className="text-muted-foreground">处理中...</span>
-            )}
-          </div>
-          
-          {/* 思考进行中状态 */}
-          {!isThinkingComplete && isStreaming && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2 pl-6">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              <span>处理中...</span>
+    <Collapsible open={expanded} onOpenChange={onToggle} className="w-full">
+      <CollapsibleTrigger className="group flex items-center gap-1.5 rounded-md py-1 text-xs text-muted-foreground transition-colors hover:text-foreground">
+        <ChevronRight
+          className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-90"
+        />
+        {inProgress ? (
+          <>
+            <Loader2 className="h-3 w-3 shrink-0 animate-spin" />
+            <span>正在思考</span>
+          </>
+        ) : (
+          <span>思考过程</span>
+        )}
+      </CollapsibleTrigger>
+
+      <CollapsibleContent>
+        {/* 代码、表格等外观由 globals.css 的 .react-markdown 规则统一提供，
+            下面只覆盖思考过程特有的层级：更小的字号与降级的文字颜色。 */}
+        <div className="ml-[7px] border-l border-border pl-4 pt-1">
+          {thinkingContent ? (
+            <div className="react-markdown text-[13px] text-muted-foreground [&_ol]:list-decimal [&_strong]:font-medium [&_strong]:text-foreground [&_ul]:list-disc">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{thinkingContent}</ReactMarkdown>
             </div>
+          ) : (
+            <span className="text-[13px] text-muted-foreground">正在整理思路…</span>
           )}
-        </CollapsibleContent>
-      </Card>
+        </div>
+      </CollapsibleContent>
     </Collapsible>
   );
 }

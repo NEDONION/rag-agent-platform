@@ -106,23 +106,23 @@ const applications = [
 function getIconByType(type: string) {
   switch (type) {
     case "Agent":
-      return <Bot className="h-8 w-8 text-yellow-500" />
+      return <Bot className="h-8 w-8 text-warning" />
     case "助手":
-      return <Zap className="h-8 w-8 text-orange-500" />
+      return <Zap className="h-8 w-8 text-primary" />
     case "DeepSeek":
-      return <Sparkles className="h-8 w-8 text-blue-500" />
+      return <Sparkles className="h-8 w-8 text-primary" />
     case "媒体":
-      return <FileText className="h-8 w-8 text-purple-500" />
+      return <FileText className="h-8 w-8 text-primary" />
     case "工作流":
-      return <Terminal className="h-8 w-8 text-green-500" />
+      return <Terminal className="h-8 w-8 text-success" />
     case "工具":
-      return <Zap className="h-8 w-8 text-red-500" />
+      return <Zap className="h-8 w-8 text-destructive" />
     case "教育":
-      return <Book className="h-8 w-8 text-cyan-500" />
+      return <Book className="h-8 w-8 text-primary" />
     case "客服":
-      return <Zap className="h-8 w-8 text-pink-500" />
+      return <Zap className="h-8 w-8 text-primary" />
     default:
-      return <Bot className="h-8 w-8 text-gray-500" />
+      return <Bot className="h-8 w-8 text-muted-foreground" />
   }
 }
 
@@ -138,7 +138,7 @@ export function DiscoverContent() {
   return (
     <div className="container py-6 px-3">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight text-blue-600">探索 AgentX 的应用</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-primary">探索 AgentX 的应用</h1>
         <p className="text-muted-foreground mt-1">使用这些模板应用程序，或根据模板自定义您自己的应用程序。</p>
       </div>
 
@@ -184,7 +184,7 @@ export function DiscoverContent() {
                   <p className="text-sm text-muted-foreground line-clamp-3">{app.description}</p>
                 </CardContent>
                 <div className="absolute inset-0 flex items-end justify-center opacity-0 group-hover:opacity-100 transition-opacity pb-4">
-                  <Button className="bg-blue-500 hover:bg-blue-600 text-white w-[90%]">添加到工作区</Button>
+                  <Button className="bg-primary hover:bg-primary text-white w-[90%]">添加到工作区</Button>
                 </div>
               </Card>
             ))}
@@ -209,7 +209,7 @@ export function DiscoverContent() {
                       <p className="text-sm text-muted-foreground line-clamp-3">{app.description}</p>
                     </CardContent>
                     <div className="absolute inset-0 flex items-end justify-center opacity-0 group-hover:opacity-100 transition-opacity pb-4">
-                      <Button className="bg-blue-500 hover:bg-blue-600 text-white w-[90%]">添加到工作区</Button>
+                      <Button className="bg-primary hover:bg-primary text-white w-[90%]">添加到工作区</Button>
                     </div>
                   </Card>
                 ))}

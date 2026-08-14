@@ -514,7 +514,7 @@ export default function AgentPreviewChat({
     switch (type) {
       case MessageType.TOOL_CALL:
         return {
-          icon: <Wrench className="h-4 w-4 text-blue-500" />,
+          icon: <Wrench className="h-4 w-4 text-muted-foreground" />,
           text: '工具调用'
         }
       case MessageType.TEXT:
@@ -720,7 +720,7 @@ export default function AgentPreviewChat({
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
               <AvatarImage src={agentAvatar || undefined} alt="Agent Avatar" />
-              <AvatarFallback className="bg-blue-100 text-blue-600">
+              <AvatarFallback className="bg-muted text-muted-foreground">
                 {agentName ? agentName.charAt(0).toUpperCase() : <Bot className="h-5 w-5" />}
               </AvatarFallback>
             </Avatar>
@@ -756,7 +756,7 @@ export default function AgentPreviewChat({
                           {message.files.map((file) => (
                             <div
                               key={file.id}
-                              className="flex items-center gap-2 p-2 rounded border bg-blue-400/20 border-blue-300/30"
+                              className="flex items-center gap-2 rounded border border-border bg-background p-2"
                             >
                               {file.type.startsWith('image/') && file.url && file.url.trim() !== '' && (
                                 <img
@@ -766,10 +766,10 @@ export default function AgentPreviewChat({
                                 />
                               )}
                               <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium truncate text-white">
+                                <p className="truncate text-xs font-medium text-foreground">
                                   {file.name}
                                 </p>
-                                <p className="text-xs text-blue-100">
+                                <p className="text-xs text-muted-foreground">
                                   {(file.size / 1024).toFixed(1)} KB
                                 </p>
                               </div>
@@ -780,14 +780,14 @@ export default function AgentPreviewChat({
                       
                       {/* 消息内容 */}
                       {message.content && (
-                        <div className="bg-blue-50 text-gray-800 p-3 rounded-lg shadow-sm">
+                        <div className="rounded-2xl rounded-br-md bg-muted px-3.5 py-2 text-sm leading-[1.7] text-foreground">
                           <div className="text-sm whitespace-pre-wrap">
                             {message.content}
                           </div>
                         </div>
                       )}
                       
-                      <div className="text-xs text-gray-500 mt-1 text-right">
+                      <div className="mt-1 text-right text-[11px] text-muted-foreground">
                         {formatMessageTime(message.timestamp)}
                       </div>
                     </div>
@@ -795,7 +795,7 @@ export default function AgentPreviewChat({
                 ) : (
                   /* AI消息 */
                   <div className="flex items-start">
-                    <div className="h-8 w-8 mr-2 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="h-8 w-8 mr-2 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
                       {message.type && message.type !== MessageType.TEXT 
                         ? getMessageTypeInfo(message.type).icon 
                         : <div className="text-lg">🤖</div>
@@ -803,11 +803,11 @@ export default function AgentPreviewChat({
                     </div>
                     <div className="max-w-[95%]">
                       {/* 消息类型指示 */}
-                      <div className="flex items-center mb-1 text-xs text-gray-500">
+                      <div className="mb-1 flex items-center text-xs text-muted-foreground">
                         <span className="font-medium">
                           {message.type ? getMessageTypeInfo(message.type).text : agentName}
                         </span>
-                        <span className="mx-1 text-gray-400">·</span>
+                        <span className="mx-1 text-muted-foreground">·</span>
                         <span>{formatMessageTime(message.timestamp)}</span>
                       </div>
                       {/* 文件显示 - 在消息内容之前 */}
@@ -816,7 +816,7 @@ export default function AgentPreviewChat({
                           {message.files.map((file) => (
                             <div
                               key={file.id}
-                              className="flex items-center gap-2 p-2 rounded border bg-white border-gray-200"
+                              className="flex items-center gap-2 rounded border border-border bg-background p-2"
                             >
                               {file.type.startsWith('image/') && file.url && file.url.trim() !== '' && (
                                 <img
@@ -826,10 +826,10 @@ export default function AgentPreviewChat({
                                 />
                               )}
                               <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium truncate text-gray-900">
+                                <p className="truncate text-xs font-medium text-foreground">
                                   {file.name}
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-muted-foreground">
                                   {(file.size / 1024).toFixed(1)} KB
                                 </p>
                               </div>
@@ -842,7 +842,7 @@ export default function AgentPreviewChat({
                       {message.content && (
                         <div className={`p-3 rounded-lg ${
                           message.content.startsWith('预览出错:')
-                            ? 'bg-red-50 text-red-700 border border-red-200'
+                            ? 'rounded-lg border border-destructive/30 text-destructive'
                             : ''
                         }`}>
                           {message.content.startsWith('预览出错:') ? (
@@ -879,21 +879,21 @@ export default function AgentPreviewChat({
             {/* 思考中提示 - 和chat-panel保持一致 */}
             {isThinking && (!currentAssistantMessage || !currentAssistantMessage.hasContent) && (
               <div className="flex items-start">
-                <div className="h-8 w-8 mr-2 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="h-8 w-8 mr-2 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
                   <div className="text-lg">🤖</div>
                 </div>
                 <div className="max-w-[95%]">
-                  <div className="flex items-center mb-1 text-xs text-gray-500">
+                  <div className="mb-1 flex items-center text-xs text-muted-foreground">
                     <span className="font-medium">{agentName}</span>
-                    <span className="mx-1 text-gray-400">·</span>
+                    <span className="mx-1 text-muted-foreground">·</span>
                     <span>刚刚</span>
                   </div>
                   <div className="space-y-2 p-3 rounded-lg">
                     <div className="flex space-x-2 items-center">
-                      <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-                      <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse delay-75"></div>
-                      <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse delay-150"></div>
-                      <div className="text-sm text-gray-500 animate-pulse">思考中...</div>
+                      <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground animate-pulse"></div>
+                      <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground animate-pulse delay-75"></div>
+                      <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground animate-pulse delay-150"></div>
+                      <div className="text-sm text-muted-foreground animate-pulse">思考中...</div>
                     </div>
                   </div>
                 </div>
@@ -905,7 +905,7 @@ export default function AgentPreviewChat({
               <Button
                 variant="outline"
                 size="sm"
-                className="fixed bottom-32 right-6 rounded-full shadow-md bg-white z-10 hover:bg-gray-50"
+                className="fixed bottom-32 right-6 z-10 rounded-full bg-background shadow-md hover:bg-accent"
                 onClick={scrollToBottom}
               >
                 <span className="text-sm">↓ 回到底部</span>
@@ -923,7 +923,7 @@ export default function AgentPreviewChat({
             {uploadedFiles.map((file) => (
               <div
                 key={file.id}
-                className="flex items-center gap-2 bg-gray-100 rounded-lg p-2 border relative"
+                className="relative flex items-center gap-2 rounded-lg border border-border bg-muted/60 p-2"
               >
                 {file.type.startsWith('image/') && file.url && file.url.trim() !== '' && (
                   <img
@@ -933,28 +933,28 @@ export default function AgentPreviewChat({
                   />
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium truncate text-gray-900">
+                  <p className="truncate text-xs font-medium text-foreground">
                     {file.name}
                   </p>
                   <div className="flex items-center gap-2">
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       {(file.size / 1024).toFixed(1)} KB
                     </p>
                     {typeof file.uploadProgress === 'number' && file.uploadProgress < 100 && (
                       <div className="flex items-center gap-1">
-                        <div className="w-8 h-1 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="h-1 w-8 overflow-hidden rounded-full bg-muted">
                           <div 
-                            className="h-full bg-blue-500 transition-all duration-300"
+                            className="h-full bg-primary transition-all duration-300"
                             style={{ width: `${file.uploadProgress}%` }}
                           />
                         </div>
-                        <span className="text-xs text-blue-600">
+                        <span className="text-xs text-muted-foreground">
                           {file.uploadProgress}%
                         </span>
                       </div>
                     )}
                     {file.uploadProgress === 100 && (
-                      <span className="text-xs text-green-600">✓</span>
+                      <span className="text-xs text-success">✓</span>
                     )}
                   </div>
                 </div>
@@ -963,7 +963,7 @@ export default function AgentPreviewChat({
                   size="sm"
                   onClick={() => removeFile(file.id)}
                   disabled={typeof file.uploadProgress === 'number' && file.uploadProgress < 100}
-                  className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600"
+                  className="h-6 w-6 p-0 hover:text-destructive"
                 >
                   <X className="h-3 w-3" />
                 </Button>
@@ -1047,7 +1047,7 @@ export default function AgentPreviewChat({
         
         {/* 中断状态提示 */}
         {canInterrupt && (
-          <p className="text-xs text-orange-600 mt-2 flex items-center gap-1">
+          <p className="text-xs text-primary mt-2 flex items-center gap-1">
             <Square className="h-3 w-3" />
             点击停止按钮可中断对话
           </p>

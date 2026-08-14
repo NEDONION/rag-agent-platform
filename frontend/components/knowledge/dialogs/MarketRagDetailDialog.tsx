@@ -241,9 +241,9 @@ export function MarketRagDetailDialog({
             </h4>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
-                  <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Download className="h-4 w-4 text-blue-600" />
+                <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/40">
+                  <div className="h-8 w-8 bg-accent rounded-full flex items-center justify-center">
+                    <Download className="h-4 w-4 text-primary" />
                   </div>
                   <div>
                     <div className="font-semibold text-lg">{ragMarket.installCount}</div>
@@ -251,9 +251,9 @@ export function MarketRagDetailDialog({
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
-                  <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <FileText className="h-4 w-4 text-green-600" />
+                <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/40">
+                  <div className="h-8 w-8 bg-accent rounded-full flex items-center justify-center">
+                    <FileText className="h-4 w-4 text-primary" />
                   </div>
                   <div>
                     <div className="font-semibold text-lg">{ragMarket.fileCount}</div>
@@ -263,9 +263,9 @@ export function MarketRagDetailDialog({
               </div>
               
               <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
-                  <div className="h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center">
-                    <Database className="h-4 w-4 text-purple-600" />
+                <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/40">
+                  <div className="h-8 w-8 bg-accent rounded-full flex items-center justify-center">
+                    <Database className="h-4 w-4 text-primary" />
                   </div>
                   <div>
                     <div className="font-semibold text-lg">{ragMarket.documentCount}</div>
@@ -273,9 +273,9 @@ export function MarketRagDetailDialog({
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
-                  <div className="h-8 w-8 bg-orange-100 rounded-full flex items-center justify-center">
-                    <Package className="h-4 w-4 text-orange-600" />
+                <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/40">
+                  <div className="h-8 w-8 bg-accent rounded-full flex items-center justify-center">
+                    <Package className="h-4 w-4 text-primary" />
                   </div>
                   <div>
                     <div className="font-semibold text-lg">
@@ -297,9 +297,9 @@ export function MarketRagDetailDialog({
                   <Star className="h-4 w-4" />
                   {t("用户评价")}
                 </h4>
-                <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
-                  <div className="h-8 w-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                    <Star className="h-4 w-4 text-yellow-600" />
+                <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/40">
+                  <div className="h-8 w-8 bg-accent rounded-full flex items-center justify-center">
+                    <Star className="h-4 w-4 text-primary" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
@@ -342,7 +342,7 @@ export function MarketRagDetailDialog({
                 </div>
               ) : files.length === 0 ? (
                 <div className="text-center py-12">
-                  <File className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <File className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
                   <h3 className="text-lg font-medium mb-2">{t("暂无文件")}</h3>
                   <p className="text-muted-foreground">{t("此知识库中暂时没有文件")}</p>
                 </div>

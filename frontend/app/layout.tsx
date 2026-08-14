@@ -12,7 +12,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
       <body>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+        {/* 固定浅色为默认：enableSystem 会跟随操作系统，用户系统是深色时
+            应用会直接变深色，与产品默认不符。需要暗色时由用户显式切换。 */}
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <Providers>{children}</Providers>
         </ThemeProvider>
       </body>

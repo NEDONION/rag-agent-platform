@@ -181,9 +181,9 @@ export default function MultiModalUpload({
               {uploadedFiles.map((file) => (
                 <div
                   key={file.id}
-                  className="flex items-center gap-1 px-2 py-1 bg-blue-50 rounded text-xs border border-blue-200"
+                  className="flex items-center gap-1 px-2 py-1 bg-accent/60 rounded text-xs border border-border"
                 >
-                  <div className="flex-shrink-0 w-4 h-4 bg-blue-100 rounded flex items-center justify-center">
+                  <div className="flex-shrink-0 w-4 h-4 bg-accent rounded flex items-center justify-center">
                     {file.type.startsWith('image/') ? (
                       <span className="text-xs">🖼️</span>
                     ) : (
@@ -191,14 +191,14 @@ export default function MultiModalUpload({
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-gray-900 truncate max-w-20">
+                    <p className="text-xs font-medium text-foreground truncate max-w-20">
                       {file.name}
                     </p>
                     {/* 上传进度条 */}
                     {file.uploadProgress !== undefined && file.uploadProgress < 100 && (
-                      <div className="w-full bg-gray-200 rounded-full h-0.5 mt-0.5">
+                      <div className="w-full bg-muted rounded-full h-0.5 mt-0.5">
                         <div
-                          className="bg-blue-600 h-0.5 rounded-full transition-all duration-300"
+                          className="bg-primary h-0.5 rounded-full transition-all duration-300"
                           style={{ width: `${file.uploadProgress}%` }}
                         />
                       </div>
@@ -206,10 +206,10 @@ export default function MultiModalUpload({
                   </div>
                   <button
                     onClick={() => removeFile(file.id)}
-                    className="flex-shrink-0 hover:bg-blue-200 rounded p-0.5"
+                    className="flex-shrink-0 hover:bg-accent rounded p-0.5"
                     disabled={disabled}
                   >
-                    <X className="h-2.5 w-2.5 text-gray-500" />
+                    <X className="h-2.5 w-2.5 text-muted-foreground" />
                   </button>
                 </div>
               ))}
@@ -232,12 +232,12 @@ export default function MultiModalUpload({
             size="sm"
             onClick={() => fileInputRef.current?.click()}
             disabled={disabled || isUploadingFiles}
-            className="h-10 w-10 rounded-xl p-0 hover:bg-gray-100"
+            className="h-10 w-10 rounded-xl p-0 hover:bg-muted"
           >
             {isUploadingFiles ? (
-              <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             ) : (
-              <Paperclip className="h-5 w-5 text-gray-500" />
+              <Paperclip className="h-5 w-5 text-muted-foreground" />
             )}
           </Button>
         </div>

@@ -304,7 +304,7 @@ export function DocumentUnitsDialog({ open, onOpenChange, file }: DocumentUnitsD
               </div>
             ) : documentUnits.length === 0 ? (
               <div className="text-center py-8">
-                <FileSearch className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <FileSearch className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-2">
                   {searchQuery ? t("未找到匹配的语料") : t("暂无语料数据")}
                 </h3>
@@ -376,7 +376,7 @@ export function DocumentUnitsDialog({ open, onOpenChange, file }: DocumentUnitsD
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-red-600 hover:text-red-700"
+                                className="text-destructive hover:text-destructive"
                                 onClick={() => {
                                   console.log('删除语料单元:', unit);
                                   setDeletingUnit(unit);
@@ -411,14 +411,14 @@ export function DocumentUnitsDialog({ open, onOpenChange, file }: DocumentUnitsD
                                 li: ({ children }) => <li className="leading-tight">{children}</li>,
                                 strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                                 em: ({ children }) => <em className="italic">{children}</em>,
-                                code: ({ children }) => <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{children}</code>,
-                                pre: ({ children }) => <pre className="bg-gray-100 p-2 rounded text-sm font-mono overflow-x-auto mb-1">{children}</pre>,
-                                blockquote: ({ children }) => <blockquote className="border-l-4 border-gray-300 pl-4 italic mb-0.5 leading-tight">{children}</blockquote>,
-                                a: ({ children, href }) => <a href={href} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">{children}</a>,
-                                hr: () => <hr className="my-4 border-gray-200" />,
-                                table: ({ children }) => <table className="border-collapse border border-gray-300 w-full mb-1">{children}</table>,
-                                th: ({ children }) => <th className="border border-gray-300 px-2 py-1 bg-gray-50 font-semibold">{children}</th>,
-                                td: ({ children }) => <td className="border border-gray-300 px-2 py-1">{children}</td>,
+                                code: ({ children }) => <code className="bg-muted px-1 py-0.5 rounded text-sm font-mono">{children}</code>,
+                                pre: ({ children }) => <pre className="bg-muted p-2 rounded text-sm font-mono overflow-x-auto mb-1">{children}</pre>,
+                                blockquote: ({ children }) => <blockquote className="border-l-4 border-border pl-4 italic mb-0.5 leading-tight">{children}</blockquote>,
+                                a: ({ children, href }) => <a href={href} className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">{children}</a>,
+                                hr: () => <hr className="my-4 border-border" />,
+                                table: ({ children }) => <table className="border-collapse border border-border w-full mb-1">{children}</table>,
+                                th: ({ children }) => <th className="border border-border px-2 py-1 bg-muted/40 font-semibold">{children}</th>,
+                                td: ({ children }) => <td className="border border-border px-2 py-1">{children}</td>,
                               }}
                             >
                               {unit.content}

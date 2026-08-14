@@ -84,8 +84,20 @@ mvn spring-boot:run
 mvn -B compile -DskipTests
 ```
 
-> ⚠️ **当前仓库没有测试代码**（无 `src/test` 目录，前端 `package.json` 也没有 test 脚本）。
-> CI 里的「后端编译」只做编译校验，不跑测试。新增功能时补测试是当前最值得做的改进之一。
+跑测试（**CI 的后端 job 跑的就是这条**）：
+
+```bash
+mvn test
+```
+
+> ⚠️ **测试覆盖极低**：后端目前只有 `EncryptUtilsTest`（16 个用例，服务商密钥加解密）和
+> `JsonUtilsTest`（7 个用例，防止序列化时把明文密钥打进日志）两个测试类，共 23 个用例；
+> 其余 570 个 Java 文件均无测试，前端 `package.json` 也没有 test 脚本。
+> CI 会执行 `mvn -B test`，所以这 23 个用例有回归保护，但**其余代码没有**。
+> 新增功能时补测试是当前最值得做的改进之一。
+>
+> 其中 2 个用例验证「密钥缺失时启动失败」，只有在 shell 未导出 `CONFIG_ENCRYPTION_KEY`
+> 时才会执行，否则自动跳过（输出 `Skipped: 2`）——这是预期行为，不是测试没跑。
 
 ---
 
@@ -182,7 +194,7 @@ gh pr create
 
 | Job | 命令 |
 | --- | --- |
-| 后端编译 | `mvn -B compile -DskipTests` |
+| 后端编译与测试 | `mvn -B test` |
 | 前端构建 | `pnpm build` |
 | nginx 配置校验 | `nginx -t`（带 `--add-host`） |
 
@@ -271,6 +283,9 @@ IDE 自动 import 容易选错，且编译能过、运行才出错。
 
 - 数据库连接（本地是 Docker，线上是阿里云 RDS）
 - `SILICONFLOW_API_KEY` 是否配置
+- `CONFIG_ENCRYPTION_KEY` 是否配置——**缺失会导致启动直接失败**，日志里是
+  「缺少环境变量 CONFIG_ENCRYPTION_KEY」。用 `openssl rand -base64 32` 生成后写进 `.env`。
+  注意本地与线上用各自的密钥即可，但**同一环境不要更换**，否则该环境已存的服务商配置读不出来。
 - MQ 地址（本地 `localhost`，容器内是 `rabbitmq`）
 
 ---

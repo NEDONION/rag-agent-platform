@@ -54,7 +54,7 @@ const AgentBasicInfoForm: React.FC<AgentBasicInfoFormProps> = ({
               value={formData.avatar}
               onChange={(url) => updateFormField("avatar", url)}
               placeholder={
-                <div className="text-blue-600">
+                <div className="text-primary">
                   {formData.name ? formData.name.charAt(0).toUpperCase() : "🤖"}
                 </div>
               }
@@ -83,10 +83,10 @@ const AgentBasicInfoForm: React.FC<AgentBasicInfoFormProps> = ({
         <h2 className="text-lg font-medium mb-4">功能配置</h2>
         <div className="space-y-4">
           {/* 多模态开关 */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+          <div className="flex items-center justify-between p-4 bg-muted/40 rounded-lg border">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <FileImage className="h-5 w-5 text-blue-600" />
+              <div className="p-2 bg-accent rounded-lg">
+                <FileImage className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <p className="font-medium">多模态功能</p>
@@ -102,10 +102,10 @@ const AgentBasicInfoForm: React.FC<AgentBasicInfoFormProps> = ({
           </div>
 
           {/* 状态信息 */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+          <div className="flex items-center justify-between p-4 bg-muted/40 rounded-lg border">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <MessageSquare className="h-5 w-5 text-green-600" />
+              <div className="p-2 bg-success-subtle rounded-lg">
+                <MessageSquare className="h-5 w-5 text-success" />
               </div>
               <div>
                 <p className="font-medium">启用状态</p>

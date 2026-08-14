@@ -95,6 +95,7 @@ docs/
 | 文档 | 内容 |
 | --- | --- |
 | [本地开发指南](development/local-setup.md) | 环境、运行、风格、提交、常见问题 |
+| [前端样式规范](development/frontend-style.md) | 设计令牌、排版节奏、对话界面层级、样式预览页 |
 
 ---
 

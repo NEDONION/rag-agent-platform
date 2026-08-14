@@ -248,10 +248,10 @@ export default function ProfilePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-6">
         {/* 个人资料 */}
-        <Card className="border-slate-200 shadow-sm">
-          <CardHeader className="border-b border-slate-100 bg-slate-50/70">
+        <Card className="border-border shadow-sm">
+          <CardHeader className="border-b border-border bg-muted/40/70">
             <CardTitle className="flex items-center gap-2">
-              <User className="h-4 w-4 text-slate-600" />
+              <User className="h-4 w-4 text-muted-foreground" />
               {t("个人资料")}
             </CardTitle>
             <CardDescription>{t("更新您的个人信息")}</CardDescription>
@@ -300,7 +300,7 @@ export default function ProfilePage() {
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="border-t border-slate-100 bg-slate-50/40">
+            <CardFooter className="border-t border-border bg-muted/40/40">
               <Button type="submit" disabled={submitting}>
                 {submitting ? t("保存中...") : t("保存更改")}
               </Button>
@@ -309,10 +309,10 @@ export default function ProfilePage() {
         </Card>
 
         {/* 修改密码 */}
-        <Card className="border-slate-200 shadow-sm">
-          <CardHeader className="border-b border-slate-100 bg-slate-50/70">
+        <Card className="border-border shadow-sm">
+          <CardHeader className="border-b border-border bg-muted/40/70">
             <CardTitle className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-slate-600" />
+              <ShieldCheck className="h-4 w-4 text-muted-foreground" />
               {t("修改密码")}
             </CardTitle>
             <CardDescription>{t("为了账户安全，建议定期修改密码")}</CardDescription>
@@ -356,7 +356,7 @@ export default function ProfilePage() {
                 />
               </div>
             </CardContent>
-            <CardFooter className="border-t border-slate-100 bg-slate-50/40">
+            <CardFooter className="border-t border-border bg-muted/40/40">
               <Button type="submit" disabled={passwordSubmitting}>
                 {passwordSubmitting ? t("修改中...") : t("修改密码")}
               </Button>

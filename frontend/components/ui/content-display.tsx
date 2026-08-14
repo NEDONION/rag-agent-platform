@@ -67,7 +67,7 @@ export function ContentDisplay({
       <div className={cn("relative group", className)}>
         <pre className={cn(
           "whitespace-pre-wrap break-all text-sm font-mono p-3 bg-muted rounded-md",
-          jsonFormat && "bg-slate-50 border"
+          jsonFormat && "bg-muted/40 border"
         )}>
           {formattedContent}
         </pre>
@@ -79,7 +79,7 @@ export function ContentDisplay({
             className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
           >
             {copied ? (
-              <Check className="h-3 w-3 text-green-500" />
+              <Check className="h-3 w-3 text-success" />
             ) : (
               <Copy className="h-3 w-3" />
             )}
@@ -97,7 +97,7 @@ export function ContentDisplay({
           {/* 预览内容 */}
           <pre className={cn(
             "whitespace-pre-wrap break-all text-sm font-mono p-3 bg-muted rounded-md",
-            jsonFormat && "bg-slate-50 border"
+            jsonFormat && "bg-muted/40 border"
           )}>
             {isOpen ? formattedContent : truncatedContent}
           </pre>
@@ -139,7 +139,7 @@ export function ContentDisplay({
           className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
         >
           {copied ? (
-            <Check className="h-3 w-3 text-green-500" />
+            <Check className="h-3 w-3 text-success" />
           ) : (
             <Copy className="h-3 w-3" />
           )}

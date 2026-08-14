@@ -58,7 +58,7 @@ const AgentVersionHistoryDialog: React.FC<AgentVersionHistoryDialogProps> = ({
         <div className="flex-1 overflow-auto py-4">
           {isLoadingVersions ? (
             <div className="flex items-center justify-center py-8">
-              <RefreshCw className="h-6 w-6 animate-spin text-blue-500" />
+              <RefreshCw className="h-6 w-6 animate-spin text-primary" />
               <span className="ml-2">加载版本历史...</span>
             </div>
           ) : versions.length === 0 ? (

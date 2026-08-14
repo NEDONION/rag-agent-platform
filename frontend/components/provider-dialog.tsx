@@ -276,7 +276,7 @@ export function ProviderDialog({ open, onOpenChange, provider, onSuccess }: Prov
         
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="protocol">协议 <span className="text-red-500">*</span></Label>
+            <Label htmlFor="protocol">协议 <span className="text-destructive">*</span></Label>
             <Select 
               value={formData.protocol} 
               onValueChange={handleProtocolChange}
@@ -296,7 +296,7 @@ export function ProviderDialog({ open, onOpenChange, provider, onSuccess }: Prov
           </div>
           
           <div className="grid gap-2">
-            <Label htmlFor="name">名称 <span className="text-red-500">*</span></Label>
+            <Label htmlFor="name">名称 <span className="text-destructive">*</span></Label>
             <Input
               id="name"
               name="name"
@@ -327,7 +327,7 @@ export function ProviderDialog({ open, onOpenChange, provider, onSuccess }: Prov
               <div key={index} className="grid gap-2">
                 <Label htmlFor={field.label.toLowerCase().replace(/\s/g, '')}>
                   {field.label}
-                  {field.required && <span className="text-red-500"> *</span>}
+                  {field.required && <span className="text-destructive"> *</span>}
                 </Label>
                 <Input
                   id={field.label.toLowerCase().replace(/\s/g, '')}

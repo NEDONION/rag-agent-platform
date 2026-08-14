@@ -127,19 +127,19 @@ function WorkspaceItem({ id, name, icon, avatar, onClick }: WorkspaceItemProps) 
         <Button
             variant="ghost"
             className={cn(
-                "w-full justify-start px-3 py-2 text-sm font-medium pl-8 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors",
-                isActive && "bg-blue-100 text-blue-900 shadow-sm ring-1 ring-blue-200",
+                "w-full justify-start px-3 py-2 text-sm pl-8 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors",
+                isActive && "bg-accent font-medium text-accent-foreground",
             )}
             onClick={onClick}
         >
           {avatar && avatar.trim() !== '' ? (
-              <div className="w-6 h-6 rounded-full overflow-hidden mr-2 flex-shrink-0 ring-1 ring-slate-200">
+              <div className="w-6 h-6 rounded-full overflow-hidden mr-2 flex-shrink-0 border border-border">
                 <img src={avatar} alt={name} className="w-full h-full object-cover" />
               </div>
           ) : icon ? (
               <span className="mr-2">{icon}</span>
           ) : (
-              <Bot className="mr-2 h-4 w-4 text-slate-400" />
+              <Bot className="mr-2 h-4 w-4 text-muted-foreground" />
           )}
           <span className="truncate">{name}</span>
         </Button>
@@ -148,7 +148,7 @@ function WorkspaceItem({ id, name, icon, avatar, onClick }: WorkspaceItemProps) 
         <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7 rounded-md text-slate-500 hover:text-slate-900">
+              <Button variant="ghost" size="icon" className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground">
                 <MoreHorizontal className="h-4 w-4" />
                 <span className="sr-only">操作</span>
               </Button>
@@ -158,7 +158,7 @@ function WorkspaceItem({ id, name, icon, avatar, onClick }: WorkspaceItemProps) 
                 <Settings className="mr-2 h-4 w-4" />
                 <span>设置模型</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600" onClick={handleDeleteWorkspace}>
+              <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={handleDeleteWorkspace}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 <span>从工作区移除</span>
               </DropdownMenuItem>
@@ -225,7 +225,7 @@ function SidebarItemComponent({ item, depth = 0 }: SidebarItemProps) {
           <Button
               variant="ghost"
               className={cn(
-                "w-full justify-start px-3 py-2 text-sm font-semibold rounded-lg text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors",
+                "w-full justify-start px-3 py-2 text-sm font-medium rounded-md text-foreground hover:bg-accent transition-colors",
                 depth > 0 && "pl-8"
               )}
               onClick={() => setExpanded(!expanded)}
@@ -233,10 +233,10 @@ function SidebarItemComponent({ item, depth = 0 }: SidebarItemProps) {
             {typeof item.icon === "string" ? (
                 <span className="mr-2">{item.icon}</span>
             ) : (
-                item.icon && <item.icon className="mr-2 h-4 w-4 text-slate-500" />
+                item.icon && <item.icon className="mr-2 h-4 w-4 text-muted-foreground" />
             )}
             <span className="flex-1 text-left">{item.title}</span>
-            {expanded ? <ChevronDown className="h-4 w-4 text-slate-400" /> : <ChevronRight className="h-4 w-4 text-slate-400" />}
+            {expanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
           </Button>
           {expanded && (
               <div className="space-y-1">
@@ -268,8 +268,8 @@ function SidebarItemComponent({ item, depth = 0 }: SidebarItemProps) {
       <Button
           variant="ghost"
           className={cn(
-              "w-full justify-start px-3 py-2 text-sm font-semibold rounded-lg text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors",
-              isActive && "bg-blue-100 text-blue-900 shadow-sm ring-1 ring-blue-200",
+              "w-full justify-start px-3 py-2 text-sm font-medium rounded-md text-foreground hover:bg-accent transition-colors",
+              isActive && "bg-accent font-medium text-accent-foreground",
               depth > 0 && "pl-8",
           )}
           onClick={() => {
@@ -358,7 +358,7 @@ export function Sidebar() {
   ]
 
   return (
-      <div className="w-[220px] border-r border-slate-200/70 flex flex-col h-full bg-gradient-to-b from-slate-50 via-blue-50/40 to-white">
+      <div className="w-[220px] border-r border-border flex flex-col h-full bg-background">
         <div className="flex-1 overflow-auto py-5 px-2.5">
           <div className="space-y-2">
             {sidebarItems.map((item, index) => (

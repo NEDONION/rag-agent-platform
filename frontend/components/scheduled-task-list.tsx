@@ -250,9 +250,9 @@ export function ScheduledTaskList({ onTaskUpdate, onEditTask, agentId }: Schedul
   if (tasks.length === 0) {
     return (
       <div className="text-center py-12">
-        <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">暂无定时任务</h3>
-        <p className="text-gray-500">点击上方按钮创建您的第一个定时任务</p>
+        <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-foreground mb-2">暂无定时任务</h3>
+        <p className="text-muted-foreground">点击上方按钮创建您的第一个定时任务</p>
       </div>
     )
   }
@@ -269,8 +269,8 @@ export function ScheduledTaskList({ onTaskUpdate, onEditTask, agentId }: Schedul
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-gray-500" />
-                    <span className="font-medium text-sm text-gray-600">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium text-sm text-muted-foreground">
                       {formatRepeatType(task)}
                     </span>
                   </div>
@@ -281,23 +281,23 @@ export function ScheduledTaskList({ onTaskUpdate, onEditTask, agentId }: Schedul
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <p className="text-sm text-gray-900 leading-relaxed">
+                  <p className="text-sm text-foreground leading-relaxed">
                     {task.content}
                   </p>
                   
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3" />
                     <span>下次执行: {formatExecuteTime(task)}</span>
                   </div>
                   
                   {task.lastExecuteTime && (
-                    <div className="text-xs text-gray-400">
+                    <div className="text-xs text-muted-foreground">
                       上次执行: {formatDisplayDateTime(new Date(task.lastExecuteTime))}
                     </div>
                   )}
                   
                   <div className="flex justify-between items-center pt-2">
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-muted-foreground">
                       关联会话: {getSessionName(task.sessionId)}
                     </span>
                     
@@ -334,7 +334,7 @@ export function ScheduledTaskList({ onTaskUpdate, onEditTask, agentId }: Schedul
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => setDeleteTaskId(task.id)}
-                            className="text-red-600"
+                            className="text-destructive"
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
                             删除
@@ -363,7 +363,7 @@ export function ScheduledTaskList({ onTaskUpdate, onEditTask, agentId }: Schedul
             <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteTaskId && handleDeleteTask(deleteTaskId)}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive hover:bg-destructive"
             >
               删除
             </AlertDialogAction>

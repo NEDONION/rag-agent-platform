@@ -69,15 +69,15 @@ export function RagVersionHistoryDialog({
   const getStatusIcon = (status: RagPublishStatus) => {
     switch (status) {
       case RagPublishStatus.PUBLISHED:
-        return <CheckCircle className="h-4 w-4 text-green-600" />
+        return <CheckCircle className="h-4 w-4 text-success" />
       case RagPublishStatus.REJECTED:
-        return <XCircle className="h-4 w-4 text-red-600" />
+        return <XCircle className="h-4 w-4 text-destructive" />
       case RagPublishStatus.REVIEWING:
-        return <AlertCircle className="h-4 w-4 text-yellow-600" />
+        return <AlertCircle className="h-4 w-4 text-warning" />
       case RagPublishStatus.REMOVED:
-        return <MinusCircle className="h-4 w-4 text-gray-600" />
+        return <MinusCircle className="h-4 w-4 text-muted-foreground" />
       default:
-        return <AlertCircle className="h-4 w-4 text-gray-600" />
+        return <AlertCircle className="h-4 w-4 text-muted-foreground" />
     }
   }
 
@@ -111,7 +111,7 @@ export function RagVersionHistoryDialog({
           ) : error ? (
             // 错误状态
             <div className="text-center py-8">
-              <div className="text-red-500 mb-4">{error}</div>
+              <div className="text-destructive mb-4">{error}</div>
               <Button variant="outline" onClick={loadVersionHistory}>
                 {t("重试")}
               </Button>
@@ -194,9 +194,9 @@ export function RagVersionHistoryDialog({
                   </div>
 
                   {version.publishStatus === RagPublishStatus.REJECTED && version.rejectReason && (
-                    <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm">
-                      <div className="font-medium text-red-800 mb-1">{t("拒绝原因：")}</div>
-                      <div className="text-red-700">{version.rejectReason}</div>
+                    <div className="mt-2 p-2 bg-background border border-destructive/30 rounded text-sm">
+                      <div className="font-medium text-destructive mb-1">{t("拒绝原因：")}</div>
+                      <div className="text-muted-foreground">{version.rejectReason}</div>
                     </div>
                   )}
 

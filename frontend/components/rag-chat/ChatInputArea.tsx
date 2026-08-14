@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Send, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
+import { useRef, useState } from "react";
+import { ArrowUp, Square, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ChatInputAreaProps {
   onSend: (message: string) => void;
@@ -16,6 +14,8 @@ interface ChatInputAreaProps {
   className?: string;
 }
 
+const MAX_HEIGHT = 200;
+
 export function ChatInputArea({
   onSend,
   onStop,
@@ -23,80 +23,109 @@ export function ChatInputArea({
   isLoading = false,
   disabled = false,
   hasMessages = false,
-  className
+  className,
 }: ChatInputAreaProps) {
   const [input, setInput] = useState("");
+  const [focused, setFocused] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const canSend = input.trim().length > 0 && !isLoading && !disabled;
 
   const handleSend = () => {
-    const message = input.trim();
-    if (!message || isLoading) return;
-    
-    onSend(message);
+    if (!canSend) return;
+    onSend(input.trim());
     setInput("");
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
 
+  // 随内容增高，到上限后转为内部滚动
+  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    const el = e.target;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, MAX_HEIGHT)}px`;
+  };
+
   return (
-    <div className={`bg-white border-t border-slate-200 ${className ?? ''}`}>
-      <Separator />
-      
-      <div className="px-6 py-4 max-w-4xl mx-auto w-full">
-        {/* 清空对话按钮 */}
-        {hasMessages && (
-          <div className="flex justify-end mb-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClear}
-              disabled={isLoading}
-            >
-              清空对话
-            </Button>
-          </div>
-        )}
-        
-        {/* 输入区域 */}
-        <div className="flex gap-2">
-          <Textarea
+    <div className={cn("border-t border-border bg-background", className)}>
+      <div className="mx-auto w-full max-w-3xl px-4 py-3">
+        {/* 整个 composer 是一个表面：输入区与操作按钮共处同一个边框内，
+            焦点环加在容器上而非 textarea 上，避免出现「框中框」。 */}
+        <div
+          className={cn(
+            "rounded-xl border border-border bg-background transition-shadow",
+            focused && "ring-1 ring-foreground/15"
+          )}
+        >
+          <textarea
+            ref={textareaRef}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={handleInput}
             onKeyDown={handleKeyDown}
-            placeholder="请输入问题..."
-            className="flex-1 min-h-[60px] max-h-[140px] resize-none rounded-2xl border-slate-200 bg-white focus-visible:ring-blue-500"
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            placeholder="输入问题，Enter 发送"
+            rows={1}
             disabled={isLoading || disabled}
+            className="block max-h-[200px] w-full resize-none bg-transparent px-3.5 pb-1 pt-3 text-sm leading-[1.7] text-foreground outline-none placeholder:text-muted-foreground disabled:opacity-60"
           />
-          <div className="flex flex-col gap-2">
-            {isLoading ? (
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={onStop}
-                className="h-[60px] rounded-2xl"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            ) : (
-              <Button
-                size="icon"
-                onClick={handleSend}
-                disabled={!input.trim()}
-                className="h-[60px] rounded-2xl"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            )}
+
+          <div className="flex items-center justify-between gap-2 px-2 pb-2 pt-1">
+            <div className="flex items-center">
+              {hasMessages && (
+                <button
+                  type="button"
+                  onClick={onClear}
+                  disabled={isLoading}
+                  className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  清空
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="hidden text-[11px] text-muted-foreground sm:inline">
+                Shift + Enter 换行
+              </span>
+              {isLoading ? (
+                <button
+                  type="button"
+                  onClick={onStop}
+                  title="停止生成"
+                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-border text-foreground transition-colors hover:bg-accent"
+                >
+                  <Square className="h-3 w-3 fill-current" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleSend}
+                  disabled={!canSend}
+                  title="发送"
+                  className={cn(
+                    "flex h-7 w-7 items-center justify-center rounded-lg transition-colors",
+                    canSend
+                      ? "bg-foreground text-background hover:opacity-90"
+                      : "bg-muted text-muted-foreground"
+                  )}
+                >
+                  <ArrowUp className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
-        
-        <p className="text-xs text-muted-foreground mt-2">
-          回车发送，Shift + 回车换行
-        </p>
       </div>
     </div>
   );

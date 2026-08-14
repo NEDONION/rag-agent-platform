@@ -24,7 +24,7 @@ export function MarketRagCard({
 }: MarketRagCardProps) {
   const { t } = useI18n()
   return (
-    <Card className="group relative overflow-hidden border border-gray-100 hover:shadow-md transition-all duration-300 min-h-[180px]">
+    <Card className="group relative overflow-hidden border border-border hover:shadow-md transition-all duration-300 min-h-[180px]">
       {ragMarket.isInstalled && (
         <div className="absolute top-2 right-2 z-10">
           <Badge variant="default" className="text-xs">
@@ -36,7 +36,7 @@ export function MarketRagCard({
       
       <CardHeader className="pb-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-md bg-gray-100 text-primary-foreground overflow-hidden">
+          <div className="flex h-12 w-12 items-center justify-center rounded-md bg-muted text-primary-foreground overflow-hidden">
             {ragMarket.icon ? (
               <img
                 src={ragMarket.icon}
@@ -91,7 +91,7 @@ export function MarketRagCard({
       </CardContent>
       
       {/* 悬停遮罩层 */}
-      <div className="absolute inset-0 flex items-center justify-center bg-white/90 opacity-0 transition-opacity group-hover:opacity-100">
+      <div className="absolute inset-0 flex items-center justify-center bg-background/90 opacity-0 transition-opacity group-hover:opacity-100">
         <div className="flex gap-2">
           {onInstall && (
             <Button 
@@ -108,7 +108,7 @@ export function MarketRagCard({
             <Button 
               variant="outline" 
               size="sm"
-              className="bg-white"
+              className="bg-background"
               onClick={() => onViewDetails(ragMarket)}
             >
               <Eye className="mr-2 h-4 w-4" />

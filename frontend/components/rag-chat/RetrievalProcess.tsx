@@ -1,10 +1,8 @@
 "use client";
 
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { FileSearch } from 'lucide-react';
-import { ClickableFileLink } from './ClickableFileLink';
-import type { RagThinkingData, RetrievedFileInfo } from '@/types/rag-dataset';
+import { FileSearch, Loader2 } from "lucide-react";
+import { ClickableFileLink } from "./ClickableFileLink";
+import type { RagThinkingData, RetrievedFileInfo } from "@/types/rag-dataset";
 
 interface RetrievalProcessProps {
   retrieval: RagThinkingData;
@@ -12,73 +10,56 @@ interface RetrievalProcessProps {
   selectedFileId?: string;
 }
 
-export function RetrievalProcess({ 
-  retrieval, 
-  onFileClick, 
-  selectedFileId 
-}: RetrievalProcessProps) {
-  console.log('[RetrievalProcess] Rendering with retrieval:', retrieval);
-  
-  if (!retrieval || retrieval.type !== 'retrieval') {
+/** 检索过程展示。与 ThinkingProcess 同属「过程信息」，因此保持同一视觉层级：
+ * 中性色、无卡片、靠一条左侧竖线表达从属，不与答案争夺注意力。 */
+export function RetrievalProcess({ retrieval, onFileClick, selectedFileId }: RetrievalProcessProps) {
+  if (!retrieval || retrieval.type !== "retrieval") {
     return null;
   }
 
+  const done = retrieval.status === "end";
+
+  // 按 fileId 去重，保留每个文件的最高分文档
+  const uniqueFiles = (retrieval.documents ?? [])
+    .reduce<NonNullable<RagThinkingData["documents"]>>((acc, doc) => {
+      const existing = acc.find((item) => item.fileId === doc.fileId);
+      if (!existing) {
+        acc.push(doc);
+      } else if (doc.score > existing.score) {
+        acc[acc.indexOf(existing)] = doc;
+      }
+      return acc;
+    }, [])
+    .sort((a, b) => b.score - a.score);
+
   return (
-    <Card className="px-4 py-2 bg-blue-50 border border-blue-200">
-      <div className="space-y-2 text-[11px]">
-        <div className="flex items-center gap-2">
-          <FileSearch className="h-4 w-4 text-blue-700" />
-          <span className="text-[12px] font-medium">文档检索</span>
-          {retrieval.status === 'end' && retrieval.documents && (
-            <Badge variant="secondary" className="text-xs">
-              命中文档 {(() => {
-                // 计算唯一文件数量
-                const uniqueFileIds = new Set(retrieval.documents.map(doc => doc.fileId));
-                return uniqueFileIds.size;
-              })()} 个
-            </Badge>
-          )}
-        </div>
-        
-        {/* 检索状态 */}
-        <div className="text-xs text-muted-foreground">
-          {retrieval.status === 'start' && '开始检索相关文档...'}
-          {retrieval.status === 'progress' && '正在数据集中检索...'}
-          {retrieval.status === 'end' && retrieval.message}
-        </div>
-        
-        {/* 检索到的文档 */}
-        {retrieval.documents && retrieval.documents.length > 0 && (() => {
-          console.log('[RetrievalProcess] Processing documents:', retrieval.documents);
-          // 按fileId去重，保留每个文件的最高分文档
-          const uniqueFiles = retrieval.documents.reduce((acc, doc) => {
-            const existing = acc.find(item => item.fileId === doc.fileId);
-            if (!existing || doc.score > existing.score) {
-              // 如果是新文件或当前分数更高，则更新
-              const filtered = acc.filter(item => item.fileId !== doc.fileId);
-              filtered.push(doc);
-              return filtered;
-            }
-            return acc;
-          }, [] as typeof retrieval.documents);
-
-          // 按分数降序排列
-          uniqueFiles.sort((a, b) => b.score - a.score);
-
-          return (
-            <div className="mt-2 space-y-1">
-              {uniqueFiles.map((doc, idx) => (
-                <ClickableFileLink
-                  key={`${doc.fileId}-${idx}`}
-                  file={doc}
-                  onClick={onFileClick}
-                  isSelected={selectedFileId === doc.fileId}
-                />
-              ))}
-            </div>
-          );
-        })()}
+    <div className="w-full">
+      <div className="flex items-center gap-1.5 py-1 text-xs text-muted-foreground">
+        {done ? (
+          <FileSearch className="h-3.5 w-3.5 shrink-0" />
+        ) : (
+          <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+        )}
+        <span>
+          {retrieval.status === "start" && "检索文档"}
+          {retrieval.status === "progress" && "正在检索"}
+          {done &&
+            (uniqueFiles.length > 0 ? `检索到 ${uniqueFiles.length} 篇文档` : "未检索到相关文档")}
+        </span>
       </div>
-    </Card>
+
+      {uniqueFiles.length > 0 && (
+        <div className="ml-[7px] space-y-1 border-l border-border pl-4 pt-1">
+          {uniqueFiles.map((doc, idx) => (
+            <ClickableFileLink
+              key={`${doc.fileId}-${idx}`}
+              file={doc}
+              onClick={onFileClick}
+              isSelected={selectedFileId === doc.fileId}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

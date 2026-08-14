@@ -36,7 +36,7 @@ export function DeleteApiKeyDialog({
 
   const getStatusBadge = (status: boolean) => {
     return status ? (
-      <Badge variant="default" className="bg-green-500">
+      <Badge variant="default" className="bg-success">
         Enabled
       </Badge>
     ) : (
@@ -51,7 +51,7 @@ export function DeleteApiKeyDialog({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-red-500" />
+            <AlertTriangle className="h-5 w-5 text-destructive" />
             Deleting an API Key
           </DialogTitle>
           <DialogDescription>
@@ -94,9 +94,9 @@ export function DeleteApiKeyDialog({
             )}
           </div>
 
-          <div className="bg-red-50 border border-red-200 p-3 rounded-md">
-            <p className="text-sm text-red-800 font-medium mb-2">⚠️ Deletion Consequences：</p>
-            <ul className="text-sm text-red-700 space-y-1">
+          <div className="bg-background border border-destructive/30 p-3 rounded-md">
+            <p className="text-sm text-destructive font-medium mb-2">⚠️ Deletion Consequences：</p>
+            <ul className="text-sm text-destructive space-y-1">
               <li>• All applications using this key will immediately lose access</li>
               <li>• API calls will return a 401 Unauthorized error</li>
               <li>• This operation cannot be undone and requires re-keying</li>

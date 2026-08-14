@@ -581,8 +581,8 @@ export default function DatasetDetailPage() {
     return (
       <div className="container py-6">
         <div className="text-center py-10">
-          <AlertCircle className="h-12 w-12 mx-auto text-red-500 mb-4" />
-          <div className="text-red-500 mb-4">{error || t("数据集不存在")}</div>
+          <AlertCircle className="h-12 w-12 mx-auto text-destructive mb-4" />
+          <div className="text-destructive mb-4">{error || t("数据集不存在")}</div>
           <div className="flex gap-2 justify-center">
             <Button variant="outline" onClick={() => router.back()}>
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -821,7 +821,7 @@ export default function DatasetDetailPage() {
                 </div>
               ) : files.length === 0 ? (
                 <div className="text-center py-8">
-                  <File className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <File className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <h3 className="text-lg font-medium mb-2">
                     {searchQuery ? t("未找到匹配的文件") : t("暂无已上传文件")}
                   </h3>
@@ -934,7 +934,7 @@ export default function DatasetDetailPage() {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 text-red-600 hover:text-red-700"
+                                  className="h-8 w-8 text-destructive hover:text-destructive"
                                   onClick={() => setFileToDelete(file)}
                                   title={t("删除文件")}
                                 >
@@ -1014,7 +1014,7 @@ export default function DatasetDetailPage() {
               </div>
             ) : searchDocuments.length === 0 ? (
               <div className="text-center py-8">
-                <FileSearch className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <FileSearch className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-2">{t("未找到相关文档")}</h3>
                 <p className="text-muted-foreground">
                   {t("请尝试不同关键词，或确认文档是否已向量化。")}

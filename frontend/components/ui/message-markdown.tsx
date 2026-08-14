@@ -1,184 +1,101 @@
 "use client";
 
-import React from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import { Button } from '@/components/ui/button';
-import { Copy } from 'lucide-react';
-import { useCopy } from '@/hooks/use-copy';
-import { CodeBlock } from '@/components/ui/code-block';
-import { cn } from '@/lib/utils';
+import React from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Button } from "@/components/ui/button";
+import { Copy } from "lucide-react";
+import { useCopy } from "@/hooks/use-copy";
+import { CodeBlock } from "@/components/ui/code-block";
+import { markdownComponents, StreamingCaret } from "@/components/ui/markdown-components";
+import { cn } from "@/lib/utils";
 
 interface MessageMarkdownProps {
   content: string;
   showCopyButton?: boolean;
   isStreaming?: boolean;
+  /** 由调用方明确告知这是一条错误消息。
+   *
+   * 注意：此处**不再**根据文案内容猜测。原实现用关键词匹配
+   * （"错误"/"失败"/"无法"/"抱歉"…）判断，导致任何正常回答只要提到这些词
+   * 就被整条渲染成红色错误块——例如「如果连接失败，可以这样排查」。
+   * 是不是错误只有发起调用的地方知道，必须显式传入。 */
   isError?: boolean;
   className?: string;
 }
 
-// 检测是否为错误消息
-const isErrorMessage = (content: string): boolean => {
-  const errorKeywords = [
-    '错误', '失败', '无法', '未配置', '抱歉', 
-    '出现了错误', '请重试', '处理失败', '未找到',
-    '不存在', '配置错误', '连接失败', '预览出错:'
-  ];
-  return errorKeywords.some(keyword => content.includes(keyword));
-};
-
-// 预处理文本内容，标准化反引号和特殊字符
+/** 预处理：把各种全角/花式引号归一成标准反引号，清掉零宽字符。
+ *  模型偶尔会输出 ｀ 或 ‛ 之类，不归一会导致代码块识别失败。 */
 const preprocessContent = (content: string): string => {
   if (!content) return content;
-
-  // 替换各种可能的引号字符为标准反引号
-  let processedContent = content
-    // 全角反引号 ｀ -> 标准反引号 `
-    .replace(/｀/g, '`')
-    // 左右单引号 ' ' -> 标准反引号 `（如果它们是成对出现的，可能是代码标记）
-    .replace(/['']([^'']*?)[''] /g, '`$1` ')
-    // 其他可能的引号字符
-    .replace(/‛/g, '`')
-    .replace(/′/g, '`')
-    // 修复可能的零宽字符和不可见字符
-    .replace(/[\u200B-\u200D\uFEFF]/g, '')
-    // 标准化换行符
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n');
-
-  return processedContent;
+  return content
+    .replace(/｀/g, "`")
+    .replace(/['']([^'']*?)[''] /g, "`$1` ")
+    .replace(/‛/g, "`")
+    .replace(/′/g, "`")
+    .replace(/[​-‍﻿]/g, "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n");
 };
 
-export function MessageMarkdown({ 
-  content, 
+export function MessageMarkdown({
+  content,
   showCopyButton = true,
-  isStreaming = false, 
+  isStreaming = false,
   isError = false,
-  className 
+  className,
 }: MessageMarkdownProps) {
   const { copyMarkdown } = useCopy();
-  
-  // 预处理内容
   const processedContent = preprocessContent(content);
 
-  // 自动检测错误消息或使用传入的 isError
-  const shouldShowAsError = isError || isErrorMessage(content);
-  
-  const handleCopyMessage = () => {
-    copyMarkdown(content);
-  };
+  if (isError) {
+    return (
+      <div className={cn("relative group min-w-0", className)}>
+        <div className="whitespace-pre-wrap rounded-lg border border-destructive/30 p-3 text-sm text-foreground">
+          {content}
+          {isStreaming && <StreamingCaret />}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className={cn("relative group overflow-x-auto min-w-0", className)}>
-      {/* Markdown 内容 */}
-      {shouldShowAsError ? (
-        // 错误消息使用简单文本显示
-        <div className={cn(
-          "text-sm whitespace-pre-wrap p-3 rounded-lg",
-          "bg-red-50 text-red-700 border border-red-200"
-        )}>
-          {content}
-          {isStreaming && (
-            <span className="inline-block w-2 h-4 bg-current opacity-75 animate-pulse ml-1" />
-          )}
-        </div>
-      ) : (
-        // 正常消息使用 Markdown 渲染
-        <div className={cn(
-          "prose prose-sm dark:prose-invert w-full min-w-0 max-w-none",
-          "prose-pre:bg-white prose-pre:border prose-pre:border-gray-200 prose-pre:text-gray-900",
-          shouldShowAsError && "text-destructive"
-        )}>
-          <ReactMarkdown 
-            remarkPlugins={[remarkGfm]}
-            components={{
-              code: ({ inline, children, className, ...props }: any) => {
- 
-                
-                // 多重检测内联代码：inline 属性或者没有 language- 前缀
-                const isInline = inline || !className?.includes('language-');
-                
-                if (isInline) {
-                  // 内联代码样式 - 使用 ! 前缀强制优先级
-                  return (
-                    <code 
-                      className="!bg-gray-100 dark:!bg-gray-800 !text-red-600 dark:!text-red-400 !px-1 !py-0.5 !rounded !text-sm !font-mono !border-0" 
-                      {...props}
-                    >
-                      {children}
-                    </code>
-                  );
-                }
-                // 代码块中的代码保持原样
-                return <code className={className} {...props}>{children}</code>;
-              },
-              pre: ({ children, ...props }) => {
-                // 提取代码内容
-                const codeElement = children as React.ReactElement;
-                const code = typeof codeElement?.props?.children === 'string' 
-                  ? codeElement.props.children 
-                  : '';
-                
-                return (
-                  <CodeBlock code={code}>
-                    <pre {...props}>{children}</pre>
-                  </CodeBlock>
-                );
-              },
-              table: ({ children, ...props }) => (
-                <div className="w-full my-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <table 
-                    className="w-full table-auto divide-y divide-gray-200 dark:divide-gray-700" 
+    <div className={cn("relative group min-w-0 overflow-x-auto", className)}>
+      <div className="react-markdown w-full min-w-0 text-sm leading-[1.7] text-foreground/90">
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            ...markdownComponents,
+            // 唯一的差异：代码块外面套一层带复制按钮的容器
+            pre: ({ children, ...props }) => {
+              const codeElement = children as React.ReactElement;
+              const code =
+                typeof codeElement?.props?.children === "string" ? codeElement.props.children : "";
+              return (
+                <CodeBlock code={code}>
+                  <pre
+                    className="my-4 overflow-x-auto rounded-lg border border-border bg-muted/50 p-3 first:mt-0 last:mb-0"
                     {...props}
                   >
                     {children}
-                  </table>
-                </div>
-              ),
-              thead: ({ children, ...props }) => (
-                <thead className="bg-gray-50 dark:bg-gray-800" {...props}>
-                  {children}
-                </thead>
-              ),
-              tbody: ({ children, ...props }) => (
-                <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700" {...props}>
-                  {children}
-                </tbody>
-              ),
-              th: ({ children, ...props }) => (
-                <th 
-                  className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider break-words" 
-                  {...props}
-                >
-                  {children}
-                </th>
-              ),
-              td: ({ children, ...props }) => (
-                <td 
-                  className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100 break-words" 
-                  {...props}
-                >
-                  {children}
-                </td>
-              )
-            }}
-          >
-            {processedContent}
-          </ReactMarkdown>
-          {isStreaming && (
-            <span className="inline-block w-1 h-4 ml-1 bg-current animate-pulse" />
-          )}
-        </div>
-      )}
-      
-      {/* 底部复制按钮 */}
+                  </pre>
+                </CodeBlock>
+              );
+            },
+          }}
+        >
+          {processedContent}
+        </ReactMarkdown>
+        {isStreaming && <StreamingCaret />}
+      </div>
+
       {showCopyButton && (
-        <div className="flex items-center gap-1 mt-1 opacity-60 hover:opacity-100 transition-opacity">
+        <div className="mt-1 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleCopyMessage}
-            className="h-6 w-6 p-0 hover:bg-gray-100 rounded"
+            onClick={() => copyMarkdown(content)}
+            className="h-6 w-6 rounded p-0"
             aria-label="复制消息"
           >
             <Copy className="h-3 w-3" />

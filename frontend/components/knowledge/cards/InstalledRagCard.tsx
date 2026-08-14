@@ -89,7 +89,7 @@ export function InstalledRagCard({
 
   return (
     <Card 
-      className="relative overflow-hidden hover:shadow-md transition-all duration-300 border min-h-[180px] border-gray-100"
+      className="relative overflow-hidden hover:shadow-md transition-all duration-300 border min-h-[180px] border-border"
     >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
@@ -174,7 +174,7 @@ export function InstalledRagCard({
               {/* 所有知识库都显示卸载选项 */}
               {onUninstall && (
                 <DropdownMenuItem 
-                  className="text-red-600" 
+                  className="text-destructive" 
                   onClick={() => onUninstall(userRag)}
                 >
                   <Trash className="mr-2 h-4 w-4" />

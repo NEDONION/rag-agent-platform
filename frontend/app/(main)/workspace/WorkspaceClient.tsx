@@ -185,7 +185,7 @@ export default function WorkspaceClient() {
       {selectedWorkspaceId ? (
         <ConversationList workspaceId={selectedWorkspaceId} />
       ) : (
-        <div className="flex-1 flex items-center justify-center bg-gray-50 border-r">
+        <div className="flex-1 flex items-center justify-center bg-muted/40 border-r">
           <EmptyState title="选择一个工作区" description="从左侧选择一个工作区来查看对话" />
         </div>
       )}
@@ -193,10 +193,10 @@ export default function WorkspaceClient() {
       {/* 右侧聊天面板 */}
       <div className="flex-1 flex">
         {!selectedConversationId ? (
-          <div className="flex-1 flex items-center justify-center bg-gray-50">
+          <div className="flex-1 flex items-center justify-center bg-muted/40">
             {loadingAgents ? (
               <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
                 <p className="text-muted-foreground">加载中...</p>
               </div>
             ) : selectedWorkspaceId ? (
@@ -219,7 +219,7 @@ export default function WorkspaceClient() {
                   {agents.map((agent) => (
                     <div
                       key={agent.id}
-                      className="border rounded-lg p-4 flex items-start gap-3 cursor-pointer hover:bg-gray-50 group relative"
+                      className="border rounded-lg p-4 flex items-start gap-3 cursor-pointer hover:bg-muted/40 group relative"
                     >
                       <div 
                         className="flex-1 flex items-start gap-3"
@@ -230,7 +230,7 @@ export default function WorkspaceClient() {
                           handleCreateSession(agent.id)
                         }}
                       >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-900 overflow-hidden">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-primary overflow-hidden">
                           {agent.avatar ? (
                             <img
                               src={agent.avatar || "/placeholder.svg"}
@@ -279,7 +279,7 @@ export default function WorkspaceClient() {
                               e.stopPropagation();
                               setAgentToDelete(agent);
                             }}
-                            className="text-red-500 focus:text-red-500"
+                            className="text-destructive focus:text-destructive"
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
                             移除

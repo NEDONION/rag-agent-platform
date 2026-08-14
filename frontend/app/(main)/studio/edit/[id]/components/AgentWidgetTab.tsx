@@ -362,7 +362,7 @@ function WidgetConfigCard({ widget, onToggleStatus, onEdit, onViewCode, onCopyCo
           )}
           <div className="col-span-2">
             <Label className="text-muted-foreground">访问链接</Label>
-            <p className="font-mono text-xs break-all text-blue-600">
+            <p className="font-mono text-xs break-all text-primary">
               {widgetUrl}
             </p>
           </div>

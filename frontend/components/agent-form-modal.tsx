@@ -160,7 +160,7 @@ export default function AgentFormModal({
   if (isLoading) {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-auto p-4">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl flex max-h-[95vh] overflow-hidden">
+        <div className="bg-background rounded-lg shadow-xl w-full max-w-7xl flex max-h-[95vh] overflow-hidden">
           <div className="w-7/12 p-8 overflow-auto">
             <div className="flex items-center justify-between mb-6">
               <Skeleton className="h-8 w-64" />
@@ -184,7 +184,7 @@ export default function AgentFormModal({
               </div>
             </div>
           </div>
-          <div className="w-5/12 bg-gray-50 p-8 overflow-auto border-l">
+          <div className="w-5/12 bg-muted/40 p-8 overflow-auto border-l">
             <Skeleton className="h-8 w-32 mb-2" />
             <Skeleton className="h-4 w-64 mb-6" />
             <Skeleton className="h-[500px] w-full mb-6" />
@@ -198,7 +198,7 @@ export default function AgentFormModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-auto p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl flex max-h-[95vh] overflow-hidden">
+      <div className="bg-background rounded-lg shadow-xl w-full max-w-7xl flex max-h-[95vh] overflow-hidden">
         {/* 左侧表单 */}
         <div className="w-7/12 p-8 overflow-auto">
           {/* 头部 */}
@@ -297,7 +297,7 @@ export default function AgentFormModal({
         </div>
 
         {/* 右侧预览 */}
-        <div className="w-5/12 bg-gray-50 p-8 overflow-auto border-l">
+        <div className="w-5/12 bg-muted/40 p-8 overflow-auto border-l">
           <div className="mb-6">
             <div className="flex items-center justify-between">
               <div>
