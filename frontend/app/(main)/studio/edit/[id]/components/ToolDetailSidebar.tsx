@@ -209,7 +209,7 @@ const ToolDetailSidebar: React.FC<ToolDetailSidebarProps> = ({
                       
                       {/* 参数展示 */}
                       {item.parameters && Object.keys(item.parameters.properties || {}).length > 0 && (
-                        <div className="px-2 py-2 border-t border-gray-100">
+                        <div className="px-2 py-2 border-t border-border">
                           <div className="text-[10px] uppercase font-medium text-muted-foreground mb-1 px-1">参数</div>
                           <div className="space-y-1">
                             {Object.entries(item.parameters.properties || {})

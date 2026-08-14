@@ -289,8 +289,8 @@ export function FileDetailPanel({ selectedFile, onDataLoad }: FileDetailPanelPro
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground">
         <div className="text-center">
-          <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-500" />
-          <p className="text-red-600">{error}</p>
+          <AlertCircle className="h-12 w-12 mx-auto mb-4 text-destructive" />
+          <p className="text-destructive">{error}</p>
         </div>
       </div>
     );
@@ -302,7 +302,7 @@ export function FileDetailPanel({ selectedFile, onDataLoad }: FileDetailPanelPro
       <div className="p-4 border-b shrink-0">
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <FileText className="h-5 w-5 text-blue-600" />
+            <FileText className="h-5 w-5 text-primary" />
             <div>
               <h3 className="text-lg font-medium">{selectedFile.fileName}</h3>
               {selectedFile.score !== undefined && (
@@ -394,7 +394,7 @@ export function FileDetailPanel({ selectedFile, onDataLoad }: FileDetailPanelPro
           </div>
         ) : documentUnits.length === 0 ? (
           <div className="text-center py-8">
-            <FileSearch className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <FileSearch className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">
               {searchQuery ? "未找到匹配的语料" : "暂无语料数据"}
             </h3>
@@ -439,14 +439,14 @@ export function FileDetailPanel({ selectedFile, onDataLoad }: FileDetailPanelPro
                           li: ({ children }) => <li className="leading-tight">{children}</li>,
                           strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                           em: ({ children }) => <em className="italic">{children}</em>,
-                          code: ({ children }) => <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
-                          pre: ({ children }) => <pre className="bg-gray-100 dark:bg-gray-800 p-2 rounded text-xs font-mono overflow-x-auto mb-1">{children}</pre>,
-                          blockquote: ({ children }) => <blockquote className="border-l-4 border-gray-300 pl-4 italic mb-0.5 leading-tight">{children}</blockquote>,
-                          a: ({ children, href }) => <a href={href} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">{children}</a>,
-                          hr: () => <hr className="my-4 border-gray-200" />,
-                          table: ({ children }) => <table className="border-collapse border border-gray-300 w-full mb-1 text-xs">{children}</table>,
-                          th: ({ children }) => <th className="border border-gray-300 px-2 py-1 bg-gray-50 dark:bg-gray-800 font-semibold">{children}</th>,
-                          td: ({ children }) => <td className="border border-gray-300 px-2 py-1">{children}</td>,
+                          code: ({ children }) => <code className="bg-muted dark:bg-foreground px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
+                          pre: ({ children }) => <pre className="bg-muted dark:bg-foreground p-2 rounded text-xs font-mono overflow-x-auto mb-1">{children}</pre>,
+                          blockquote: ({ children }) => <blockquote className="border-l-4 border-border pl-4 italic mb-0.5 leading-tight">{children}</blockquote>,
+                          a: ({ children, href }) => <a href={href} className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">{children}</a>,
+                          hr: () => <hr className="my-4 border-border" />,
+                          table: ({ children }) => <table className="border-collapse border border-border w-full mb-1 text-xs">{children}</table>,
+                          th: ({ children }) => <th className="border border-border px-2 py-1 bg-muted/40 dark:bg-foreground font-semibold">{children}</th>,
+                          td: ({ children }) => <td className="border border-border px-2 py-1">{children}</td>,
                         }}
                       >
                         {unit.content}

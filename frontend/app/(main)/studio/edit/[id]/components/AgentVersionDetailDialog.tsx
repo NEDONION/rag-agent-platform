@@ -37,7 +37,7 @@ const AgentVersionDetailDialog: React.FC<AgentVersionDetailDialogProps> = ({
           <div className="flex items-center gap-4">
             <Avatar className="h-12 w-12">
               <AvatarImage src={version.avatar || undefined} alt="Avatar" />
-              <AvatarFallback className="bg-blue-100 text-blue-600">
+              <AvatarFallback className="bg-accent text-primary">
                 {version.name ? version.name.charAt(0).toUpperCase() : "🤖"}
               </AvatarFallback>
             </Avatar>
@@ -49,7 +49,7 @@ const AgentVersionDetailDialog: React.FC<AgentVersionDetailDialogProps> = ({
 
           <div className="space-y-2">
             <h3 className="font-medium">更新日志</h3>
-            <div className="p-3 bg-gray-50 rounded-md">{version.changeLog}</div>
+            <div className="p-3 bg-muted/40 rounded-md">{version.changeLog}</div>
           </div>
 
           <div className="space-y-2">
@@ -68,14 +68,14 @@ const AgentVersionDetailDialog: React.FC<AgentVersionDetailDialogProps> = ({
 
           <div className="space-y-2">
             <h3 className="font-medium">系统提示词</h3>
-            <div className="p-3 bg-gray-50 rounded-md text-sm">
+            <div className="p-3 bg-muted/40 rounded-md text-sm">
               {version.systemPrompt || "无系统提示词"}
             </div>
           </div>
 
           <div className="space-y-2">
             <h3 className="font-medium">欢迎消息</h3>
-            <div className="p-3 bg-gray-50 rounded-md text-sm">
+            <div className="p-3 bg-muted/40 rounded-md text-sm">
               {version.welcomeMessage || "无欢迎消息"}
             </div>
           </div>

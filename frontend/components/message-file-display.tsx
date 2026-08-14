@@ -75,7 +75,7 @@ export default function MessageFileDisplay({
         const fileSize = formatFileSize(url)
         
         return (
-          <div key={index} className="border rounded-lg overflow-hidden bg-white shadow-sm max-w-xs">
+          <div key={index} className="border rounded-lg overflow-hidden bg-background shadow-sm max-w-xs">
             {fileType === 'image' ? (
               // 图片文件显示
               <div className="relative group">
@@ -91,15 +91,15 @@ export default function MessageFileDisplay({
                     const parent = target.parentElement
                     if (parent) {
                       parent.innerHTML = `
-                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center gap-3 p-3 bg-muted/40 rounded-lg">
                           <div class="flex-shrink-0">
-                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
                           </div>
                           <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-gray-900 truncate">${fileName}</p>
-                            <p class="text-xs text-gray-500">图片加载失败</p>
+                            <p class="text-sm font-medium text-foreground truncate">${fileName}</p>
+                            <p class="text-xs text-muted-foreground">图片加载失败</p>
                           </div>
                         </div>
                       `
@@ -123,7 +123,7 @@ export default function MessageFileDisplay({
                 </div>
                 
                 {/* 文件信息覆盖层 */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/70 to-transparent p-3">
                   <p className="text-white text-sm font-medium truncate">{fileName}</p>
                   <p className="text-white/80 text-xs">{fileSize}</p>
                 </div>
@@ -131,17 +131,17 @@ export default function MessageFileDisplay({
             ) : (
               // 文档文件显示
               <div 
-                className="flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors cursor-pointer"
+                className="flex items-center gap-3 p-3 hover:bg-muted/40 transition-colors cursor-pointer"
                 onClick={() => window.open(url, '_blank')}
               >
                 <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <FileText className="h-5 w-5 text-blue-600" />
+                  <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
+                    <FileText className="h-5 w-5 text-primary" />
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{fileName}</p>
-                  <p className="text-xs text-gray-500">{fileSize}</p>
+                  <p className="text-sm font-medium text-foreground truncate">{fileName}</p>
+                  <p className="text-xs text-muted-foreground">{fileSize}</p>
                 </div>
                 <Button
                   variant="ghost"

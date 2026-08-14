@@ -254,7 +254,7 @@ export default function FileUpload({
             size="sm"
             onClick={handleRemove}
             disabled={disabled || isUploading}
-            className="text-xs hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+            className="text-xs hover:bg-background hover:text-destructive hover:border-destructive/30"
           >
             <Trash className="h-3 w-3 mr-1" />
             {removeText}

@@ -160,7 +160,7 @@ const ToolParametersModal: React.FC<ToolParametersModalProps> = ({
                           <TabsTrigger 
                             key={func.name} 
                             value={func.name}
-                            className="justify-start w-full relative hover:bg-gray-100 data-[state=active]:bg-blue-50 data-[state=active]:border-l-4 data-[state=active]:border-blue-500 data-[state=active]:font-medium data-[state=active]:pl-3"
+                            className="justify-start w-full relative hover:bg-muted data-[state=active]:bg-accent/60 data-[state=active]:border-l-4 data-[state=active]:border-primary data-[state=active]:font-medium data-[state=active]:pl-3"
                           >
                             <span className="truncate">{cleanedName}</span>
                             {hasPresets && (
@@ -209,7 +209,7 @@ const ToolParametersModal: React.FC<ToolParametersModalProps> = ({
                               .filter(([key]) => !['additionalProperties', 'definitions', 'required'].includes(key))
                               .map(([paramName, paramConfig]: [string, any]) => {
                                 return (
-                                  <div key={paramName} className="space-y-2 bg-gray-50 p-4 rounded-md border border-gray-100">
+                                  <div key={paramName} className="space-y-2 bg-muted/40 p-4 rounded-md border border-border">
                                     <div className="flex items-center justify-between">
                                       <div className="flex items-center gap-2">
                                         <label 
@@ -242,7 +242,7 @@ const ToolParametersModal: React.FC<ToolParametersModalProps> = ({
                           </div>
                         ) : (
                           <div className="flex items-center justify-center h-full p-8">
-                            <div className="text-center bg-gray-50 p-8 rounded-lg border border-dashed border-gray-200 w-full max-w-md">
+                            <div className="text-center bg-muted/40 p-8 rounded-lg border border-dashed border-border w-full max-w-md">
                               <AlertCircle className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
                               <p className="text-lg font-medium text-muted-foreground mb-2">该功能没有可预设的参数</p>
                               <p className="text-sm text-muted-foreground">
@@ -259,7 +259,7 @@ const ToolParametersModal: React.FC<ToolParametersModalProps> = ({
             </Tabs>
           ) : (
             <div className="flex items-center justify-center w-full p-12">
-              <div className="text-center bg-gray-50 p-8 rounded-lg border border-dashed border-gray-200 w-full max-w-md">
+              <div className="text-center bg-muted/40 p-8 rounded-lg border border-dashed border-border w-full max-w-md">
                 <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-lg font-medium text-muted-foreground mb-2">该工具没有可预设的参数</p>
                 <p className="text-sm text-muted-foreground mb-4">

@@ -218,7 +218,7 @@ const KnowledgeBaseDetailSidebar: React.FC<KnowledgeBaseDetailSidebarProps> = ({
         <SheetHeader className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Database className="w-5 h-5 text-blue-600" />
+              <Database className="w-5 h-5 text-primary" />
               <SheetTitle className="text-lg">{displayKnowledgeBase.name}</SheetTitle>
             </div>
           </div>
@@ -242,7 +242,7 @@ const KnowledgeBaseDetailSidebar: React.FC<KnowledgeBaseDetailSidebarProps> = ({
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">文件数量</p>
                 <div className="flex items-center space-x-2">
-                  <FileText className="w-4 h-4 text-gray-500" />
+                  <FileText className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm font-medium">{displayKnowledgeBase.fileCount} 个文件</span>
                 </div>
               </div>
@@ -250,7 +250,7 @@ const KnowledgeBaseDetailSidebar: React.FC<KnowledgeBaseDetailSidebarProps> = ({
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">创建时间</p>
                 <div className="flex items-center space-x-2">
-                  <Calendar className="w-4 h-4 text-gray-500" />
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm">
                     {new Date(displayKnowledgeBase.createdAt).toLocaleDateString('zh-CN')}
                   </span>
@@ -265,7 +265,7 @@ const KnowledgeBaseDetailSidebar: React.FC<KnowledgeBaseDetailSidebarProps> = ({
                 <div className="flex items-center space-x-2">
                   {isLoadingVersions ? (
                     <div className="flex items-center space-x-2">
-                      <RefreshCw className="w-4 h-4 animate-spin text-gray-500" />
+                      <RefreshCw className="w-4 h-4 animate-spin text-muted-foreground" />
                       <span className="text-sm text-muted-foreground">加载版本...</span>
                     </div>
                   ) : versions.length > 1 ? (
@@ -313,7 +313,7 @@ const KnowledgeBaseDetailSidebar: React.FC<KnowledgeBaseDetailSidebarProps> = ({
                     </div>
                   )}
                   {isSwitchingVersion && (
-                    <RefreshCw className="w-4 h-4 animate-spin text-blue-500" />
+                    <RefreshCw className="w-4 h-4 animate-spin text-primary" />
                   )}
                 </div>
               </div>
@@ -363,9 +363,9 @@ const KnowledgeBaseDetailSidebar: React.FC<KnowledgeBaseDetailSidebarProps> = ({
                         {files.map((file) => (
                           <div
                             key={file.id}
-                            className="flex items-center space-x-2 p-2 rounded border bg-white hover:bg-gray-50"
+                            className="flex items-center space-x-2 p-2 rounded border bg-background hover:bg-muted/40"
                           >
-                            <File className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                            <File className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium truncate">
                                 {file.originalFilename || file.filename}

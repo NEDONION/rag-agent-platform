@@ -25,13 +25,13 @@ const ToastViewport = React.forwardRef<
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName
 
 const toastVariants = cva(
-  "group pointer-events-auto relative flex w-full items-center justify-between space-x-3 overflow-hidden rounded-lg border border-slate-200/70 bg-white/95 px-4 py-3 pr-7 text-slate-900 shadow-[0_8px_18px_-16px_rgba(15,23,42,0.55)] backdrop-blur before:absolute before:left-0 before:top-0 before:h-full before:w-1 transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full",
+  "group pointer-events-auto relative flex w-full items-center justify-between space-x-3 overflow-hidden rounded-lg border border-border/70 bg-background/95 px-4 py-3 pr-7 text-foreground shadow-[0_8px_18px_-16px_rgba(15,23,42,0.55)] backdrop-blur before:absolute before:left-0 before:top-0 before:h-full before:w-1 transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full",
   {
     variants: {
       variant: {
         default: "",
         destructive:
-          "destructive border-red-200/70 bg-red-50/70 text-red-900",
+          "destructive border-destructive/30/70 bg-background/70 text-destructive",
       },
     },
     defaultVariants: {
@@ -77,7 +77,7 @@ const ToastClose = React.forwardRef<
   <ToastPrimitives.Close
     ref={ref}
     className={cn(
-      "absolute right-2 top-2 rounded-md p-1 text-slate-400 opacity-0 transition-opacity hover:text-slate-700 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-blue-200 group-hover:opacity-100 group-[.destructive]:text-red-300 group-[.destructive]:hover:text-red-600 group-[.destructive]:focus:ring-red-200",
+      "absolute right-2 top-2 rounded-md p-1 text-muted-foreground opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring/30 group-hover:opacity-100 group-[.destructive]:text-destructive group-[.destructive]:hover:text-destructive group-[.destructive]:focus:ring-destructive/30",
       className
     )}
     toast-close=""

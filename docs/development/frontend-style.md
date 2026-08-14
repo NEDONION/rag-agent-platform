@@ -173,6 +173,7 @@ Calendar / DatetimePicker）和 35 处调用点共享，改一处即全站生效
 | --- | --- | --- |
 | 改造前 | 934 | 22 个页面 + 全部组件 |
 | 2026-08-14 | 429 | 追加：三套对话面板 + Markdown 渲染器收敛为一份 |
+| 2026-08-14 | **17** | 全站迁移完成，剩余均为合法用法（见下） |
 
 **已改造完毕（硬编码归零）**：
 
@@ -185,16 +186,19 @@ Calendar / DatetimePicker）和 35 处调用点共享，改一处即全站生效
 - `components/chat-panel.tsx`、`components/agent-preview-chat.tsx`
 - `components/ui/message-markdown.tsx` + `components/ui/markdown-components.tsx`（新增）
 
-**待改造，按剩余数量排序**：
+### 剩余 17 处是合法用法，不需要迁移
 
-| 文件 | 剩余 |
-| --- | --- |
-| `components/model-select-dialog.tsx` | 19 |
-| `app/(main)/admin/users/page.tsx` | 18 |
-| `components/rag-chat/FileDetailPanel.tsx` | 16 |
-| `components/message-file-display.tsx` | 16 |
-| `components/knowledge/dialogs/MarketRagDetailDialog.tsx` | 16 |
-| 其余 | ~344 |
+| 用法 | 出现位置 | 为什么保留 |
+| --- | --- | --- |
+| `bg-black/50`、`bg-black/80` | 模态遮罩层（Dialog / Sheet / AlertDialog） | 半透明蒙版，作用是压暗背景内容，与主题无关。Radix 默认即如此 |
+| `text-white` | 图片浮层上的文件名、尺寸 | 压在深色蒙版之上，需要固定白色，不能随主题翻转 |
+
+**检查命令**（应只剩这两类）：
+
+```bash
+grep -rhoE "\b(bg|text|border|ring)-(white|black|slate|gray|red|blue|green)-?[0-9]{0,3}\b" \
+  frontend/app frontend/components --include="*.tsx" | sort | uniq -c
+```
 
 ### Markdown 渲染器只有一份
 

@@ -218,7 +218,7 @@ export function ModelSelectDialog({
                           >
                             {model.isOfficial && (
                               <div className="absolute -top-2 right-2 z-10">
-                                <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 px-2 py-0.5">
+                                <Badge className="bg-accent text-primary hover:bg-accent px-2 py-0.5">
                                   官方
                                 </Badge>
                               </div>
@@ -242,7 +242,7 @@ export function ModelSelectDialog({
                                   </span>
                                 </div>
                                 {selectedModelId === model.id && (
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
                                     <circle cx="12" cy="12" r="10" fill="#4285F4" stroke="none" />
                                     <path d="M8 12l2 2 6-6" stroke="white" strokeWidth="2" />
                                   </svg>
@@ -323,12 +323,12 @@ export function ModelSelectDialog({
               <h3 className="mb-4 font-medium">策略选择</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div 
-                  className={`border rounded-lg p-4 cursor-pointer ${strategyType === "NONE" ? "bg-blue-50 border-blue-500" : ""}`}
+                  className={`border rounded-lg p-4 cursor-pointer ${strategyType === "NONE" ? "bg-accent/60 border-primary" : ""}`}
                   onClick={() => setStrategyType("NONE")}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <div className={`w-4 h-4 rounded-full ${strategyType === "NONE" ? "bg-blue-500" : "border border-gray-400"}`}>
-                      {strategyType === "NONE" && <div className="w-2 h-2 bg-white rounded-full m-1"></div>}
+                    <div className={`w-4 h-4 rounded-full ${strategyType === "NONE" ? "bg-primary" : "border border-border"}`}>
+                      {strategyType === "NONE" && <div className="w-2 h-2 bg-background rounded-full m-1"></div>}
                     </div>
                     <h4 className="font-medium">无策略</h4>
                   </div>
@@ -336,12 +336,12 @@ export function ModelSelectDialog({
                 </div>
                 
                 <div 
-                  className={`border rounded-lg p-4 cursor-pointer ${strategyType === "SLIDING_WINDOW" ? "bg-blue-50 border-blue-500" : ""}`}
+                  className={`border rounded-lg p-4 cursor-pointer ${strategyType === "SLIDING_WINDOW" ? "bg-accent/60 border-primary" : ""}`}
                   onClick={() => setStrategyType("SLIDING_WINDOW")}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <div className={`w-4 h-4 rounded-full ${strategyType === "SLIDING_WINDOW" ? "bg-blue-500" : "border border-gray-400"}`}>
-                      {strategyType === "SLIDING_WINDOW" && <div className="w-2 h-2 bg-white rounded-full m-1"></div>}
+                    <div className={`w-4 h-4 rounded-full ${strategyType === "SLIDING_WINDOW" ? "bg-primary" : "border border-border"}`}>
+                      {strategyType === "SLIDING_WINDOW" && <div className="w-2 h-2 bg-background rounded-full m-1"></div>}
                     </div>
                     <h4 className="font-medium">滑动窗口</h4>
                   </div>
@@ -349,12 +349,12 @@ export function ModelSelectDialog({
                 </div>
                 
                 <div 
-                  className={`border rounded-lg p-4 cursor-pointer ${strategyType === "SUMMARIZE" ? "bg-blue-50 border-blue-500" : ""}`}
+                  className={`border rounded-lg p-4 cursor-pointer ${strategyType === "SUMMARIZE" ? "bg-accent/60 border-primary" : ""}`}
                   onClick={() => setStrategyType("SUMMARIZE")}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <div className={`w-4 h-4 rounded-full ${strategyType === "SUMMARIZE" ? "bg-blue-500" : "border border-gray-400"}`}>
-                      {strategyType === "SUMMARIZE" && <div className="w-2 h-2 bg-white rounded-full m-1"></div>}
+                    <div className={`w-4 h-4 rounded-full ${strategyType === "SUMMARIZE" ? "bg-primary" : "border border-border"}`}>
+                      {strategyType === "SUMMARIZE" && <div className="w-2 h-2 bg-background rounded-full m-1"></div>}
                     </div>
                     <h4 className="font-medium">摘要策略</h4>
                   </div>

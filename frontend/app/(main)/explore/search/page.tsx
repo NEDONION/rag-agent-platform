@@ -158,7 +158,7 @@ function renderAgentList(agents: AgentVersion[], loading: boolean, error: string
   if (error) {
     return (
       <div className="text-center py-10">
-        <div className="text-red-500 mb-4">{error}</div>
+        <div className="text-destructive mb-4">{error}</div>
         <Button variant="outline" onClick={() => window.location.reload()}>
           Retry
         </Button>
@@ -168,8 +168,8 @@ function renderAgentList(agents: AgentVersion[], loading: boolean, error: string
 
   if (agents.length === 0) {
     return (
-      <div className="text-center py-16 border rounded-lg bg-gray-50">
-        <Search className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+      <div className="text-center py-16 border rounded-lg bg-muted/40">
+        <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
         <h3 className="text-lg font-medium mb-2">No assistant found</h3>
         <p className="text-muted-foreground mb-6">Try using different search terms or browse all assistants</p>
       </div>
@@ -206,7 +206,7 @@ function renderAgentList(agents: AgentVersion[], loading: boolean, error: string
                   </div>
                 </div>
               </div>
-              <MessageCircle className="h-4 w-4 text-blue-500" />
+              <MessageCircle className="h-4 w-4 text-primary" />
             </div>
           </CardHeader>
           <CardContent>

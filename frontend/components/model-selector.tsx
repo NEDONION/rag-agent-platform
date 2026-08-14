@@ -130,13 +130,13 @@ export default function ModelSelector({
   // 渲染预览模式
   if (mode === "preview") {
     return (
-      <div className={`p-3 bg-blue-50 rounded-lg border border-blue-200 ${className}`}>
+      <div className={`p-3 bg-accent/60 rounded-lg border border-border ${className}`}>
         <div className="flex items-center justify-between">
           {showLabel && (
             <div className="flex flex-col">
-              <span className="text-sm font-medium text-blue-900">{labelText}</span>
+              <span className="text-sm font-medium text-primary">{labelText}</span>
               {descriptionText && (
-                <span className="text-xs text-blue-700">{descriptionText}</span>
+                <span className="text-xs text-primary">{descriptionText}</span>
               )}
             </div>
           )}
@@ -150,7 +150,7 @@ export default function ModelSelector({
                 disabled={isUpdatingModel || disabled}
               >
                 <SelectTrigger
-                  className={`w-72 h-8 bg-white ${triggerClassName}`}
+                  className={`w-72 h-8 bg-background ${triggerClassName}`}
                   title={defaultModel?.name || "未设置默认模型"}
                 >
                   <SelectValue />
@@ -172,13 +172,13 @@ export default function ModelSelector({
               </Select>
             ) : (
               <div className="flex items-center gap-2">
-                <span className="text-sm text-blue-700">未设置默认模型</span>
+                <span className="text-sm text-primary">未设置默认模型</span>
                 {models.length > 0 && (
                   <Select 
                     onValueChange={handleChangeDefaultModel}
                     disabled={isUpdatingModel || disabled}
                   >
-                    <SelectTrigger className={`w-72 h-8 bg-white ${triggerClassName}`}>
+                    <SelectTrigger className={`w-72 h-8 bg-background ${triggerClassName}`}>
                       <SelectValue placeholder="选择模型" />
                     </SelectTrigger>
                     <SelectContent className="max-w-[18rem]">
@@ -200,7 +200,7 @@ export default function ModelSelector({
               </div>
             )}
             {isUpdatingModel && (
-              <div className="text-xs text-blue-600">更新中...</div>
+              <div className="text-xs text-primary">更新中...</div>
             )}
           </div>
         </div>

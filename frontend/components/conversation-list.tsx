@@ -200,7 +200,7 @@ export function ConversationList({ workspaceId }: ConversationListProps) {
   }
 
   return (
-    <div className={`border-r flex flex-col h-full bg-white transition-all duration-300 ${isCollapsed ? 'w-[40px]' : 'w-[320px]'}`}>
+    <div className={`border-r flex flex-col h-full bg-background transition-all duration-300 ${isCollapsed ? 'w-[40px]' : 'w-[320px]'}`}>
       <div className={`${isCollapsed ? 'py-4 px-0' : 'p-4'} border-b flex items-center relative ${isCollapsed ? 'h-full' : ''}`}>
         {!isCollapsed && (
           <>
@@ -216,7 +216,7 @@ export function ConversationList({ workspaceId }: ConversationListProps) {
         
         {/* 收缩/展开按钮 - 明确右侧位置 */}
         <div 
-          className={`absolute ${isCollapsed ? 'w-full h-12' : 'w-12 border-l h-full'} right-0 top-0 flex items-center justify-center cursor-pointer hover:bg-gray-50`}
+          className={`absolute ${isCollapsed ? 'w-full h-12' : 'w-12 border-l h-full'} right-0 top-0 flex items-center justify-center cursor-pointer hover:bg-muted/40`}
           onClick={() => setIsCollapsed(!isCollapsed)}
         >
           {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -325,7 +325,7 @@ export function ConversationList({ workspaceId }: ConversationListProps) {
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
-                              className="text-red-600"
+                              className="text-destructive"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 e.preventDefault();

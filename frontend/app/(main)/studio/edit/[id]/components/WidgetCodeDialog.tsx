@@ -115,21 +115,21 @@ export default function WidgetCodeDialog({ open, onClose, widget, onCopy }: Widg
 
         <div className="space-y-4">
           {/* 小组件信息 */}
-          <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+          <div className="grid grid-cols-2 gap-4 p-4 bg-muted/40 rounded-lg">
             <div>
               <Label className="text-sm text-muted-foreground">小组件名称</Label>
               <p className="font-medium">{widget.name}</p>
             </div>
             <div>
               <Label className="text-sm text-muted-foreground">状态</Label>
-              <p className={`font-medium ${widget.enabled ? 'text-green-600' : 'text-red-600'}`}>
+              <p className={`font-medium ${widget.enabled ? 'text-success' : 'text-destructive'}`}>
                 {widget.enabled ? '已启用' : '已禁用'}
               </p>
             </div>
             <div className="col-span-2">
               <Label className="text-sm text-muted-foreground">访问链接</Label>
               <div className="flex items-center gap-2">
-                <code className="text-xs bg-white px-2 py-1 rounded border flex-1 break-all">
+                <code className="text-xs bg-background px-2 py-1 rounded border flex-1 break-all">
                   {widgetUrl}
                 </code>
                 <Button
@@ -154,7 +154,7 @@ export default function WidgetCodeDialog({ open, onClose, widget, onCopy }: Widg
             <TabsContent value="iframe" className="space-y-2">
               <Label>固定大小的iframe嵌入</Label>
               <div className="relative">
-                <pre className="bg-gray-100 p-4 rounded-lg text-xs overflow-auto max-h-48 border whitespace-pre-wrap break-words">
+                <pre className="bg-muted p-4 rounded-lg text-xs overflow-auto max-h-48 border whitespace-pre-wrap break-words">
                   <code className="block overflow-x-auto">{widgetCodes.iframe}</code>
                 </pre>
                 <Button
@@ -174,7 +174,7 @@ export default function WidgetCodeDialog({ open, onClose, widget, onCopy }: Widg
             <TabsContent value="floating" className="space-y-2">
               <Label>悬浮窗口模式</Label>
               <div className="relative">
-                <pre className="bg-gray-100 p-4 rounded-lg text-xs overflow-auto max-h-48 border whitespace-pre-wrap break-words">
+                <pre className="bg-muted p-4 rounded-lg text-xs overflow-auto max-h-48 border whitespace-pre-wrap break-words">
                   <code className="block overflow-x-auto">{widgetCodes.floating}</code>
                 </pre>
                 <Button
@@ -194,7 +194,7 @@ export default function WidgetCodeDialog({ open, onClose, widget, onCopy }: Widg
             <TabsContent value="responsive" className="space-y-2">
               <Label>响应式嵌入</Label>
               <div className="relative">
-                <pre className="bg-gray-100 p-4 rounded-lg text-xs overflow-auto max-h-48 border whitespace-pre-wrap break-words">
+                <pre className="bg-muted p-4 rounded-lg text-xs overflow-auto max-h-48 border whitespace-pre-wrap break-words">
                   <code className="block overflow-x-auto">{widgetCodes.responsive}</code>
                 </pre>
                 <Button
@@ -213,9 +213,9 @@ export default function WidgetCodeDialog({ open, onClose, widget, onCopy }: Widg
           </Tabs>
 
           {/* 使用说明 */}
-          <div className="p-4 bg-blue-50 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-2">使用说明</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
+          <div className="p-4 bg-accent/60 rounded-lg">
+            <h4 className="font-medium text-primary mb-2">使用说明</h4>
+            <ul className="text-sm text-primary space-y-1">
               <li>• 将代码复制到你的网站HTML中即可使用</li>
               <li>• 建议将代码放在 &lt;/body&gt; 标签前</li>
               <li>• 确保小组件配置已启用且域名在允许列表中</li>

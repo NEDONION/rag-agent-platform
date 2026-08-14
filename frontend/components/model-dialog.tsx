@@ -200,7 +200,7 @@ export function ModelDialog({
     <>
       {showSuccessNotice && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-none">
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-6 py-4 text-emerald-700 shadow-lg">
+          <div className="rounded-lg border border-border bg-success-subtle px-6 py-4 text-success shadow-lg">
             保存成功
           </div>
         </div>
@@ -218,7 +218,7 @@ export function ModelDialog({
         
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="modelId">模型ID <span className="text-red-500">*</span></Label>
+            <Label htmlFor="modelId">模型ID <span className="text-destructive">*</span></Label>
             <Input
               id="modelId"
               name="modelId"
@@ -230,7 +230,7 @@ export function ModelDialog({
           </div>
           
           <div className="grid gap-2">
-            <Label htmlFor="name">名称 <span className="text-red-500">*</span></Label>
+            <Label htmlFor="name">名称 <span className="text-destructive">*</span></Label>
             <Input
               id="name"
               name="name"
@@ -254,7 +254,7 @@ export function ModelDialog({
           </div>
           
           <div className="grid gap-2">
-            <Label htmlFor="type">类型 <span className="text-red-500">*</span></Label>
+            <Label htmlFor="type">类型 <span className="text-destructive">*</span></Label>
             {typesLoading ? (
               <div className="text-sm text-muted-foreground">加载中...</div>
             ) : (
@@ -271,8 +271,8 @@ export function ModelDialog({
                       key={type}
                       className={`flex items-center gap-3 rounded-md border px-3 py-2 transition-colors ${
                         isSelected
-                          ? "border-blue-300 bg-blue-50 text-blue-700"
-                          : "border-slate-200"
+                          ? "border-border bg-accent/60 text-primary"
+                          : "border-border"
                       }`}
                     >
                       <RadioGroupItem value={type} id={optionId} className="peer" />

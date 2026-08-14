@@ -30,11 +30,11 @@ export function CodeBlock({ children, code, language }: CodeBlockProps) {
         variant="ghost" 
         size="sm"
         onClick={handleCopy}
-        className="absolute top-2 right-2 h-8 w-8 p-0 bg-white/80 hover:bg-white border shadow-sm z-10"
+        className="absolute top-2 right-2 h-8 w-8 p-0 bg-background/80 hover:bg-background border shadow-sm z-10"
         aria-label={`复制${language ? language : ''}代码`}
       >
         {copied ? (
-          <Check className="h-4 w-4 text-green-600" />
+          <Check className="h-4 w-4 text-success" />
         ) : (
           <Copy className="h-4 w-4" />
         )}

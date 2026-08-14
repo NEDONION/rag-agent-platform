@@ -49,16 +49,16 @@ const AgentPublishDialog: React.FC<AgentPublishDialogProps> = ({
         <div className="space-y-4 py-4">
           {isLoadingLatestVersion ? (
             <div className="flex items-center justify-center py-2">
-              <RefreshCw className="h-4 w-4 animate-spin text-blue-500 mr-2" />
+              <RefreshCw className="h-4 w-4 animate-spin text-primary mr-2" />
               <span className="text-sm">加载版本信息...</span>
             </div>
           ) : latestVersion ? (
-            <div className="flex items-center p-2 bg-blue-50 rounded-md border border-blue-100 mb-2">
-              <span className="text-sm text-blue-600">当前最新版本：{latestVersion.versionNumber}</span>
+            <div className="flex items-center p-2 bg-accent/60 rounded-md border border-border mb-2">
+              <span className="text-sm text-primary">当前最新版本：{latestVersion.versionNumber}</span>
             </div>
           ) : (
-            <div className="flex items-center p-2 bg-gray-50 rounded-md border border-gray-200 mb-2">
-              <span className="text-sm text-gray-600">当前还没有发布过版本</span>
+            <div className="flex items-center p-2 bg-muted/40 rounded-md border border-border mb-2">
+              <span className="text-sm text-muted-foreground">当前还没有发布过版本</span>
             </div>
           )}
           <div className="space-y-2">

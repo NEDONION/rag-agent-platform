@@ -1047,7 +1047,7 @@ export default function AgentPreviewChat({
         
         {/* 中断状态提示 */}
         {canInterrupt && (
-          <p className="text-xs text-orange-600 mt-2 flex items-center gap-1">
+          <p className="text-xs text-primary mt-2 flex items-center gap-1">
             <Square className="h-3 w-3" />
             点击停止按钮可中断对话
           </p>

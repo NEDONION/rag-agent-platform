@@ -506,7 +506,7 @@ export function ScheduledTaskDialog({
 
           {/* 自定义重复设置 */}
           {taskData.repeatType === "custom" && (
-            <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+            <div className="space-y-4 p-4 border rounded-lg bg-muted/40">
               <Label className="text-base font-medium">自定义重复设置</Label>
               
               {/* 间隔和时间单位 */}
@@ -600,8 +600,8 @@ export function ScheduledTaskDialog({
 
           {/* 重复说明 */}
           {taskData.repeatType !== "none" && (
-            <div className="bg-blue-50 p-3 rounded-lg">
-              <div className="flex items-center gap-2 text-sm text-blue-700">
+            <div className="bg-accent/60 p-3 rounded-lg">
+              <div className="flex items-center gap-2 text-sm text-primary">
                 <Repeat className="h-4 w-4" />
                 <span>{getRepeatDescription(taskData.repeatType)}</span>
                 {taskData.repeatType === "weekly" && taskData.weekdays && taskData.weekdays.length > 0 && (

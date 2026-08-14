@@ -121,10 +121,10 @@ export default function AuthSettingsPage({}: AuthSettingsPageProps) {
     return (
       <div className="container mx-auto py-6">
         <div className="space-y-6">
-          <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-8 bg-muted rounded animate-pulse"></div>
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 bg-gray-200 rounded animate-pulse"></div>
+              <div key={i} className="h-32 bg-muted rounded animate-pulse"></div>
             ))}
           </div>
         </div>
@@ -137,8 +137,8 @@ export default function AuthSettingsPage({}: AuthSettingsPageProps) {
       {/* 页面标题 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t("认证设置")}</h1>
-          <p className="text-gray-600 mt-1">{t("管理用户登录和注册方式的配置")}</p>
+          <h1 className="text-2xl font-bold text-foreground">{t("认证设置")}</h1>
+          <p className="text-muted-foreground mt-1">{t("管理用户登录和注册方式的配置")}</p>
         </div>
       </div>
 
@@ -172,17 +172,17 @@ export default function AuthSettingsPage({}: AuthSettingsPageProps) {
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <h3 className="font-medium text-gray-900">
+                              <h3 className="font-medium text-foreground">
                                 {setting.featureName}
                               </h3>
                               <Badge 
                                 variant={setting.enabled ? "default" : "secondary"}
-                                className={setting.enabled ? "bg-green-100 text-green-800" : ""}
+                                className={setting.enabled ? "bg-success-subtle text-success" : ""}
                               >
                                 {setting.enabled ? t("已启用") : t("已禁用")}
                               </Badge>
                             </div>
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-sm text-muted-foreground mt-1">
                               {setting.description}
                             </p>
                           </div>
@@ -211,14 +211,14 @@ export default function AuthSettingsPage({}: AuthSettingsPageProps) {
       </div>
 
       {/* 配置说明 */}
-      <Card className="bg-blue-50 border-blue-200">
+      <Card className="bg-accent/60 border-border">
         <CardHeader>
-          <CardTitle className="text-blue-900 text-base flex items-center gap-2">
+          <CardTitle className="text-primary text-base flex items-center gap-2">
             <Shield className="h-4 w-4" />
             {t("配置说明")}
           </CardTitle>
         </CardHeader>
-        <CardContent className="text-sm text-blue-800 space-y-2">
+        <CardContent className="text-sm text-primary space-y-2">
           <div className="flex items-start gap-2">
             <ChevronRight className="h-4 w-4 mt-0.5 flex-shrink-0" />
             <span>{t("普通登录：用户使用邮箱/手机号和密码进行登录")}</span>

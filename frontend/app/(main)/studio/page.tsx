@@ -206,7 +206,7 @@ export default function StudioPage() {
       ) : error ? (
         // 错误状态
         <div className="text-center py-10">
-          <div className="text-red-500 mb-4">{error}</div>
+          <div className="text-destructive mb-4">{error}</div>
           <Button variant="outline" onClick={() => window.location.reload()}>
             <RefreshCw className="mr-2 h-4 w-4" />
             重试
@@ -214,8 +214,8 @@ export default function StudioPage() {
         </div>
       ) : agents.length === 0 ? (
         // 空状态
-        <div className="text-center py-16 border rounded-lg bg-gray-50">
-          <Bot className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+        <div className="text-center py-16 border rounded-lg bg-muted/40">
+          <Bot className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium mb-2">{searchQuery ? "未找到匹配的 Agent" : "还没有创建任何 Agent"}</h3>
           <p className="text-muted-foreground mb-6">
             {searchQuery ? "尝试使用不同的搜索词" : "创建您的第一个AI Agent，开始智能对话"}
@@ -291,7 +291,7 @@ export default function StudioPage() {
                         )}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-red-600" onClick={() => setAgentToDelete(agent)}>
+                      <DropdownMenuItem className="text-destructive" onClick={() => setAgentToDelete(agent)}>
                         <Trash className="mr-2 h-4 w-4" />
                         删除
                       </DropdownMenuItem>
@@ -300,9 +300,9 @@ export default function StudioPage() {
                 </div>
                 <CardDescription className="text-xs flex items-center gap-2 mt-1">
                   <span>{getAgentTypeText()}</span>
-                  <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                  <span className="w-1 h-1 rounded-full bg-muted"></span>
                   <span>{agent.enabled ? "已启用" : "已禁用"}</span>
-                  <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                  <span className="w-1 h-1 rounded-full bg-muted"></span>
                   <span>更新于 {new Date(agent.updatedAt).toLocaleDateString()}</span>
                 </CardDescription>
               </CardHeader>
