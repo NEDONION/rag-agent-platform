@@ -340,7 +340,7 @@ export default function ProvidersPage() {
   const renderProviders = (items: Provider[]) => {
     if (items.length === 0) {
       return (
-        <div className="text-center py-10 border rounded-md bg-gray-50">
+        <div className="text-center py-10 rounded-lg border border-border bg-muted/40">
           <p className="text-muted-foreground">{t("No model providers data")}</p>
         </div>
       )
@@ -349,11 +349,11 @@ export default function ProvidersPage() {
     return (
       <div className="space-y-4">
         {items.map((provider) => (
-          <Card key={provider.id} className="border-slate-200 shadow-sm">
-            <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-3">
+          <Card key={provider.id} className="border-border shadow-none">
+            <CardHeader className="border-b border-border bg-muted/40 pb-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 text-slate-600">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                     {provider.protocol.charAt(0).toUpperCase()}
                   </div>
                   <div>
@@ -375,8 +375,8 @@ export default function ProvidersPage() {
                     variant="outline"
                     className={
                       provider.status
-                        ? "bg-green-50 text-green-600 border-green-200"
-                        : "bg-red-50 text-red-600 border-red-200"
+                        ? "bg-success-subtle text-success border-transparent"
+                        : "bg-muted text-muted-foreground border-transparent"
                     }
                   >
                     {provider.status ? t("Enabled") : t("Disabled")}
@@ -431,9 +431,9 @@ export default function ProvidersPage() {
                 )}
               </div>
               {provider.models && provider.models.length > 0 ? (
-                <div className="space-y-2 rounded-md border border-slate-100 bg-slate-50/60 p-3">
+                <div className="space-y-2 rounded-lg border border-border bg-muted/40 p-3">
                   {provider.models.map((model) => (
-                    <div key={model.id} className="flex items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2">
+                    <div key={model.id} className="flex items-center justify-between rounded-md border border-border bg-background px-3 py-2">
                       <div className="min-w-0">
                         <div className="font-medium text-sm truncate">{model.name}</div>
                         <div className="text-xs text-muted-foreground truncate">
@@ -472,7 +472,7 @@ export default function ProvidersPage() {
                   ))}
                 </div>
               ) : (
-                <div className="rounded-md border border-dashed border-slate-200 bg-slate-50 px-3 py-4 text-center text-xs text-muted-foreground">
+                <div className="rounded-lg border border-dashed border-border bg-muted/40 px-3 py-4 text-center text-xs text-muted-foreground">
                   {provider.isOfficial ? t("No model yet") : t("No model yet, click Add to create one")}
                 </div>
               )}
@@ -703,9 +703,9 @@ export default function ProvidersPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </div>
-        <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
-          <h3 className="text-red-800 font-medium">{t("加载失败")}</h3>
-          <p className="text-red-600">{error}</p>
+        <div className="rounded-lg border border-destructive/30 p-4 mb-6">
+          <h3 className="font-medium text-destructive">{t("加载失败")}</h3>
+          <p className="text-sm text-muted-foreground">{error}</p>
           <Button 
             variant="outline" 
             className="mt-2" 
@@ -722,7 +722,7 @@ export default function ProvidersPage() {
     <>
       {showSaveNotice && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-none">
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-6 py-4 text-emerald-700 shadow-lg">
+          <div className="rounded-lg border border-border bg-success-subtle px-6 py-4 text-foreground shadow-lg">
             {t("配置保存成功")}
           </div>
         </div>
@@ -746,32 +746,32 @@ export default function ProvidersPage() {
 
       <div className="mt-8 space-y-10">
         <section className="space-y-4">
-          <Card className="overflow-hidden border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-200/70 bg-gradient-to-r from-sky-50 via-white to-amber-50 px-6 py-5">
+          <Card className="overflow-hidden border-border shadow-none">
+            <div className="border-b border-border px-6 py-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                    <span className="inline-flex h-1.5 w-1.5 rounded-full bg-sky-500" />
+                  <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                    <span className="inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
                     {t("Model Providers")}
                   </div>
-                  <h2 className="mt-2 text-xl font-semibold text-slate-900">
+                  <h2 className="mt-2 text-lg font-semibold text-foreground">
                     {t("Manage your Model Providers and API keys")}
                   </h2>
-                  <p className="mt-1 text-sm text-slate-600">
+                  <p className="mt-1 text-sm text-muted-foreground">
                     {t("在这里配置服务商、密钥与可用模型")}
                   </p>
                 </div>
-                <div className="hidden items-center gap-2 text-xs font-medium text-slate-500 md:flex">
-                  <span className="rounded-full bg-white px-2.5 py-1 shadow-sm ring-1 ring-slate-200">
+                <div className="hidden items-center gap-2 text-xs font-medium text-muted-foreground md:flex">
+                  <span className="rounded-full border border-border px-2.5 py-1">
                     {t("官方")}
                   </span>
-                  <span className="rounded-full bg-white px-2.5 py-1 shadow-sm ring-1 ring-slate-200">
+                  <span className="rounded-full border border-border px-2.5 py-1">
                     {t("自定义")}
                   </span>
                 </div>
               </div>
             </div>
-            <CardContent className="bg-slate-50/40 pt-6">
+            <CardContent className="pt-6">
               <Tabs defaultValue="all" className="space-y-4" value={activeTab} onValueChange={setActiveTab}>
                 <TabsList>
                   <TabsTrigger value="all">{t("All")}</TabsTrigger>
@@ -818,8 +818,8 @@ export default function ProvidersPage() {
                       onValueChange={handleDefaultModelChange}
                     >
                       <SelectTrigger
-                        className={`data-[state=open]:ring-2 data-[state=open]:ring-blue-200 data-[state=open]:border-blue-300 ${
-                          settings.settingConfig.defaultModel ? "[&>span]:text-blue-700 [&>span]:font-medium" : ""
+                        className={`${
+                          settings.settingConfig.defaultModel ? "[&>span]:font-medium" : ""
                         }`}
                       >
                         <SelectValue placeholder={t("选择默认模型")} />
@@ -869,8 +869,8 @@ export default function ProvidersPage() {
                       onValueChange={handleDefaultOcrModelChange}
                     >
                       <SelectTrigger
-                        className={`data-[state=open]:ring-2 data-[state=open]:ring-blue-200 data-[state=open]:border-blue-300 ${
-                          settings.settingConfig.defaultOcrModel ? "[&>span]:text-blue-700 [&>span]:font-medium" : ""
+                        className={`${
+                          settings.settingConfig.defaultOcrModel ? "[&>span]:font-medium" : ""
                         }`}
                       >
                         <SelectValue placeholder={t("选择默认OCR模型")} />
@@ -920,9 +920,9 @@ export default function ProvidersPage() {
                       onValueChange={handleDefaultEmbeddingModelChange}
                     >
                       <SelectTrigger
-                        className={`data-[state=open]:ring-2 data-[state=open]:ring-blue-200 data-[state=open]:border-blue-300 ${
+                        className={`${
                           settings.settingConfig.defaultEmbeddingModel
-                            ? "[&>span]:text-blue-700 [&>span]:font-medium"
+                            ? "[&>span]:font-medium"
                             : ""
                         }`}
                       >
@@ -1069,7 +1069,7 @@ export default function ProvidersPage() {
               toast({
                 title: t("模型添加成功"),
                 description: t("已更新可用模型列表"),
-                className: "border-emerald-200 bg-emerald-50 text-emerald-900",
+                className: "border-border bg-success-subtle text-foreground",
               })
             }
           }}

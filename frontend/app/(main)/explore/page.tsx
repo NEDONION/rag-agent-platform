@@ -343,59 +343,59 @@ export default function ExplorePage() {
       <div className="flex-1 overflow-auto">
         <div className="container py-6 px-3">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold tracking-tight text-blue-600">Explore Agent Apps</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Explore Agent Apps</h1>
             <p className="text-muted-foreground mt-1">Use these template Apps, or customize your own Apps based on the templates.</p>
           </div>
 
-          <Card className="mb-6 border border-blue-100 bg-gradient-to-r from-blue-50 via-slate-50 to-white p-4">
+          <Card className="mb-6 border-border bg-muted/40 p-4 shadow-none">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-                  <AlertCircle className="h-4 w-4 text-blue-500" />
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                  <AlertCircle className="h-4 w-4 text-muted-foreground" />
                   新用户引导：先完成模型服务配置
                 </div>
-                <p className="mt-1 text-sm text-slate-600">
+                <p className="mt-1 text-sm text-muted-foreground">
                   请先配置服务商的 API Key 与基础 URL，并确认已有可用模型。
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
                 <Link href="/settings/providers">
-                  <Button size="sm" className="bg-blue-600 text-white hover:bg-blue-700">
+                  <Button size="sm">
                     去配置模型服务
                   </Button>
                 </Link>
                 <Link href="/settings/providers">
-                  <Button size="sm" variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50">
+                  <Button size="sm" variant="outline">
                     检查默认模型
                   </Button>
                 </Link>
               </div>
             </div>
             <div className="mt-4 space-y-3">
-              <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-sm">
-                <span className="text-slate-600">1. 服务商配置</span>
+              <div className="flex items-center justify-between rounded-md border border-border bg-background px-3 py-2 text-sm">
+                <span className="text-muted-foreground">1. 服务商配置</span>
                 {providerStatus === "loading" ? (
-                  <span className="text-slate-400">检测中...</span>
+                  <span className="text-muted-foreground">检测中...</span>
                 ) : providerStatus === "ok" ? (
-                  <span className="inline-flex items-center gap-1 text-blue-700">
+                  <span className="inline-flex items-center gap-1 text-success">
                     <Check className="h-4 w-4" /> 已完成
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-red-500">
+                  <span className="inline-flex items-center gap-1 text-destructive">
                     <AlertCircle className="h-4 w-4" /> 未配置
                   </span>
                 )}
               </div>
-              <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-sm">
-                <span className="text-slate-600">2. 可用模型配置</span>
+              <div className="flex items-center justify-between rounded-md border border-border bg-background px-3 py-2 text-sm">
+                <span className="text-muted-foreground">2. 可用模型配置</span>
                 {modelStatus === "loading" ? (
-                  <span className="text-slate-400">检测中...</span>
+                  <span className="text-muted-foreground">检测中...</span>
                 ) : modelStatus === "ok" ? (
-                  <span className="inline-flex items-center gap-1 text-blue-700">
+                  <span className="inline-flex items-center gap-1 text-success">
                     <Check className="h-4 w-4" /> 已配置
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-red-500">
+                  <span className="inline-flex items-center gap-1 text-destructive">
                     <AlertCircle className="h-4 w-4" /> 未配置
                   </span>
                 )}
@@ -403,26 +403,24 @@ export default function ExplorePage() {
             </div>
           </Card>
 
-          <Card className="mb-6 bg-white p-6 rounded-2xl shadow-sm border border-blue-100 relative overflow-hidden">
-            <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-blue-100/50 blur-2xl" />
-            <div className="pointer-events-none absolute -left-8 -bottom-10 h-28 w-28 rounded-full bg-slate-200/50 blur-2xl" />
+          <Card className="mb-6 rounded-xl border-border p-6 shadow-none">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="rounded-xl bg-slate-100 p-2 text-slate-600">
+                <div className="rounded-lg bg-muted p-2 text-muted-foreground">
                   <Store className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-slate-800">{t("Recommended Knowledge Bases")}</h2>
+                  <h2 className="text-base font-semibold text-foreground">{t("Recommended Knowledge Bases")}</h2>
                   <p className="text-sm text-muted-foreground">
                     {t("Shows knowledge bases you created and can try immediately. Click the card button to start chatting.")}
                   </p>
                 </div>
-                <div className="ml-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                <div className="ml-2 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                   {t("Total {count}", { count: knowledgeBases.length })}
                 </div>
               </div>
               <Link href="/knowledge">
-                <Button size="sm" variant="outline" className="border-slate-200 text-slate-700 hover:bg-slate-50">
+                <Button size="sm" variant="outline">
                   {t("Manage Knowledge Bases")}
                 </Button>
               </Link>
@@ -445,19 +443,18 @@ export default function ExplorePage() {
                 ))}
               </div>
             ) : kbError ? (
-              <div className="mt-2 text-sm text-red-500">{kbError}</div>
+              <div className="mt-2 text-sm text-destructive">{kbError}</div>
             ) : knowledgeBases.length === 0 ? (
-              <div className="mt-2 text-sm text-slate-500">{t("No available knowledge base")}</div>
+              <div className="mt-2 text-sm text-muted-foreground">{t("No available knowledge base")}</div>
             ) : (
-              <div className="mt-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 border-t border-slate-100 pt-4 relative">
+              <div className="mt-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 border-t border-border pt-4">
                 {knowledgeBases.slice(0, 6).map((dataset) => (
-                  <Card key={dataset.id} className="border border-slate-200 rounded-2xl p-0 bg-white hover:shadow-md transition-all overflow-hidden">
+                  <Card key={dataset.id} className="rounded-xl border-border p-0 shadow-none transition-colors hover:bg-accent/40 overflow-hidden">
                     <div className="relative p-4 bg-[linear-gradient(140deg,#ffffff_0%,#f4f6fb_55%,#ffffff_100%)]">
-                      <div className="absolute -right-12 -top-12 h-24 w-24 rounded-full bg-slate-200/60 blur-2xl" />
                       <div className="relative">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-600 overflow-hidden border border-slate-200">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-muted text-muted-foreground overflow-hidden border border-border">
                               {dataset.icon ? (
                                 <img
                                   src={dataset.icon}
@@ -469,23 +466,23 @@ export default function ExplorePage() {
                               )}
                             </div>
                             <div className="min-w-0">
-                              <div className="font-semibold text-slate-800 line-clamp-1">{dataset.name}</div>
-                              <div className="text-xs text-slate-500 line-clamp-2 mt-0.5">
+                              <div className="font-medium text-foreground line-clamp-1">{dataset.name}</div>
+                              <div className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
                                 {dataset.description || t("No description")}
                               </div>
                             </div>
                           </div>
-                          <Badge variant="secondary" className="text-xs bg-slate-100 text-slate-700 border border-slate-200">
+                          <Badge variant="secondary" className="text-xs">
                             {t("Available")}
                           </Badge>
                         </div>
 
-                        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-600">
-                          <span className="inline-flex items-center gap-1 rounded-full bg-white/70 px-2 py-1 border border-slate-200">
+                        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5">
                             <Database className="h-3.5 w-3.5" />
                             {t("{count} files", { count: dataset.fileCount || 0 })}
                           </span>
-                          <span className="inline-flex items-center gap-1 rounded-full bg-white/70 px-2 py-1 border border-slate-200">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5">
                             <Calendar className="h-3.5 w-3.5" />
                             {t("Updated")} {dataset.updatedAt ? new Date(dataset.updatedAt).toLocaleDateString() : t("Unknown")}
                           </span>
@@ -494,7 +491,7 @@ export default function ExplorePage() {
                         <div className="mt-4">
                           <Button
                             size="sm"
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                            className="w-full"
                             onClick={() => {
                               setSelectedDataset(dataset)
                               setRagChatOpen(true)
@@ -572,15 +569,15 @@ export default function ExplorePage() {
                 ) : error ? (
                   // 错误状态
                   <div className="text-center py-10">
-                    <div className="text-red-500 mb-4">{error}</div>
+                    <div className="text-destructive mb-4">{error}</div>
                     <Button variant="outline" onClick={() => window.location.reload()}>
                       Retry
                     </Button>
                   </div>
                 ) : getFilteredAgents(tab).length === 0 ? (
                   // 空状态
-                  <div className="text-center py-16 border rounded-lg bg-gray-50">
-                    <Search className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <div className="text-center py-16 rounded-lg border border-border bg-muted/40">
+                    <Search className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
                     <h3 className="text-lg font-medium mb-2">
                       {searchQuery ? "未找到匹配的 Agent" : `暂无${tab}类型的 Agent`}
                     </h3>
@@ -595,7 +592,7 @@ export default function ExplorePage() {
                       <Card key={agent.id} className="group relative">
                         <div className="p-5">
                           <div className="flex items-start gap-3 mb-3">
-                            <div className="w-12 h-12 rounded-lg overflow-hidden bg-amber-100 flex items-center justify-center shrink-0">
+                            <div className="w-11 h-11 rounded-lg overflow-hidden bg-muted flex items-center justify-center shrink-0">
                               {agent.avatar ? (
                                 <img
                                   src={agent.avatar || "/placeholder.svg"}
@@ -603,7 +600,7 @@ export default function ExplorePage() {
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
-                                <Bot className="h-6 w-6 text-amber-500" />
+                                <Bot className="h-5 w-5 text-muted-foreground" />
                               )}
                             </div>
                             <div>
@@ -611,13 +608,13 @@ export default function ExplorePage() {
                               <div className="text-xs text-muted-foreground uppercase font-medium mt-1">AGENT</div>
                             </div>
                           </div>
-                          <p className="text-sm text-gray-600 line-clamp-3">{agent.description || "无描述"}</p>
+                          <p className="text-sm text-muted-foreground line-clamp-3">{agent.description || "无描述"}</p>
 
                           <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
                             <div className="space-y-2">
                               {agent.addWorkspace ? (
                                 <Button 
-                                  className="w-full bg-green-500 text-white cursor-default" 
+                                  variant="secondary" className="w-full cursor-default" 
                                   disabled
                                 >
                                   <Check className="h-4 w-4 mr-2" />
@@ -625,7 +622,7 @@ export default function ExplorePage() {
                                 </Button>
                               ) : (
                                 <Button 
-                                  className="w-full bg-blue-500 hover:bg-blue-600 text-white" 
+                                  className="w-full" 
                                   onClick={() => handleAddToWorkspace(agent.agentId)}
                                   disabled={addingAgentId === agent.agentId}
                                 >
@@ -669,7 +666,7 @@ export default function ExplorePage() {
             <div className="flex h-full flex-col">
               <SheetHeader className="space-y-3">
                 <div className="flex items-start gap-4">
-                  <div className="h-12 w-12 rounded-lg overflow-hidden bg-amber-100 flex items-center justify-center shrink-0">
+                  <div className="h-11 w-11 rounded-lg overflow-hidden bg-muted flex items-center justify-center shrink-0">
                     {selectedAgent.avatar ? (
                       <img
                         src={selectedAgent.avatar}
@@ -677,7 +674,7 @@ export default function ExplorePage() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <Bot className="h-6 w-6 text-amber-500" />
+                      <Bot className="h-5 w-5 text-muted-foreground" />
                     )}
                   </div>
                   <div>
@@ -691,7 +688,7 @@ export default function ExplorePage() {
                         <Badge variant="outline">{selectedAgent.publishStatusText}</Badge>
                       )}
                       {selectedAgent.multiModal && (
-                        <Badge variant="secondary" className="bg-emerald-50 text-emerald-700">
+                        <Badge variant="secondary">
                           多模态
                         </Badge>
                       )}
@@ -703,17 +700,17 @@ export default function ExplorePage() {
               <div className="mt-4 space-y-6 text-sm text-muted-foreground">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="text-slate-700 font-medium">快速试聊</div>
-                    <span className="text-xs text-slate-400">仅支持 1-2 轮</span>
+                    <div className="font-medium text-foreground">快速试聊</div>
+                    <span className="text-xs text-muted-foreground">仅支持 1-2 轮</span>
                   </div>
-                  <div className="rounded-lg border border-slate-200 bg-white p-3">
+                  <div className="rounded-lg border border-border bg-background p-3">
                     <div className="mb-3">
                       <Select
                         value={previewModelId}
                         onValueChange={setPreviewModelId}
                         disabled={previewLoading}
                       >
-                        <SelectTrigger className="h-9 data-[state=open]:ring-2 data-[state=open]:ring-blue-200 data-[state=open]:border-blue-300">
+                        <SelectTrigger className="h-9">
                           <SelectValue placeholder={previewLoading ? "加载模型中..." : "选择模型"} />
                         </SelectTrigger>
                         <SelectContent>
@@ -721,7 +718,7 @@ export default function ExplorePage() {
                             <SelectItem
                               key={model.id}
                               value={model.id}
-                              className="data-[state=checked]:bg-blue-50 data-[state=checked]:text-blue-700 data-[state=checked]:font-medium data-[state=checked]:focus:bg-blue-50 data-[state=checked]:focus:text-blue-700 data-[state=checked]:hover:bg-blue-50"
+                              className="data-[state=checked]:font-medium"
                             >
                               <div className="flex items-center gap-2">
                                 <span>{model.name}</span>
@@ -745,8 +742,8 @@ export default function ExplorePage() {
                           <div
                             className={
                               message.role === "user"
-                                ? "max-w-[80%] rounded-lg bg-blue-600 px-3 py-2 text-xs text-white"
-                                : "max-w-[80%] rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-700"
+                                ? "max-w-[80%] rounded-lg bg-muted px-3 py-2 text-xs text-foreground"
+                                : "max-w-[80%] rounded-lg px-3 py-2 text-xs text-foreground"
                             }
                           >
                             {message.content || (previewStreaming && index === previewMessages.length - 1 ? "..." : "")}
@@ -791,49 +788,49 @@ export default function ExplorePage() {
                   </div>
                 </div>
 
-                <div className="grid gap-4 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
-                  <div className="flex items-center gap-3 text-slate-700">
-                    <Layers className="h-4 w-4 text-slate-500" />
+                <div className="grid gap-4 rounded-lg border border-border bg-muted/40 p-4">
+                  <div className="flex items-center gap-3 text-foreground">
+                    <Layers className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">基础信息</span>
                   </div>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-slate-400" />
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span>发布时间：{selectedAgent.publishedAt || "未知"}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-slate-400" />
+                      <Sparkles className="h-4 w-4 text-muted-foreground" />
                       <span>默认模型：{selectedAgent.modelConfig?.modelName || "未配置"}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Wrench className="h-4 w-4 text-slate-400" />
+                      <Wrench className="h-4 w-4 text-muted-foreground" />
                       <span>工具数量：{selectedAgent.tools?.length || 0}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Database className="h-4 w-4 text-slate-400" />
+                      <Database className="h-4 w-4 text-muted-foreground" />
                       <span>知识库：{selectedAgent.knowledgeBaseIds?.length || 0}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <div className="text-slate-700 font-medium">系统提示词</div>
-                  <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-600 whitespace-pre-wrap">
+                  <div className="font-medium text-foreground">系统提示词</div>
+                  <div className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-muted-foreground whitespace-pre-wrap">
                     {selectedAgent.systemPrompt || "暂无系统提示词"}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <div className="text-slate-700 font-medium">欢迎语</div>
-                  <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-600 whitespace-pre-wrap">
+                  <div className="font-medium text-foreground">欢迎语</div>
+                  <div className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-muted-foreground whitespace-pre-wrap">
                     {selectedAgent.welcomeMessage || "暂无欢迎语"}
                   </div>
                 </div>
 
                 {selectedAgent.changeLog && (
                   <div className="space-y-2">
-                    <div className="text-slate-700 font-medium">更新记录</div>
-                    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-600 whitespace-pre-wrap">
+                    <div className="font-medium text-foreground">更新记录</div>
+                    <div className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-muted-foreground whitespace-pre-wrap">
                       {selectedAgent.changeLog}
                     </div>
                   </div>
@@ -842,13 +839,13 @@ export default function ExplorePage() {
 
               <SheetFooter className="mt-8">
                 {selectedAgent.addWorkspace ? (
-                  <Button className="w-full bg-green-500 text-white cursor-default" disabled>
+                  <Button variant="secondary" className="w-full cursor-default" disabled>
                     <Check className="h-4 w-4 mr-2" />
                     已添加到工作区
                   </Button>
                 ) : (
                   <Button
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    className="w-full"
                     onClick={() => handleAddToWorkspace(selectedAgent.agentId)}
                     disabled={addingAgentId === selectedAgent.agentId}
                   >
