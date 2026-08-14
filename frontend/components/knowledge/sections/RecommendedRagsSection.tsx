@@ -203,12 +203,12 @@ export function RecommendedRagsSection() {
   const hasMore = marketRags.length > 8
 
   return (
-    <div className="mb-8 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+    <div className="mb-8 bg-card p-6 rounded-xl border border-border">
       {/* 操作栏 */}
       <div className="flex items-center justify-between mb-5">
         <div>
           <h2 className="text-xl font-semibold flex items-center">
-            <span className="bg-green-50 p-1.5 rounded-md text-green-500 mr-2">
+            <span className="bg-accent p-1.5 rounded-md text-primary mr-2">
               <Store className="h-5 w-5" />
             </span>
             {t("推荐知识库")}
@@ -220,11 +220,11 @@ export function RecommendedRagsSection() {
       </div>
 
       {/* 知识库市场横幅 */}
-      <div className="mb-6 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 p-5 border border-green-100">
+      <div className="mb-6 rounded-xl border border-border bg-muted/50 p-5">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <div className="rounded-full bg-white/80 p-3 hidden sm:flex shadow-sm">
-              <Store className="h-5 w-5 text-green-500" />
+            <div className="rounded-full bg-background p-3 hidden sm:flex border border-border">
+              <Store className="h-5 w-5 text-primary" />
             </div>
             <div>
               <h3 className="font-medium text-lg">{t("探索知识库市场")}</h3>
@@ -310,8 +310,8 @@ export function RecommendedRagsSection() {
         </div>
       ) : error ? (
         // 错误状态
-        <div className="text-center py-10 bg-red-50 rounded-lg border border-red-100">
-          <div className="text-red-500 mb-4">{error}</div>
+        <div className="text-center py-10 rounded-xl border border-destructive/30">
+          <div className="text-destructive mb-4">{error}</div>
           <Button variant="outline" onClick={() => loadMarketRags(1, debouncedQuery)}>
             <RefreshCw className="mr-2 h-4 w-4" />
             {t("重试")}
@@ -319,8 +319,8 @@ export function RecommendedRagsSection() {
         </div>
       ) : marketRags.length === 0 ? (
         // 空状态
-        <div className="text-center py-12 bg-green-50 rounded-lg border border-green-100">
-          <Store className="h-12 w-12 mx-auto text-green-400 mb-4" />
+        <div className="text-center py-12 rounded-xl border border-border bg-muted/40">
+          <Store className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium mb-2">
             {searchQuery ? t("未找到匹配的知识库") : t("暂无推荐知识库")}
           </h3>

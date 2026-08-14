@@ -174,7 +174,7 @@ export function CreatedRagsSection() {
   const hasMore = datasets.length > 6
 
   return (
-    <div className="mb-8 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+    <div className="mb-8 bg-card p-6 rounded-xl border border-border">
       {/* 操作栏 */}
       <div className="flex items-center justify-between mb-5">
         <div>
@@ -238,8 +238,8 @@ export function CreatedRagsSection() {
         </div>
       ) : error ? (
         // 错误状态
-        <div className="text-center py-10 bg-red-50 rounded-lg border border-red-100">
-          <div className="text-red-500 mb-4">{error}</div>
+        <div className="text-center py-10 rounded-xl border border-destructive/30">
+          <div className="text-destructive mb-4">{error}</div>
           <Button variant="outline" onClick={() => loadDatasets(1, debouncedQuery)}>
             <RefreshCw className="mr-2 h-4 w-4" />
             {t("重试")}
@@ -247,8 +247,8 @@ export function CreatedRagsSection() {
         </div>
       ) : datasets.length === 0 ? (
         // 空状态
-        <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-100">
-          <Book className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+        <div className="text-center py-12 rounded-xl border border-border bg-muted/40">
+          <Book className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium mb-2">
             {searchQuery ? t("未找到匹配的数据集") : t("暂无已创建的数据集")}
           </h3>

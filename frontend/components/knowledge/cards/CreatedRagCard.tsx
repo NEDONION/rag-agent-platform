@@ -39,7 +39,7 @@ export function CreatedRagCard({
   }
 
   return (
-    <Card className="relative overflow-hidden hover:shadow-md transition-all duration-300 border border-gray-100 min-h-[180px]">
+    <Card className="relative overflow-hidden hover:shadow-md transition-all duration-300 border border-border min-h-[180px]">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <Link href={`/knowledge/${dataset.id}`} className="flex items-center gap-3 flex-1 min-w-0" style={{ cursor: 'pointer' }}>
@@ -91,7 +91,7 @@ export function CreatedRagCard({
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
-                    className="text-red-600" 
+                    className="text-destructive" 
                     onClick={() => onDelete(dataset)}
                   >
                     <Trash className="mr-2 h-4 w-4" />

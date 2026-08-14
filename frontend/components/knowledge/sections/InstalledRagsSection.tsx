@@ -204,12 +204,12 @@ export function InstalledRagsSection() {
   const hasMore = installedRags.length > 4
 
   return (
-    <div className="mb-8 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+    <div className="mb-8 bg-card p-6 rounded-xl border border-border">
       {/* 操作栏 */}
       <div className="flex items-center justify-between mb-5">
         <div>
           <h2 className="text-xl font-semibold flex items-center">
-            <span className="bg-blue-50 p-1.5 rounded-md text-blue-500 mr-2">
+            <span className="bg-accent p-1.5 rounded-md text-primary mr-2">
               <Download className="h-5 w-5" />
             </span>
             {t("我安装的知识库")}
@@ -268,8 +268,8 @@ export function InstalledRagsSection() {
         </div>
       ) : error ? (
         // 错误状态
-        <div className="text-center py-10 bg-red-50 rounded-lg border border-red-100">
-          <div className="text-red-500 mb-4">{error}</div>
+        <div className="text-center py-10 rounded-xl border border-destructive/30">
+          <div className="text-destructive mb-4">{error}</div>
           <Button variant="outline" onClick={() => loadInstalledRags(1, debouncedQuery)}>
             <RefreshCw className="mr-2 h-4 w-4" />
             {t("重试")}
@@ -277,8 +277,8 @@ export function InstalledRagsSection() {
         </div>
       ) : installedRags.length === 0 ? (
         // 空状态
-        <div className="text-center py-12 bg-blue-50 rounded-lg border border-blue-100">
-          <Download className="h-12 w-12 mx-auto text-blue-400 mb-4" />
+        <div className="text-center py-12 rounded-xl border border-border bg-muted/40">
+          <Download className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium mb-2">
             {searchQuery ? t("未找到匹配的知识库") : t("暂无已安装的知识库")}
           </h3>

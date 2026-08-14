@@ -66,7 +66,7 @@ export function DatasetCard({ dataset, onEdit, onDelete }: DatasetCardProps) {
               {onEdit && onDelete && <DropdownMenuSeparator />}
               {onDelete && (
                 <DropdownMenuItem 
-                  className="text-red-600" 
+                  className="text-destructive" 
                   onClick={() => onDelete(dataset)}
                 >
                   <Trash className="mr-2 h-4 w-4" />

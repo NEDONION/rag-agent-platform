@@ -135,7 +135,7 @@ export function EditDatasetDialog({
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="edit-name">
-                {t("数据集名称")} <span className="text-red-500">*</span>
+                {t("数据集名称")} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="edit-name"
