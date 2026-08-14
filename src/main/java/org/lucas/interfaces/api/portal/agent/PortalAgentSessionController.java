@@ -1,8 +1,6 @@
 package org.lucas.interfaces.api.portal.agent;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
@@ -32,7 +30,6 @@ import org.lucas.interfaces.api.common.Result;
 public class PortalAgentSessionController {
 
     private final Logger logger = LoggerFactory.getLogger(PortalAgentSessionController.class);
-    private final ExecutorService executorService = Executors.newCachedThreadPool();
     private final AgentSessionAppService agentSessionAppService;
     private final ConversationAppService conversationAppService;
     private final ChatSessionManager chatSessionManager;

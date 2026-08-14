@@ -337,16 +337,11 @@
             <version>3.3.6</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.tinylog</groupId>
-            <artifactId>tinylog-impl</artifactId>
-            <version>2.6.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.tinylog</groupId>
-            <artifactId>slf4j-tinylog</artifactId>
-            <version>2.6.2</version>
-        </dependency>
+        <!-- 注意：不要再引入 tinylog（或任何第二个 SLF4J provider）。
+             spring-boot-starter-logging 已经提供 logback-classic 作为唯一绑定；
+             同时存在两个 provider 时 SLF4J 会在启动时告警并任选其一（实测选中 logback），
+             导致另一套的配置完全不生效，排查起来极其浪费时间。
+             docker-java 等库只依赖 slf4j-api，不需要额外的 provider。 -->
 
         <!-- Apache HTTP Core 5 for Docker Java -->
         <dependency>
