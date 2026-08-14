@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   backend:
-    name: 后端编译
+    name: 后端编译与测试
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,8 +24,13 @@ jobs:
           distribution: temurin
           cache: maven
 
-      - name: mvn compile
-        run: mvn -B compile -DskipTests
+      # 跑测试而非只编译：EncryptUtilsTest 锁住「v1 遗留密文仍可解密」这条不变量，
+      # 一旦回归，线上全部存量服务商配置会立刻读不出来。
+      #
+      # 刻意不设置 CONFIG_ENCRYPTION_KEY：测试自带密钥，且只有缺少该变量时，
+      # 「密钥缺失应启动失败」的两个用例才会真正执行（配了则自动跳过）。
+      - name: mvn test
+        run: mvn -B test
 
   frontend:
     name: 前端构建
