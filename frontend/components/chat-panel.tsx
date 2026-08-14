@@ -590,7 +590,7 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
     switch (type) {
       case MessageType.TOOL_CALL:
         return {
-          icon: <Wrench className="h-5 w-5 text-blue-500" />,
+          icon: <Wrench className="h-5 w-5 text-muted-foreground" />,
           text: '工具调用'
         };
       case MessageType.TEXT:
@@ -623,7 +623,7 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
   };
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-white">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-background">
       <div 
         ref={chatContainerRef}
         className="flex-1 overflow-y-auto px-4 pt-3 pb-4 w-full"
@@ -632,14 +632,14 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
           // 加载状态
           <div className="flex items-center justify-center h-full w-full">
             <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-gray-200 border-t-blue-500 mb-2"></div>
-              <p className="text-gray-500">正在加载消息...</p>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary mb-2"></div>
+              <p className="text-muted-foreground">正在加载消息...</p>
             </div>
           </div>
         ) : (
           <div className="space-y-4 w-full">
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-3 text-sm text-red-600">
+              <div className="rounded-lg border border-destructive/30 p-3 text-sm text-destructive">
                 {error}
               </div>
             )}
@@ -648,7 +648,7 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
             <div className="space-y-6 w-full">
               {messages.length === 0 ? (
                 <div className="flex items-center justify-center h-20 w-full">
-                  <p className="text-gray-400">暂无消息，开始发送消息吧</p>
+                  <p className="text-muted-foreground">暂无消息，开始发送消息吧</p>
                 </div>
               ) : (
                 messages.map((message) => (
@@ -669,12 +669,12 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
                           
                           {/* 消息内容 */}
                           {message.content && (
-                            <div className="bg-blue-50 text-gray-800 p-3 rounded-lg shadow-sm">
+                            <div className="rounded-2xl rounded-br-md bg-muted px-3.5 py-2 text-sm leading-[1.7] text-foreground">
                               {message.content}
                             </div>
                           )}
                           
-                          <div className="text-xs text-gray-500 mt-1 text-right">
+                          <div className="mt-1 text-right text-[11px] text-muted-foreground">
                             {formatMessageTime(message.createdAt)}
                           </div>
                         </div>
@@ -682,7 +682,7 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
                     ) : (
                       /* AI消息 */
                       <div className="flex">
-                        <div className="h-8 w-8 mr-2 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <div className="h-8 w-8 mr-2 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
                           {message.type && message.type !== MessageType.TEXT 
                             ? getMessageTypeInfo(message.type).icon 
                             : <div className="text-lg">🤖</div>
@@ -690,11 +690,11 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
                         </div>
                         <div className="max-w-[95%]">
                           {/* 消息类型指示 */}
-                          <div className="flex items-center mb-1 text-xs text-gray-500">
+                          <div className="mb-1 flex items-center text-xs text-muted-foreground">
                             <span className="font-medium">
                               {message.type ? getMessageTypeInfo(message.type).text : agentName}
                             </span>
-                            <span className="mx-1 text-gray-400">·</span>
+                            <span className="mx-1 text-muted-foreground">·</span>
                             <span>{formatMessageTime(message.createdAt)}</span>
                           </div>
                           
@@ -724,21 +724,21 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
               {/* 思考中提示 */}
               {isThinking && (!currentAssistantMessage || !currentAssistantMessage.hasContent) && (
                 <div className="flex items-start">
-                  <div className="h-8 w-8 mr-2 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="h-8 w-8 mr-2 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
                     <div className="text-lg">🤖</div>
                   </div>
                   <div className="max-w-[95%]">
-                    <div className="flex items-center mb-1 text-xs text-gray-500">
+                    <div className="mb-1 flex items-center text-xs text-muted-foreground">
                       <span className="font-medium">{agentName}</span>
-                      <span className="mx-1 text-gray-400">·</span>
+                      <span className="mx-1 text-muted-foreground">·</span>
                       <span>刚刚</span>
                     </div>
                     <div className="space-y-2 p-3 rounded-lg">
                       <div className="flex space-x-2 items-center">
-                        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-                        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse delay-75"></div>
-                        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse delay-150"></div>
-                        <div className="text-sm text-gray-500 animate-pulse">思考中...</div>
+                        <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground animate-pulse"></div>
+                        <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground animate-pulse delay-75"></div>
+                        <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground animate-pulse delay-150"></div>
+                        <div className="text-sm text-muted-foreground animate-pulse">思考中...</div>
                       </div>
                     </div>
                   </div>
@@ -750,7 +750,7 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
                 <Button
                   variant="outline"
                   size="sm"
-                  className="fixed bottom-20 right-6 rounded-full shadow-md bg-white"
+                  className="fixed bottom-20 right-6 rounded-full shadow-md bg-background"
                   onClick={scrollToBottom}
                 >
                   <span>↓</span>
@@ -762,7 +762,7 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
       </div>
 
       {/* 输入框 */}
-      <div className="border-t p-2 bg-white">
+      <div className="border-t border-border bg-background p-2">
         {/* 已上传文件显示区域 - 在输入框上方 */}
         {uploadedFiles.length > 0 && (
           <div className="mb-2 px-2">
@@ -770,9 +770,9 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
               {uploadedFiles.map((file) => (
                 <div
                   key={file.id}
-                  className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg text-sm border border-blue-200"
+                  className="flex items-center gap-2 rounded-lg border border-border bg-muted/60 px-3 py-2 text-sm"
                 >
-                  <div className="flex-shrink-0 w-5 h-5 bg-blue-100 rounded flex items-center justify-center">
+                  <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded bg-background">
                     {file.type.startsWith('image/') ? (
                       <span className="text-sm">🖼️</span>
                     ) : (
@@ -780,14 +780,14 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate max-w-32">
+                    <p className="max-w-32 truncate text-sm font-medium text-foreground">
                       {file.name}
                     </p>
                     {/* 上传进度条 */}
                     {file.uploadProgress !== undefined && file.uploadProgress < 100 && (
-                      <div className="w-full bg-gray-200 rounded-full h-1 mt-1">
+                      <div className="mt-1 h-1 w-full rounded-full bg-muted">
                         <div
-                          className="bg-blue-600 h-1 rounded-full transition-all duration-300"
+                          className="h-1 rounded-full bg-primary transition-all duration-300"
                           style={{ width: `${file.uploadProgress}%` }}
                         />
                       </div>
@@ -797,10 +797,10 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
                     onClick={() => {
                       setUploadedFiles(prev => prev.filter(f => f.id !== file.id))
                     }}
-                    className="flex-shrink-0 w-4 h-4 rounded-full bg-red-100 hover:bg-red-200 flex items-center justify-center transition-colors"
+                    className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-destructive"
                     disabled={isTyping}
                   >
-                    <span className="text-xs text-red-600">×</span>
+                    <span className="text-xs">×</span>
                   </button>
                 </div>
               ))}
@@ -829,7 +829,7 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
               onClick={onToggleScheduledTaskPanel}
               title="定时任务"
             >
-              <Clock className="h-5 w-5 text-gray-500 hover:text-primary" />
+              <Clock className="h-5 w-5 text-muted-foreground hover:text-foreground" />
             </Button>
           )}
           
@@ -838,7 +838,7 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyPress}
-            className="min-h-[56px] flex-1 resize-none overflow-hidden rounded-xl bg-white px-3 py-2 font-normal border-gray-200 shadow-sm focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-opacity-50"
+            className="min-h-[56px] flex-1 resize-none overflow-hidden rounded-xl px-3 py-2 font-normal"
             rows={Math.min(5, Math.max(2, input.split('\n').length))}
           />
           
@@ -847,7 +847,7 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
             <Button 
               onClick={handleInterrupt}
               disabled={isInterrupting}
-              className="h-10 w-10 rounded-xl bg-red-500 hover:bg-red-600 shadow-sm flex-shrink-0"
+              className="h-10 w-10 flex-shrink-0 rounded-xl bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90"
               title="中断对话"
             >
               <Square className="h-5 w-5" />
@@ -856,7 +856,7 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
             <Button 
               onClick={handleSendMessage} 
               disabled={(!input.trim() && uploadedFiles.length === 0) || isTyping} 
-              className="h-10 w-10 rounded-xl bg-blue-500 hover:bg-blue-600 shadow-sm flex-shrink-0"
+              className="h-10 w-10 flex-shrink-0 rounded-xl shadow-sm"
               title="发送消息"
             >
               <Send className="h-5 w-5" />
