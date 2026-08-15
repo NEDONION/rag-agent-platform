@@ -249,7 +249,7 @@ export default function ProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-6">
         {/* 个人资料 */}
         <Card className="border-border shadow-sm">
-          <CardHeader className="border-b border-border bg-muted/40/70">
+          <CardHeader className="border-b border-border bg-muted/70">
             <CardTitle className="flex items-center gap-2">
               <User className="h-4 w-4 text-muted-foreground" />
               {t("个人资料")}
@@ -300,7 +300,7 @@ export default function ProfilePage() {
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="border-t border-border bg-muted/40/40">
+            <CardFooter className="border-t border-border bg-muted/40">
               <Button type="submit" disabled={submitting}>
                 {submitting ? t("保存中...") : t("保存更改")}
               </Button>
@@ -310,7 +310,7 @@ export default function ProfilePage() {
 
         {/* 修改密码 */}
         <Card className="border-border shadow-sm">
-          <CardHeader className="border-b border-border bg-muted/40/70">
+          <CardHeader className="border-b border-border bg-muted/70">
             <CardTitle className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-muted-foreground" />
               {t("修改密码")}
@@ -356,7 +356,7 @@ export default function ProfilePage() {
                 />
               </div>
             </CardContent>
-            <CardFooter className="border-t border-border bg-muted/40/40">
+            <CardFooter className="border-t border-border bg-muted/40">
               <Button type="submit" disabled={passwordSubmitting}>
                 {passwordSubmitting ? t("修改中...") : t("修改密码")}
               </Button>

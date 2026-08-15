@@ -56,7 +56,7 @@ export function ChatInputArea({
   };
 
   return (
-    <div className={cn("border-t border-border bg-background", className)}>
+    <div className={cn("border-t border-border bg-card", className)}>
       <div className="mx-auto w-full max-w-3xl px-4 py-3">
         {/* 整个 composer 是一个表面：输入区与操作按钮共处同一个边框内，
             焦点环加在容器上而非 textarea 上，避免出现「框中框」。 */}

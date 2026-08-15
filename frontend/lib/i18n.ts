@@ -1,12 +1,42 @@
 export type Locale = "zh" | "en"
 
-export const DEFAULT_LOCALE: Locale = "zh"
+/** 默认语言。首次访问（localStorage 无记录）时使用。
+ *  用户手动切换后会记住选择，不再回落到这里。 */
+export const DEFAULT_LOCALE: Locale = "en"
 export const LOCALE_STORAGE_KEY = "ui_locale"
 
 type Messages = Record<string, { zh: string; en: string }>
 
 const messages: Messages = {
   "Explore": { zh: "探索", en: "Explore" },
+  // —— 探索页 ——
+  "设置模型": { zh: "设置模型", en: "Model settings" },
+  "探索": { zh: "探索", en: "Explore" },
+  "工作区": { zh: "工作区", en: "Workspace" },
+  "从工作区移除": { zh: "从工作区移除", en: "Remove from workspace" },
+  "新用户引导：先完成模型服务配置": { zh: "新用户引导：先完成模型服务配置", en: "Getting started: configure a model provider" },
+  "请先配置服务商的 API Key 与基础 URL，并确认已有可用模型。": { zh: "请先配置服务商的 API Key 与基础 URL，并确认已有可用模型。", en: "Add your provider's API key and base URL, then confirm at least one model is available." },
+  "去配置模型服务": { zh: "去配置模型服务", en: "Configure provider" },
+  "检查默认模型": { zh: "检查默认模型", en: "Check default model" },
+  "1. 服务商配置": { zh: "1. 服务商配置", en: "1. Provider setup" },
+  "2. 可用模型配置": { zh: "2. 可用模型配置", en: "2. Available models" },
+  "检测中...": { zh: "检测中...", en: "Checking…" },
+  "已完成": { zh: "已完成", en: "Done" },
+  "已配置": { zh: "已配置", en: "Configured" },
+  "未配置": { zh: "未配置", en: "Not configured" },
+  "推荐": { zh: "推荐", en: "Recommended" },
+  "已添加到工作区": { zh: "已添加到工作区", en: "Added to workspace" },
+  "查看详情": { zh: "查看详情", en: "View details" },
+  "多模态": { zh: "多模态", en: "Multimodal" },
+  "快速试聊": { zh: "快速试聊", en: "Quick try" },
+  "仅支持 1-2 轮": { zh: "仅支持 1-2 轮", en: "1–2 turns only" },
+  "停止": { zh: "停止", en: "Stop" },
+  "发送": { zh: "发送", en: "Send" },
+  "基础信息": { zh: "基础信息", en: "Basics" },
+  "系统提示词": { zh: "系统提示词", en: "System prompt" },
+  "欢迎语": { zh: "欢迎语", en: "Welcome message" },
+  "更新记录": { zh: "更新记录", en: "Changelog" },
+  "输入一句话试试...": { zh: "输入一句话试试...", en: "Type a message to try it…" },
   "Workspace": { zh: "工作区", en: "Workspace" },
   "Knowledge": { zh: "知识库", en: "Knowledge" },
   "AgentX Plus": { zh: "AgentX Plus", en: "AgentX Plus" },

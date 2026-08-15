@@ -49,7 +49,7 @@ export function RetrievalProcess({ retrieval, onFileClick, selectedFileId }: Ret
       </div>
 
       {uniqueFiles.length > 0 && (
-        <div className="ml-[7px] space-y-1 border-l border-border pl-4 pt-1">
+        <div className="ml-[7px] space-y-0.5 border-l border-border pl-3 pt-0.5">
           {uniqueFiles.map((doc, idx) => (
             <ClickableFileLink
               key={`${doc.fileId}-${idx}`}

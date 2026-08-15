@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ModelSelectDialog } from "../components/model-select-dialog"
+import { useI18n } from "@/contexts/i18n-context"
 import {
   getWorkspaceAgentsWithToast
 } from "@/lib/api-services"
@@ -52,6 +53,7 @@ type WorkspaceItemProps = {
 }
 
 function WorkspaceItem({ id, name, icon, avatar, onClick }: WorkspaceItemProps) {
+  const { t } = useI18n()
   const { selectedWorkspaceId, setSelectedWorkspaceId, setSelectedConversationId } = useWorkspace()
   const isActive = selectedWorkspaceId === id
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -150,17 +152,17 @@ function WorkspaceItem({ id, name, icon, avatar, onClick }: WorkspaceItemProps) 
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground">
                 <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">操作</span>
+                <span className="sr-only">{t("操作")}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={handleOpenModelSettings}>
                 <Settings className="mr-2 h-4 w-4" />
-                <span>设置模型</span>
+                <span>{t("设置模型")}</span>
               </DropdownMenuItem>
               <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={handleDeleteWorkspace}>
                 <Trash2 className="mr-2 h-4 w-4" />
-                <span>从工作区移除</span>
+                <span>{t("从工作区移除")}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -287,6 +289,7 @@ function SidebarItemComponent({ item, depth = 0 }: SidebarItemProps) {
 }
 
 export function Sidebar() {
+  const { t } = useI18n()
   const { refreshTrigger } = useWorkspace()
   const { setSelectedWorkspaceId, setSelectedConversationId } = useWorkspace()
   const [agents, setAgents] = useState<Agent[]>([])
@@ -339,12 +342,12 @@ export function Sidebar() {
   // Create sidebar items with real agent data
   const sidebarItems: SidebarItem[] = [
     {
-      title: "探索",
+      title: t("探索"),
       icon: Compass,
       href: "/explore",
     },
     {
-      title: "工作区",
+      title: t("工作区"),
       icon: FolderOpen,
       children: loading
           ? []

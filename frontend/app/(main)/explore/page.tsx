@@ -343,8 +343,8 @@ export default function ExplorePage() {
       <div className="flex-1 overflow-auto">
         <div className="container py-6 px-3">
           <div className="mb-6">
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Explore Agent Apps</h1>
-            <p className="text-muted-foreground mt-1">Use these template Apps, or customize your own Apps based on the templates.</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t("Explore Agent Apps")}</h1>
+            <p className="text-muted-foreground mt-1">{t("Use these template Apps, or customize your own Apps based on the templates.")}</p>
           </div>
 
           <Card className="mb-6 border-border bg-muted/40 p-4 shadow-none">
@@ -352,51 +352,51 @@ export default function ExplorePage() {
               <div>
                 <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                   <AlertCircle className="h-4 w-4 text-muted-foreground" />
-                  新用户引导：先完成模型服务配置
+                  {t("新用户引导：先完成模型服务配置")}
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  请先配置服务商的 API Key 与基础 URL，并确认已有可用模型。
+                  {t("请先配置服务商的 API Key 与基础 URL，并确认已有可用模型。")}
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
                 <Link href="/settings/providers">
                   <Button size="sm">
-                    去配置模型服务
+                    {t("去配置模型服务")}
                   </Button>
                 </Link>
                 <Link href="/settings/providers">
                   <Button size="sm" variant="outline">
-                    检查默认模型
+                    {t("检查默认模型")}
                   </Button>
                 </Link>
               </div>
             </div>
             <div className="mt-4 space-y-3">
               <div className="flex items-center justify-between rounded-md border border-border bg-background px-3 py-2 text-sm">
-                <span className="text-muted-foreground">1. 服务商配置</span>
+                <span className="text-muted-foreground">{t("1. 服务商配置")}</span>
                 {providerStatus === "loading" ? (
-                  <span className="text-muted-foreground">检测中...</span>
+                  <span className="text-muted-foreground">{t("检测中...")}</span>
                 ) : providerStatus === "ok" ? (
                   <span className="inline-flex items-center gap-1 text-success">
-                    <Check className="h-4 w-4" /> 已完成
+                    <Check className="h-4 w-4" /> {t("已完成")}
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-destructive">
-                    <AlertCircle className="h-4 w-4" /> 未配置
+                    <AlertCircle className="h-4 w-4" /> {t("未配置")}
                   </span>
                 )}
               </div>
               <div className="flex items-center justify-between rounded-md border border-border bg-background px-3 py-2 text-sm">
-                <span className="text-muted-foreground">2. 可用模型配置</span>
+                <span className="text-muted-foreground">{t("2. 可用模型配置")}</span>
                 {modelStatus === "loading" ? (
-                  <span className="text-muted-foreground">检测中...</span>
+                  <span className="text-muted-foreground">{t("检测中...")}</span>
                 ) : modelStatus === "ok" ? (
                   <span className="inline-flex items-center gap-1 text-success">
-                    <Check className="h-4 w-4" /> 已配置
+                    <Check className="h-4 w-4" /> {t("已配置")}
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-destructive">
-                    <AlertCircle className="h-4 w-4" /> 未配置
+                    <AlertCircle className="h-4 w-4" /> {t("未配置")}
                   </span>
                 )}
               </div>
@@ -513,7 +513,7 @@ export default function ExplorePage() {
               <TabsList className="overflow-x-auto flex-nowrap max-w-full">
                 <TabsTrigger value="推荐" className="flex items-center gap-1 whitespace-nowrap">
                   <Search className="h-4 w-4" />
-                  推荐
+                  {t("推荐")}
                 </TabsTrigger>
                 <TabsTrigger value="Agent" className="whitespace-nowrap">
                   Agent
@@ -525,13 +525,13 @@ export default function ExplorePage() {
                   DeepSeek
                 </TabsTrigger>
                 <TabsTrigger value="媒体" className="whitespace-nowrap">
-                  媒体
+                  {t("媒体")}
                 </TabsTrigger>
                 <TabsTrigger value="工作流" className="whitespace-nowrap">
-                  工作流
+                  {t("工作流")}
                 </TabsTrigger>
                 <TabsTrigger value="写作" className="whitespace-nowrap">
-                  写作
+                  {t("写作")}
                 </TabsTrigger>
               </TabsList>
 
@@ -618,7 +618,7 @@ export default function ExplorePage() {
                                   disabled
                                 >
                                   <Check className="h-4 w-4 mr-2" />
-                                  已添加到工作区
+                                  {t("已添加到工作区")}
                                 </Button>
                               ) : (
                                 <Button 
@@ -631,7 +631,7 @@ export default function ExplorePage() {
                                   ) : (
                                     <>
                                       <Plus className="h-4 w-4 mr-2" />
-                                      添加到工作区
+                                      {t("添加到工作区")}
                                     </>
                                   )}
                                 </Button>
@@ -642,7 +642,7 @@ export default function ExplorePage() {
                                 onClick={() => openAgentDetail(agent)}
                               >
                                 <Info className="h-4 w-4 mr-2" />
-                                查看详情
+                                {t("查看详情")}
                               </Button>
                             </div>
                           </div>
@@ -689,7 +689,7 @@ export default function ExplorePage() {
                       )}
                       {selectedAgent.multiModal && (
                         <Badge variant="secondary">
-                          多模态
+                          {t("多模态")}
                         </Badge>
                       )}
                     </div>
@@ -700,8 +700,8 @@ export default function ExplorePage() {
               <div className="mt-4 space-y-6 text-sm text-muted-foreground">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="font-medium text-foreground">快速试聊</div>
-                    <span className="text-xs text-muted-foreground">仅支持 1-2 轮</span>
+                    <div className="font-medium text-foreground">{t("快速试聊")}</div>
+                    <span className="text-xs text-muted-foreground">{t("仅支持 1-2 轮")}</span>
                   </div>
                   <div className="rounded-lg border border-border bg-background p-3">
                     <div className="mb-3">
@@ -755,7 +755,7 @@ export default function ExplorePage() {
                       <Input
                         value={previewInput}
                         onChange={(e) => setPreviewInput(e.target.value)}
-                        placeholder="输入一句话试试..."
+                        placeholder={t("输入一句话试试...")}
                         className="h-9"
                         disabled={
                           previewStreaming ||
@@ -770,7 +770,7 @@ export default function ExplorePage() {
                       />
                       {previewStreaming ? (
                         <Button size="sm" variant="destructive" onClick={stopPreviewStream}>
-                          停止
+                          {t("停止")}
                         </Button>
                       ) : (
                         <Button
@@ -781,7 +781,7 @@ export default function ExplorePage() {
                             previewMessages.filter((message) => message.role === "user").length >= 2
                           }
                         >
-                          发送
+                          {t("发送")}
                         </Button>
                       )}
                     </div>
@@ -791,7 +791,7 @@ export default function ExplorePage() {
                 <div className="grid gap-4 rounded-lg border border-border bg-muted/40 p-4">
                   <div className="flex items-center gap-3 text-foreground">
                     <Layers className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">基础信息</span>
+                    <span className="font-medium">{t("基础信息")}</span>
                   </div>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <div className="flex items-center gap-2">
@@ -814,14 +814,14 @@ export default function ExplorePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="font-medium text-foreground">系统提示词</div>
+                  <div className="font-medium text-foreground">{t("系统提示词")}</div>
                   <div className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-muted-foreground whitespace-pre-wrap">
                     {selectedAgent.systemPrompt || "暂无系统提示词"}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <div className="font-medium text-foreground">欢迎语</div>
+                  <div className="font-medium text-foreground">{t("欢迎语")}</div>
                   <div className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-muted-foreground whitespace-pre-wrap">
                     {selectedAgent.welcomeMessage || "暂无欢迎语"}
                   </div>
@@ -829,7 +829,7 @@ export default function ExplorePage() {
 
                 {selectedAgent.changeLog && (
                   <div className="space-y-2">
-                    <div className="font-medium text-foreground">更新记录</div>
+                    <div className="font-medium text-foreground">{t("更新记录")}</div>
                     <div className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-muted-foreground whitespace-pre-wrap">
                       {selectedAgent.changeLog}
                     </div>
@@ -841,7 +841,7 @@ export default function ExplorePage() {
                 {selectedAgent.addWorkspace ? (
                   <Button variant="secondary" className="w-full cursor-default" disabled>
                     <Check className="h-4 w-4 mr-2" />
-                    已添加到工作区
+                    {t("已添加到工作区")}
                   </Button>
                 ) : (
                   <Button
@@ -853,7 +853,7 @@ export default function ExplorePage() {
                   </Button>
                 )}
                 <Button variant="outline" onClick={closeAgentDetail}>
-                  关闭
+                  {t("关闭")}
                 </Button>
               </SheetFooter>
             </div>

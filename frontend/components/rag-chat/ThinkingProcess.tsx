@@ -51,15 +51,15 @@ export function ThinkingProcess({
       </CollapsibleTrigger>
 
       <CollapsibleContent>
-        {/* 代码、表格等外观由 globals.css 的 .react-markdown 规则统一提供，
-            下面只覆盖思考过程特有的层级：更小的字号与降级的文字颜色。 */}
-        <div className="ml-[7px] border-l border-border pl-4 pt-1">
+        {/* 排版节奏由 globals.css 的 .is-compact 变体统一提供（12px / 1.55 行高 /
+            压缩的段落与列表间距）。这里只负责层级：降级的文字颜色与从属缩进。 */}
+        <div className="ml-[7px] border-l border-border pl-3 pt-0.5">
           {thinkingContent ? (
-            <div className="react-markdown text-[13px] text-muted-foreground [&_ol]:list-decimal [&_strong]:font-medium [&_strong]:text-foreground [&_ul]:list-disc">
+            <div className="react-markdown is-compact text-muted-foreground [&_ol]:list-decimal [&_strong]:font-medium [&_strong]:text-foreground [&_ul]:list-disc">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{thinkingContent}</ReactMarkdown>
             </div>
           ) : (
-            <span className="text-[13px] text-muted-foreground">正在整理思路…</span>
+            <span className="text-[12px] text-muted-foreground">正在整理思路…</span>
           )}
         </div>
       </CollapsibleContent>

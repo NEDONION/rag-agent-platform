@@ -176,6 +176,74 @@ body {
   margin: 1.5em 0;
 }
 
+/* 紧凑变体：用于思考过程、检索过程这类**次要信息**。
+ *
+ * 基础节奏（1.7 行高、0.75em 段距、1.6em 标题上距）是为「答案正文」调的——
+ * 那是需要慢读的长文本。而思考过程多为短列表项，条目密集、每条很短，
+ * 用同一套节奏会撑得很空，一屏放不下几条。
+ *
+ * 这里只压缩间距与字号，不改变层级关系本身。 */
+.react-markdown.is-compact {
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.react-markdown.is-compact p {
+  margin: 0.4em 0;
+}
+
+.react-markdown.is-compact h1,
+.react-markdown.is-compact h2,
+.react-markdown.is-compact h3,
+.react-markdown.is-compact h4,
+.react-markdown.is-compact h5,
+.react-markdown.is-compact h6 {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+  margin: 0.9em 0 0.25em;
+  color: hsl(var(--foreground));
+}
+
+.react-markdown.is-compact > *:first-child {
+  margin-top: 0;
+}
+
+.react-markdown.is-compact ul,
+.react-markdown.is-compact ol {
+  margin: 0.3em 0;
+  padding-left: 1.15em;
+}
+
+.react-markdown.is-compact li {
+  margin: 0.1em 0;
+}
+
+.react-markdown.is-compact li > p {
+  margin: 0;
+}
+
+.react-markdown.is-compact pre {
+  margin: 0.5em 0;
+  padding: 0.5em 0.65em;
+  line-height: 1.5;
+}
+
+.react-markdown.is-compact blockquote {
+  margin: 0.5em 0;
+  padding-left: 0.75em;
+}
+
+.react-markdown.is-compact table {
+  margin: 0.5em 0;
+  font-size: 11px;
+}
+
+.react-markdown.is-compact th,
+.react-markdown.is-compact td {
+  padding: 0.3em 0.5em;
+}
+
 /* 代码块容器 */
 .code-block-container {
   max-width: 100%;
