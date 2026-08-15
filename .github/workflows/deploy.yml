@@ -67,6 +67,13 @@ jobs:
           # 复用上次构建的层（Maven 依赖、node_modules），否则每次都要重新下载。
           cache-from: type=gha,scope=${{ matrix.component }}
           cache-to: type=gha,mode=max,scope=${{ matrix.component }}
+          # 关闭 provenance / SBOM 证明清单。buildx 默认会额外推送一个
+          # application/vnd.oci.empty.v1+json 描述符，阿里云 ACR 个人版不认，报：
+          #   denied: unknown manifest class for application/vnd.oci.empty.v1+json
+          # 该报错发生在**镜像层已推送完成之后**的 manifest 阶段，因此表现为
+          # 构建看起来全绿、最后一步突然失败。
+          provenance: false
+          sbom: false
 
   config:
     name: 打包部署配置
