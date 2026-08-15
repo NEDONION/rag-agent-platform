@@ -1,6 +1,6 @@
 # RAG Agent Platform 文档中心
 
-项目简介与快速上手先看[仓库根目录 README](../README.md)。这里是完整的技术文档。
+项目简介与快速上手先看[仓库根目录 README](../README_ZH.md)。这里是完整的技术文档。
 
 > 📖 **怎么读**：每篇文档开头都有一段 **💬 一句话人话**，用大白话说清这篇讲什么。
 > 只想知道大概，看那一句就够；要动手改代码或排查问题，再往下看细节。
@@ -30,7 +30,7 @@ docs/
 
 ### 我是新来的，想先搞懂这是什么
 
-1. [根目录 README](../README.md) —— 项目能做什么，5 分钟
+1. [根目录 README](../README_ZH.md) —— 项目能做什么，5 分钟
 2. [系统架构](architecture/overview.md) —— DDD 分层、技术栈、模块边界
 3. [RAG 模块](modules/rag.md) —— 平台的核心能力
 4. [对话模块](modules/conversation.md) —— 用户每句话经过的完整链路
