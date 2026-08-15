@@ -111,6 +111,27 @@ jobs:
         env:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
 
+      - name: 确保必填密钥存在
+        # 后端启动时会校验 CONFIG_ENCRYPTION_KEY（用于加密用户的服务商 API Key），
+        # 缺失则直接启动失败——这是刻意的，避免密钥漏配时静默用默认值加密。
+        #
+        # 这里只在**首次**缺失时生成一次并写入 .env，之后每次部署都会看到它已存在
+        # 而跳过。绝不能改成每次生成：换了密钥，该环境已存的服务商配置就再也解不开，
+        # 用户必须重新填写全部 API Key。
+        run: |
+          set -euo pipefail
+          cd "$DEPLOY_PATH"
+          if grep -q '^CONFIG_ENCRYPTION_KEY=.\+' .env 2>/dev/null; then
+            echo "CONFIG_ENCRYPTION_KEY 已存在，保持不变"
+          else
+            # 兼容「变量存在但值为空」的情况：先删掉空行再追加
+            sed -i '/^CONFIG_ENCRYPTION_KEY=$/d' .env 2>/dev/null || true
+            echo "CONFIG_ENCRYPTION_KEY=$(openssl rand -base64 32)" >> .env
+            echo "已生成 CONFIG_ENCRYPTION_KEY 并写入 .env（仅首次）"
+          fi
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+
       - name: 拉取镜像并重启服务
         run: |
           set -euo pipefail
