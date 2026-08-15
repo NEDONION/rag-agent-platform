@@ -28,7 +28,7 @@
   - 3.1 仓库名对不上 · 3.2 CI nginx 校验失败 · 3.3 不是 git 仓库
   - 3.4 docker 权限不足 · 3.5 令牌明文泄露 · 3.6 download.docker.com 不通
   - 3.7 apt 源太慢 · 3.8 no tracking information · 3.9 runner tarball 25 KB/s
-  - 3.10 部署 job checkout 失败
+  - 3.10 部署 job checkout 失败 · 3.11 ACR 拒绝 attestation 清单
 - [附录：经验教训](#附录经验教训)
 
 ---
@@ -770,6 +770,37 @@ Ubuntu 24.04 的 apt 源改成了 DEB822 格式，路径从 `/etc/apt/sources.li
 往往比搜索报错信息更快。
 
 ---
+
+
+## 3.11 ACR 拒绝 buildx 的 attestation 清单
+
+**现象**：镜像层都推完了，最后一步突然失败：
+
+```
+#22 pushing layers 7.5s done
+#22 ERROR: failed to push ...: denied: unknown manifest class for application/vnd.oci.empty.v1+json
+```
+
+**原因**：`docker/build-push-action` 默认生成 provenance / SBOM 证明清单，
+对应一个 `application/vnd.oci.empty.v1+json` 空描述符。
+**阿里云 ACR 个人版不支持这类清单**，在 manifest 阶段直接拒绝。
+
+**为什么突然出现**：工作流固定的是 `@v6` 浮动大版本，2026-08-11 那次部署还是成功的。
+上游发布新版本改变默认行为后，同一份配置就开始失败。
+**「代码没动却突然挂掉」，优先怀疑浮动版本的 action 或基础镜像。**
+
+**修复**：
+
+```yaml
+- uses: docker/build-push-action@v6
+  with:
+    provenance: false
+    sbom: false
+```
+
+**易误判点**：报错发生在层推送**之后**的 manifest 阶段，日志里能看到
+`pushing layers ... done`，很像网络或权限问题。但 `denied:` 后面跟的是
+manifest class 而不是权限描述——看清这一点能省下大量时间。
 
 ## 相关链接
 
