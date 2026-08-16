@@ -22,6 +22,14 @@ export enum MessageType {
    * 普通文本消息
    */
   TEXT = "TEXT",
+
+  /**
+   * Agent 思考过程（推理模型的 reasoning 输出）。
+   * 与 RAG_THINKING_* 区分：那组是知识库链路的平台处理步骤，这组来自模型本身。
+   */
+  THINKING_START = "THINKING_START",
+  THINKING_PROGRESS = "THINKING_PROGRESS",
+  THINKING_END = "THINKING_END",
   
   /**
    * 工具调用消息
@@ -81,6 +89,9 @@ export interface Message {
   tasks?: any[] // 任务列表
   taskId?: string // 任务ID
   fileUrls?: string[] // 附件文件URL列表
+  reasoning?: string // 思考过程内容（累积的 reasoning 文本）
+  isReasoning?: boolean // 思考是否仍在进行
+  isStreaming?: boolean // 正文是否仍在流式输出
 }
 
 // 创建会话请求参数

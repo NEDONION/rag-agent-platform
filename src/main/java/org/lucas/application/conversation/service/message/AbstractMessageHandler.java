@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import org.lucas.application.conversation.dto.AgentChatResponse;
 import org.lucas.application.conversation.service.handler.context.AgentPromptTemplates;
@@ -201,8 +202,37 @@ public abstract class AbstractMessageHandler {
                     false, latency, throwable.getMessage());
         });
 
+        // 思考过程（推理模型的 reasoning 输出）。
+        //
+        // 只有推理型模型才会触发这些回调；普通模型不触发，前端也就不会渲染思考区，
+        // 因此这里不需要按模型能力做开关。
+        //
+        // 用 AtomicBoolean 而不是判断 StringBuilder 是否为空：reasoning 的首个分片
+        // 可能是空白字符，那样会重复发送 START。
+        AtomicBoolean reasoningStarted = new AtomicBoolean(false);
+        tokenStream.onPartialReasoning(chunk -> {
+            if (chunk == null || chunk.isEmpty()) {
+                return;
+            }
+            if (reasoningStarted.compareAndSet(false, true)) {
+                transport.sendMessage(connection, AgentChatResponse.build("", MessageType.THINKING_START));
+            }
+            transport.sendMessage(connection, AgentChatResponse.build(chunk, MessageType.THINKING_PROGRESS));
+        });
+
+        tokenStream.onCompleteReasoning(full -> {
+            if (reasoningStarted.get()) {
+                transport.sendMessage(connection, AgentChatResponse.build("", MessageType.THINKING_END));
+            }
+        });
+
         // 部分响应处理
         tokenStream.onPartialResponse(reply -> {
+            // 正文开始意味着思考结束。有些模型不回调 onCompleteReasoning，
+            // 这里兜底补一个 END，避免前端的思考区一直停在「进行中」。
+            if (reasoningStarted.compareAndSet(true, false)) {
+                transport.sendMessage(connection, AgentChatResponse.build("", MessageType.THINKING_END));
+            }
             messageBuilder.get().append(reply);
             // 删除换行后消息为空字符串
             if (messageBuilder.get().toString().trim().isEmpty()) {

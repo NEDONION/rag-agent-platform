@@ -13,6 +13,7 @@ import { AgentSessionService } from "@/lib/agent-session-service"
 import { API_CONFIG, API_ENDPOINTS } from "@/lib/api-config"
 import { Skeleton } from "@/components/ui/skeleton"
 import { MessageMarkdown } from "@/components/ui/message-markdown"
+import { ThinkingProcess } from "@/components/rag-chat/ThinkingProcess"
 import { MessageType, type Message as MessageInterface } from "@/types/conversation"
 import { formatDistanceToNow } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
@@ -82,10 +83,13 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
   const hasReceivedFirstResponse = useRef(false);
   const messageContentAccumulator = useRef({
     content: "",
-    type: MessageType.TEXT as MessageType
+    type: MessageType.TEXT as MessageType,
+    reasoning: "",
+    isReasoning: false
   });
 
   // 在组件顶部添加状态来跟踪已完成的TEXT消息
+  const [expandedReasoning, setExpandedReasoning] = useState<Record<string, boolean>>({});
   const [completedTextMessages, setCompletedTextMessages] = useState<Set<string>>(new Set());
   // 添加消息序列计数器
   const messageSequenceNumber = useRef(0);
@@ -95,7 +99,9 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
     hasReceivedFirstResponse.current = false;
     messageContentAccumulator.current = {
       content: "",
-      type: MessageType.TEXT
+      type: MessageType.TEXT,
+      reasoning: "",
+      isReasoning: false
     };
     setCompletedTextMessages(new Set());
     messageSequenceNumber.current = 0;
@@ -336,9 +342,11 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
       // 重置状态
       hasReceivedFirstResponse.current = false;
       messageContentAccumulator.current = {
-        content: "",
-        type: MessageType.TEXT
-      };
+      content: "",
+      type: MessageType.TEXT,
+      reasoning: "",
+      isReasoning: false
+    };
       
       const decoder = new TextDecoder()
       let buffer = ""
@@ -429,6 +437,29 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
     
  
     
+    // 思考过程：与正文写入**同一条**助手消息，这样思考区显示在答案上方，
+    // 而不是各占一条气泡。因此这里固定用 TEXT 的消息 ID。
+    const textMessageId = `assistant-${MessageType.TEXT}-${baseMessageId}-seq${messageSequenceNumber.current}`;
+    if (
+      data.messageType === MessageType.THINKING_START ||
+      data.messageType === MessageType.THINKING_PROGRESS ||
+      data.messageType === MessageType.THINKING_END
+    ) {
+      const acc = messageContentAccumulator.current;
+      if (data.messageType === MessageType.THINKING_START) {
+        acc.reasoning = "";
+        acc.isReasoning = true;
+      } else if (data.messageType === MessageType.THINKING_PROGRESS) {
+        acc.reasoning += data.content || "";
+        acc.isReasoning = true;
+      } else {
+        acc.isReasoning = false;
+      }
+      acc.type = MessageType.TEXT;
+      updateOrCreateMessageInUI(textMessageId, acc);
+      return;
+    }
+
     // 处理消息内容（用于UI显示）
     const displayableTypes = [undefined, "TEXT", "TOOL_CALL"];
     const isDisplayableType = displayableTypes.includes(data.messageType);
@@ -437,6 +468,7 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
       // 累积消息内容
       messageContentAccumulator.current.content += data.content;
       messageContentAccumulator.current.type = messageType;
+      messageContentAccumulator.current.isReasoning = false;
       
       // 更新UI显示
       updateOrCreateMessageInUI(currentMessageId, messageContentAccumulator.current);
@@ -465,6 +497,8 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
   const updateOrCreateMessageInUI = (messageId: string, messageData: {
     content: string;
     type: MessageType;
+    reasoning?: string;
+    isReasoning?: boolean;
   }) => {
     // 使用函数式更新，在一次原子操作中检查并更新/创建消息
     setMessages(prev => {
@@ -477,7 +511,9 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
         const newMessages = [...prev];
         newMessages[messageIndex] = {
           ...newMessages[messageIndex],
-          content: messageData.content
+          content: messageData.content,
+          reasoning: messageData.reasoning,
+          isReasoning: messageData.isReasoning
         };
         return newMessages;
       } else {
@@ -490,6 +526,8 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
             role: "assistant",
             content: messageData.content,
             type: messageData.type,
+            reasoning: messageData.reasoning,
+            isReasoning: messageData.isReasoning,
             createdAt: new Date().toISOString()
           }
         ];
@@ -556,7 +594,9 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
  
     messageContentAccumulator.current = {
       content: "",
-      type: MessageType.TEXT
+      type: MessageType.TEXT,
+      reasoning: "",
+      isReasoning: false
     };
   };
 
@@ -626,7 +666,7 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-background">
       <div 
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto px-4 pt-3 pb-4 w-full"
+        className="flex-1 overflow-y-auto px-4 py-6"
       >
         {loading ? (
           // 加载状态
@@ -637,7 +677,9 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
             </div>
           </div>
         ) : (
-          <div className="space-y-4 w-full">
+          // 主流 chatbot 都把内容收在一条居中的阅读列里（约 48rem）。
+          // 铺满宽屏会让一行超过 100 字，眼睛回扫困难。
+          <div className="mx-auto w-full max-w-3xl space-y-4">
             {error && (
               <div className="rounded-lg border border-destructive/30 p-3 text-sm text-destructive">
                 {error}
@@ -645,17 +687,14 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
             )}
             
             {/* 消息内容 */}
-            <div className="space-y-6 w-full">
+            <div className="space-y-5">
               {messages.length === 0 ? (
                 <div className="flex items-center justify-center h-20 w-full">
                   <p className="text-muted-foreground">暂无消息，开始发送消息吧</p>
                 </div>
               ) : (
                 messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`w-full`}
-                  >
+                  <div key={message.id} className="group w-full">
                     {/* 用户消息 */}
                     {message.role === "USER" ? (
                       <div className="flex justify-end">
@@ -674,21 +713,21 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
                             </div>
                           )}
                           
-                          <div className="mt-1 text-right text-[11px] text-muted-foreground">
+                          <time className="mt-1 block text-right text-[11px] tabular-nums text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
                             {formatMessageTime(message.createdAt)}
-                          </div>
+                          </time>
                         </div>
                       </div>
                     ) : (
                       /* AI消息 */
                       <div className="flex">
-                        <div className="h-8 w-8 mr-2 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
+                        <div className="mr-2.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-border bg-accent/40 text-sm">
                           {message.type && message.type !== MessageType.TEXT 
                             ? getMessageTypeInfo(message.type).icon 
                             : <div className="text-lg">🤖</div>
                           }
                         </div>
-                        <div className="max-w-[95%]">
+                        <div className="min-w-0 flex-1">
                           {/* 消息类型指示 */}
                           <div className="mb-1 flex items-center text-xs text-muted-foreground">
                             <span className="font-medium">
@@ -705,9 +744,27 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
                             </div>
                           )}
                           
+                          {/* 思考过程：显示在答案上方，默认展开，可折叠 */}
+                          {message.reasoning && (
+                            <div className="mb-1">
+                              <ThinkingProcess
+                                thinkingContent={message.reasoning}
+                                isThinkingComplete={!message.isReasoning}
+                                isStreaming={message.isReasoning}
+                                expanded={expandedReasoning[message.id] ?? true}
+                                onToggle={() =>
+                                  setExpandedReasoning((prev) => ({
+                                    ...prev,
+                                    [message.id]: !(prev[message.id] ?? true),
+                                  }))
+                                }
+                              />
+                            </div>
+                          )}
+
                           {/* 消息内容 */}
                           {message.content && (
-                            <div className="p-3 rounded-lg">
+                            <div className="rounded-lg">
                               <MessageMarkdown showCopyButton={true}
                                 content={message.content}
                                 isStreaming={message.isStreaming}
@@ -762,7 +819,8 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
       </div>
 
       {/* 输入框 */}
-      <div className="border-t border-border bg-background p-2">
+      <div className="border-t border-border bg-card px-4 py-3">
+        <div className="mx-auto w-full max-w-3xl">
         {/* 已上传文件显示区域 - 在输入框上方 */}
         {uploadedFiles.length > 0 && (
           <div className="mb-2 px-2">
@@ -862,6 +920,7 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
               <Send className="h-5 w-5" />
             </Button>
           )}
+          </div>
         </div>
       </div>
     </div>

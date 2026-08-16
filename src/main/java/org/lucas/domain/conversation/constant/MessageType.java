@@ -5,6 +5,15 @@ public enum MessageType {
     /** 普通文本消息 */
     TEXT,
 
+    /** Agent 对话的思考过程（推理模型的 reasoning 内容）。
+     *
+     * <p>与 {@code RAG_THINKING_*} 区分：那一组只由知识库问答链路产出，
+     * 描述的是检索/改写/意图识别等**平台自己的处理步骤**；
+     * 这一组来自**模型本身的推理输出**，由 langchain4j 的 onPartialReasoning 回调提供。 */
+    THINKING_START,
+    THINKING_PROGRESS,
+    THINKING_END,
+
     /** 工具调用消息 */
     TOOL_CALL,
 
