@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { markdownComponents } from '@/components/ui/markdown-components';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -299,57 +301,48 @@ export function FileDetailPanel({ selectedFile, onDataLoad }: FileDetailPanelPro
   return (
     <div className="flex flex-col h-full">
       {/* 头部信息 */}
-      <div className="p-4 border-b shrink-0">
+      <div className="shrink-0 border-b border-border bg-card p-4">
         <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <FileText className="h-5 w-5 text-primary" />
-            <div>
-              <h3 className="text-lg font-medium">{selectedFile.fileName}</h3>
-              {selectedFile.score !== undefined && (
-                <p className="text-sm text-muted-foreground">
-                  相似度: {(selectedFile.score * 100).toFixed(0)}%
-                </p>
-              )}
-              {selectedFile.isInstalledRag && (
-                <p className="text-sm text-muted-foreground">
-                  已安装知识库文件
-                </p>
-              )}
+          <div className="flex items-start gap-2.5">
+            <FileText className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            <div className="min-w-0 flex-1">
+              <h3 className="truncate text-sm font-semibold text-foreground" title={selectedFile.fileName}>
+                {selectedFile.fileName}
+              </h3>
+              {/* 元信息合并成一行，用间隔点分隔。原本「页数/大小」占一个两列网格、
+                  「共 N 个语料」另起一行徽章，三项信息占了三行高度。 */}
+              <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] text-muted-foreground">
+                {selectedFile.score !== undefined && (
+                  <span className="tabular-nums">相似度 {(selectedFile.score * 100).toFixed(0)}%</span>
+                )}
+                {fileInfo?.filePageSize ? (
+                  <>
+                    <span className="text-border">·</span>
+                    <span className="tabular-nums">{fileInfo.filePageSize} 页</span>
+                  </>
+                ) : null}
+                {fileInfo?.size ? (
+                  <>
+                    <span className="text-border">·</span>
+                    <span className="tabular-nums">{formatFileSize(fileInfo.size)}</span>
+                  </>
+                ) : null}
+                <span className="text-border">·</span>
+                <span className="tabular-nums">{pageData.total} 个语料</span>
+                {pageData.pages > 1 && (
+                  <>
+                    <span className="text-border">·</span>
+                    <span className="tabular-nums">第 {pageData.current}/{pageData.pages} 页</span>
+                  </>
+                )}
+                {selectedFile.isInstalledRag && (
+                  <>
+                    <span className="text-border">·</span>
+                    <span>已安装知识库</span>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-          
-          {/* 文件详情 - 只有当有可显示的信息时才显示 */}
-          {fileInfo && ((fileInfo.filePageSize && fileInfo.filePageSize > 0) || (fileInfo.size && fileInfo.size > 0)) && (
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              {/* 只有页数大于0时才显示 */}
-              {fileInfo.filePageSize && fileInfo.filePageSize > 0 && (
-                <div className="flex items-center gap-2">
-                  <Hash className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">页数：</span>
-                  <span>{fileInfo.filePageSize} 页</span>
-                </div>
-              )}
-              {/* 只有大小大于0时才显示 */}
-              {fileInfo.size && fileInfo.size > 0 && (
-                <div className="flex items-center gap-2">
-                  <HardDrive className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">大小：</span>
-                  <span>{formatFileSize(fileInfo.size)}</span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* 统计信息 */}
-          <div className="flex items-center gap-4">
-            <Badge variant="outline" className="text-xs">
-              共 {pageData.total} 个语料
-            </Badge>
-            {pageData.pages > 1 && (
-              <Badge variant="outline" className="text-xs">
-                第 {pageData.current}/{pageData.pages} 页
-              </Badge>
-            )}
           </div>
 
           {/* 搜索框 */}
@@ -403,55 +396,39 @@ export function FileDetailPanel({ selectedFile, onDataLoad }: FileDetailPanelPro
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-2.5">
             {documentUnits.map((unit) => (
-              <Card key={unit.id} className="p-4">
+              <Card key={unit.id} className="border-border p-3.5 shadow-none">
                 <div className="space-y-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
+                      {/* 三个徽章是同一类元信息，用同一种权重。
+                          原本「已向量化」是实心主色、其余是描边/次级，
+                          视觉上像在强调它，但它只是一个状态而已。 */}
+                      <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground tabular-nums">
                         第 {unit.page + 1} 页
-                      </Badge>
+                      </span>
                       {unit.isVector && (
-                        <Badge variant="default" className="text-xs">
-                          <CheckCircle className="h-3 w-3 mr-1" />
+                        <span className="inline-flex items-center gap-1 rounded-md bg-success-subtle px-1.5 py-0.5 text-[10px] font-medium text-success">
+                          <CheckCircle className="h-2.5 w-2.5" />
                           已向量化
-                        </Badge>
+                        </span>
                       )}
                       {unit.isOcr && (
-                        <Badge variant="secondary" className="text-xs">
-                          OCR处理
-                        </Badge>
+                        <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                          OCR
+                        </span>
                       )}
                     </div>
                   </div>
 
-                  <div className="text-sm">
-                    <div className="leading-tight">
-                      <ReactMarkdown 
-                        components={{
-                          h1: ({ children }) => <h1 className="text-lg font-bold mb-1 leading-tight">{children}</h1>,
-                          h2: ({ children }) => <h2 className="text-md font-semibold mb-1 leading-tight">{children}</h2>,
-                          h3: ({ children }) => <h3 className="text-sm font-medium mb-0.5 leading-tight">{children}</h3>,
-                          p: ({ children }) => <p className="mb-0.5 leading-tight">{children}</p>,
-                          ul: ({ children }) => <ul className="list-disc list-inside mb-0.5 space-y-0">{children}</ul>,
-                          ol: ({ children }) => <ol className="list-decimal list-inside mb-0.5 space-y-0">{children}</ol>,
-                          li: ({ children }) => <li className="leading-tight">{children}</li>,
-                          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                          em: ({ children }) => <em className="italic">{children}</em>,
-                          code: ({ children }) => <code className="bg-muted dark:bg-foreground px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
-                          pre: ({ children }) => <pre className="bg-muted dark:bg-foreground p-2 rounded text-xs font-mono overflow-x-auto mb-1">{children}</pre>,
-                          blockquote: ({ children }) => <blockquote className="border-l-4 border-border pl-4 italic mb-0.5 leading-tight">{children}</blockquote>,
-                          a: ({ children, href }) => <a href={href} className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">{children}</a>,
-                          hr: () => <hr className="my-4 border-border" />,
-                          table: ({ children }) => <table className="border-collapse border border-border w-full mb-1 text-xs">{children}</table>,
-                          th: ({ children }) => <th className="border border-border px-2 py-1 bg-muted/40 dark:bg-foreground font-semibold">{children}</th>,
-                          td: ({ children }) => <td className="border border-border px-2 py-1">{children}</td>,
-                        }}
-                      >
-                        {unit.content}
-                      </ReactMarkdown>
-                    </div>
+                  {/* 语料正文：使用全站共享的 Markdown 配置 + 紧凑变体。
+                      此处原本内联了第三份渲染规则（全部 leading-tight、无 remark-gfm、
+                      暗色下 dark:bg-foreground 是近白底），标题列表被压成一片纯文本。 */}
+                  <div className="react-markdown is-compact text-foreground">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                      {unit.content}
+                    </ReactMarkdown>
                   </div>
 
                   <div className="flex items-center justify-between pt-2 border-t">

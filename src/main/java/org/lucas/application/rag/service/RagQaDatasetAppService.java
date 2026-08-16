@@ -1491,8 +1491,12 @@ JSON 示例：
                 return;
             }
             double ratio = (double) covered / total * 100.0;
-            String summary = String.format("### 证据覆盖\n- 句子数：%d\n- 覆盖率：%.0f%%", total, ratio);
-            sendSseData(emitter, AgentChatResponse.build("证据覆盖评估", MessageType.RAG_THINKING_PROGRESS));
+            // 前导换行是必需的：前端把所有 PROGRESS 分片直接拼成一段 Markdown，
+            // 上一段结尾没有换行时，"### 证据覆盖" 会黏在前一行末尾，
+            // 于是不再被识别为标题，整段塌成纯文本。
+            String summary = String.format("\n\n### 证据覆盖\n- 句子数：%d\n- 覆盖率：%.0f%%", total, ratio);
+            // 「证据覆盖评估」是进度标签，不是思考内容。用 PROGRESS 发会被拼进正文，
+            // 这正是上面那行黏连的来源。标签不再单独下发，标题已由 summary 表达。
             sendSseData(emitter, AgentChatResponse.build(summary, MessageType.RAG_THINKING_PROGRESS));
         } catch (Exception e) {
             log.warn("Evidence coverage failed: {}", e.getMessage());
