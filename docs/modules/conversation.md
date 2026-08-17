@@ -18,6 +18,7 @@
 - [6. 上下文与 Token 溢出](#6-上下文与-token-溢出)
 - [7. Agent 工作流](#7-agent-工作流)
 - [8. 消息类型与前端协议](#8-消息类型与前端协议)
+- [8.5 Agent 对话的思考过程（CoT）](#85-agent-对话的思考过程cot)
 - [9. 已知坑与注意事项](#9-已知坑与注意事项)
 
 ---
@@ -48,10 +49,11 @@ ContextEntity    上下文：会话当前的有效消息窗口
 > **为什么 Context 要单独建实体**：消息是**只增不改**的历史记录，
 > 而上下文是**会被裁剪**的工作集。两者分开后，裁剪上下文不会破坏历史。
 
-### MessageType — 15 种消息类型
+### MessageType — 18 种消息类型
 
 ```java
 TEXT                      // 普通文本
+THINKING_START / _PROGRESS / _END    // Agent 思考过程（模型 reasoning）
 TOOL_CALL                 // 工具调用
 TASK_EXEC                 // 任务执行
 TASK_STATUS_TO_LOADING    // 任务转为进行中
@@ -248,6 +250,63 @@ AgentChatResponse.build(content, MessageType.RAG_RETRIEVAL_PROGRESS)
 前端按 `MessageType` 决定渲染方式（进度条 / 正文 / 工具调用卡片）。
 
 **新增消息类型时必须前后端同步**，否则前端遇到未知类型会静默丢弃。
+
+---
+
+## 8.5 Agent 对话的思考过程（CoT）
+
+推理型模型（DeepSeek-R1、QwQ 等）会在正文之外输出一段推理内容，
+平台把它作为**同一条助手消息的一部分**展示在答案上方。
+
+### 链路
+
+```
+模型 reasoning_content
+   ↓  langchain4j fork 原生解析
+TokenStream.onPartialReasoning / onCompleteReasoning
+   ↓  AbstractMessageHandler
+THINKING_START → THINKING_PROGRESS × N → THINKING_END
+   ↓  SSE
+chat-panel 写入同一条消息的 reasoning 字段
+   ↓
+ThinkingProcess 组件渲染
+```
+
+### 关键点
+
+- **与 `RAG_THINKING_*` 是两回事**。那一组由 `RagQaDatasetAppService` 产出，
+  描述的是平台自己的处理步骤（检索、意图识别、语义改写）；
+  这一组来自**模型本身的推理输出**。
+- **不需要注册 `onReasoningDetected`**。项目使用的 fork
+  （`com.github.lucky-aeon.langchain4j` 1.0.4.3-beta7）的
+  `OpenAiStreamingChatModel` 原生解析 `reasoning_content`，
+  `onPartialReasoning` 会直接触发。
+- **只有推理型模型触发**。普通模型（如 `Qwen3-30B-A3B-Instruct`）不产出
+  reasoning，前端也就不渲染思考区，无需按模型能力做开关。
+- 前端固定用 **TEXT 消息的 ID** 承载 reasoning，因此思考区与答案同属一条消息，
+  不会各占一条气泡。
+
+### 实测
+
+用 `deepseek-ai/DeepSeek-R1` 提问「3 的 5 次方是多少」，SSE 事件计数：
+
+| 事件 | 次数 |
+| --- | --- |
+| `THINKING_START` | 1 |
+| `THINKING_PROGRESS` | 501 |
+| `THINKING_END` | 1 |
+| `TEXT` | 29 |
+
+思考内容示例：「我们正在处理一个纯数学问题：计算3的5次方……3^5 = 3 * 3 * 3 * 3 * 3 = …… 因此，答案是243。」
+
+### 兜底
+
+部分模型不回调 `onCompleteReasoning`。`onPartialResponse` 里用
+`AtomicBoolean.compareAndSet(true, false)` 兜底补发一次 `THINKING_END`，
+否则前端思考区会一直停在「正在思考」。
+
+同理，START 的判定用 `AtomicBoolean` 而非「StringBuilder 是否为空」——
+reasoning 的首个分片可能是空白字符，那样会重复发送 START。
 
 ---
 
