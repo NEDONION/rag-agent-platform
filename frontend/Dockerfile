@@ -7,13 +7,21 @@ FROM node:20-alpine AS deps
 
 WORKDIR /app
 
-# 安装 pnpm
-RUN npm install -g pnpm
+# 安装 pnpm —— **必须锁版本**。
+# 原先是 `npm install -g pnpm`，装的是构建当天的 latest。pnpm 大版本会改变
+# lockfile 格式与依赖解析行为：仓库 lockfile 是 v6.0（pnpm 8 时代），
+# 而 latest 已到 11.x，配合下面的 --no-frozen-lockfile，等于每次构建都可能
+# 重新解析出不同的依赖版本，生产镜像因此无法复现。
+# 版本需与 package.json 的 packageManager 字段保持一致。
+RUN npm install -g pnpm@8.15.9
 
 # 复制依赖配置文件
 COPY package.json pnpm-lock.yaml ./
 
 # 安装依赖
+# TODO 待验证后改为 --frozen-lockfile：那才能真正保证构建可复现。
+# 目前保持 --no-frozen-lockfile，因为尚未确认 lockfile 与 package.json 完全同步，
+# 贸然改成严格模式可能让构建直接失败。锁定 pnpm 版本已消除最主要的漂移来源。
 RUN pnpm install --no-frozen-lockfile
 
 # ================================

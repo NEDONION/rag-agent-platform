@@ -25,10 +25,31 @@
 | **JDK** | 17 | `pom.xml` 中 `maven.compiler.source/target` 均为 17 |
 | **Maven** | 3.9+ | |
 | **Node.js** | 20 | 与 `frontend/Dockerfile` 一致 |
-| **pnpm** | 9 | 仓库有 `pnpm-lock.yaml` |
+| **pnpm** | **8.15.9** | 由 `frontend/package.json` 的 `packageManager` 字段锁定，见下方说明 |
 | **Docker** | 任意近期版本 | 起依赖服务用 |
 
 技术栈：Spring Boot 3.2.3 + LangChain4j / Next.js 15 / PostgreSQL + PGVector。
+
+> ⚠️ **pnpm 版本必须是 8.x**，仓库 lockfile 是 `lockfileVersion: '6.0'`（pnpm 8 时代）。
+>
+> 用 pnpm 9+ 会判定 lockfile 不兼容并**试图清空 `node_modules` 重装**，
+> 从而改写已提交的 `pnpm-lock.yaml`；pnpm 11 在非交互终端下会直接报
+> `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY` 而启动失败。
+>
+> 版本已在三处对齐，改动时要同步：
+>
+> | 位置 | 方式 |
+> | --- | --- |
+> | `frontend/package.json` | `"packageManager": "pnpm@8.15.9"` |
+> | `frontend/Dockerfile` | `npm install -g pnpm@8.15.9` |
+> | `.github/workflows/ci.yml` | `pnpm/action-setup` 读 `package_json_file` |
+>
+> 本机若装的是别的版本，启用 corepack 即可自动切到锁定版本：
+>
+> ```bash
+> corepack enable
+> ```
+
 
 ---
 

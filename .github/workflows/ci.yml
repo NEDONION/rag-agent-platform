@@ -41,9 +41,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 版本由 frontend/package.json 的 packageManager 字段决定（pnpm@8.15.9），
+      # 与仓库 lockfile v6.0 及 Dockerfile 保持一致。此处曾写死 version: 9，
+      # 与 lockfile 版本不匹配，只能靠 --no-frozen-lockfile 掩盖。
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          package_json_file: frontend/package.json
 
       - uses: actions/setup-node@v4
         with:
