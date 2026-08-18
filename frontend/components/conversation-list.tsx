@@ -200,7 +200,7 @@ export function ConversationList({ workspaceId }: ConversationListProps) {
   }
 
   return (
-    <div className={`border-r flex flex-col h-full bg-background transition-all duration-300 ${isCollapsed ? 'w-[40px]' : 'w-[320px]'}`}>
+    <div className={`border-r flex flex-col h-full bg-background transition-all duration-300 ${isCollapsed ? 'w-[44px]' : 'w-[260px]'}`}>
       <div className={`${isCollapsed ? 'py-4 px-0' : 'p-4'} border-b flex items-center relative ${isCollapsed ? 'h-full' : ''}`}>
         {!isCollapsed && (
           <>

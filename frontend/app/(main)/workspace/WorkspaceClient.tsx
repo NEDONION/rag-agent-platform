@@ -191,7 +191,9 @@ export default function WorkspaceClient() {
       )}
 
       {/* 右侧聊天面板 */}
-      <div className="flex-1 flex">
+      {/* min-w-0：flex 项默认 min-width:auto，不会收缩到内容宽度以下，
+          窄屏时会把整个布局撑出横向滚动条。 */}
+      <div className="flex min-w-0 flex-1">
         {!selectedConversationId ? (
           <div className="flex-1 flex items-center justify-center bg-muted/40">
             {loadingAgents ? (
@@ -293,8 +295,8 @@ export default function WorkspaceClient() {
             )}
           </div>
         ) : (
-          <div className="flex-1 flex w-full h-full">
-            <div className="flex-1 flex flex-col">
+          <div className="flex min-w-0 flex-1 w-full h-full">
+            <div className="flex min-w-0 flex-1 flex-col">
               <ChatPanel 
                 conversationId={selectedConversationId}
                 isFunctionalAgent={isFunctionalAgent}

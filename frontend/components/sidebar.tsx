@@ -361,7 +361,7 @@ export function Sidebar() {
   ]
 
   return (
-      <div className="w-[220px] border-r border-border flex flex-col h-full bg-background">
+      <div className="w-[200px] border-r border-border flex flex-col h-full bg-background">
         <div className="flex-1 overflow-auto py-5 px-2.5">
           <div className="space-y-2">
             {sidebarItems.map((item, index) => (

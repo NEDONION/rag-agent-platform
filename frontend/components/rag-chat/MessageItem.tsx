@@ -27,13 +27,13 @@ export function MessageItem({
 }: MessageItemProps) {
   const isUser = message.role === "user";
 
-  // 用户消息：靠右的低饱和气泡。不用高饱和主色填充——一屏里往往有多条用户消息，
-  // 高饱和色块会持续抢走视线，而对话的主体是助手的回答。
+  // 用户消息：靠右的淡蓝气泡。用 accent 而非 muted——消息区地面本身就是
+  // muted 系，同色气泡会与地面糊在一起，看不出这是一条消息。
   if (isUser) {
     return (
       <div className="group flex justify-end">
         <div className="flex max-w-[85%] flex-col items-end gap-1">
-          <div className="rounded-2xl rounded-br-md bg-muted px-3.5 py-2 text-sm leading-[1.7] text-foreground">
+          <div className="rounded-2xl rounded-br-md bg-accent px-3.5 py-2 text-sm leading-[1.7] text-accent-foreground">
             <div className="whitespace-pre-wrap">{message.content}</div>
           </div>
           <time className="px-1 text-[11px] tabular-nums text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
@@ -69,8 +69,9 @@ export function MessageItem({
         <Bot className="h-3.5 w-3.5 text-primary" />
       </div>
 
-      {/* 助手内容不套气泡：一条回答可能很长，外层边框会把它压成一个「块」，
-          反而削弱内部的标题、列表、表格所建立的层级。平铺 + 头像对齐即可界定归属。 */}
+      {/* 助手内容用白色卡片浮在淡蓝灰地面上。
+          此前是平铺无边框，配合同为白色的页面底，整个对话区糊成一片，
+          用户反馈「完全看不出这是对话窗口」。卡片内部的标题/列表/表格层级不受影响。 */}
       <div className="flex min-w-0 flex-1 flex-col gap-2 pt-0.5">
         {message.retrieval && (
           <RetrievalProcess
@@ -92,7 +93,7 @@ export function MessageItem({
         )}
 
         {message.content && (
-          <div className="react-markdown text-sm leading-[1.7] text-foreground/90">
+          <div className="react-markdown rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm leading-[1.7] text-foreground/90">
             <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
               {message.content}
             </ReactMarkdown>

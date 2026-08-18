@@ -663,10 +663,10 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
   };
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-background">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-muted/40">
       <div 
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto px-4 py-6"
+        className="flex-1 overflow-y-auto px-6 py-5"
       >
         {loading ? (
           // 加载状态
@@ -677,9 +677,10 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
             </div>
           </div>
         ) : (
-          // 主流 chatbot 都把内容收在一条居中的阅读列里（约 48rem）。
-          // 铺满宽屏会让一行超过 100 字，眼睛回扫困难。
-          <div className="mx-auto w-full max-w-3xl space-y-4">
+          // 主流 chatbot 都把内容收在一条居中的阅读列里。铺满宽屏会让一行
+          // 超过 100 字，眼睛回扫困难；但固定 48rem 在窄屏下又会左右挤没。
+          // 用 min() 让它在宽屏取 48rem、窄屏取容器宽度。
+          <div className="mx-auto w-[min(48rem,100%)] space-y-4">
             {error && (
               <div className="rounded-lg border border-destructive/30 p-3 text-sm text-destructive">
                 {error}
@@ -708,7 +709,7 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
                           
                           {/* 消息内容 */}
                           {message.content && (
-                            <div className="rounded-2xl rounded-br-md bg-muted px-3.5 py-2 text-sm leading-[1.7] text-foreground">
+                            <div className="rounded-2xl rounded-br-md bg-accent px-3.5 py-2 text-sm leading-[1.7] text-accent-foreground">
                               {message.content}
                             </div>
                           )}
@@ -762,9 +763,10 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
                             </div>
                           )}
 
-                          {/* 消息内容 */}
+                          {/* 消息内容：白色卡片浮在淡蓝灰地面上。
+                              纯文本平铺在同色背景上时，看不出「哪里是对话区」。 */}
                           {message.content && (
-                            <div className="rounded-lg">
+                            <div className="rounded-xl border border-border bg-card px-3.5 py-2.5">
                               <MessageMarkdown showCopyButton={true}
                                 content={message.content}
                                 isStreaming={message.isStreaming}
@@ -820,7 +822,7 @@ export function ChatPanel({ conversationId, isFunctionalAgent = false, agentName
 
       {/* 输入框 */}
       <div className="border-t border-border bg-card px-4 py-3">
-        <div className="mx-auto w-full max-w-3xl">
+        <div className="mx-auto w-[min(48rem,100%)]">
         {/* 已上传文件显示区域 - 在输入框上方 */}
         {uploadedFiles.length > 0 && (
           <div className="mb-2 px-2">
