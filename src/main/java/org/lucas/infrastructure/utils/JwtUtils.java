@@ -10,7 +10,18 @@ import javax.crypto.SecretKey;
 
 public class JwtUtils {
 
-    private static String jwtSecret = "5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437";
+    // JWT signing key is read from an environment variable; startup fails if it is
+    // missing, so the application never falls back to a predictable hard-coded key.
+    // Generate a strong Base64 value, e.g.: openssl rand -base64 48
+    private static final String jwtSecret = resolveSecret();
+
+    private static String resolveSecret() {
+        String secret = System.getenv("JWT_SECRET");
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("JWT_SECRET environment variable must be set");
+        }
+        return secret;
+    }
 
     // token过期时间 - 24小时
     private static final long EXPIRATION_TIME = 24 * 60 * 60 * 1000;
